@@ -177,6 +177,18 @@ Successfully implemented a comprehensive design token system across all CSS file
 - **Solution**: Implemented comprehensive settings system with feature toggles
 - **Lesson**: Plan for feature flags/toggles early to accommodate different user needs
 
+### **Edit Session Event Handler Issues (FIXED)**
+- **Problem**: Edit session buttons stopped working after re-rendering timeline
+- **Root Cause**: Inline `onclick` handlers were fragile during asynchronous DOM updates
+- **Solution**: Replaced with proper event delegation using `addEventListener` and `data-session-id` attributes
+- **Lesson**: Use event delegation for dynamically generated content instead of inline handlers
+
+### **Goals Section Display Issues (FIXED)**
+- **Problem**: "undefined" text appearing and time values wrapping to multiple lines
+- **Root Cause**: Incorrect usage of `getGoalsSummary()` returning array instead of string, and inadequate CSS for goal status layout
+- **Solution**: Removed unused `goalsSummary` variable and improved CSS with `white-space: nowrap` and proper flexbox layout
+- **Lesson**: Always validate function return types and use appropriate CSS for preventing text wrapping in UI elements
+
 ---
 
 ## 🏗️ **Architectural Patterns**

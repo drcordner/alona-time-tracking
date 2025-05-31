@@ -328,7 +328,7 @@ export class UXEnhancements {
                         <div class="help-section version-info">
                             <div class="version-badge">
                                 <span class="version-label">Version</span>
-                                <span class="version-number">5.1.0 - UX Polish</span>
+                                <span class="version-number">5.1.2 - Bug Fixes</span>
                             </div>
                         </div>
                     </div>

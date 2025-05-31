@@ -25,25 +25,15 @@ export class Management {
         
         if (stored) {
             this.settings = stored;
-            // Migration: Update version if it's outdated
-            if (!this.settings.version || this.settings.version === "1.0") {
-                this.settings.version = "5.1.0 - UX Polish";
+            // Check for version updates and migrate if needed
+            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish") {
+                this.settings.version = "5.1.2 - Bug Fixes";
                 this.saveSettings();
-                console.log('Management: Updated version to 5.1.0 - UX Polish');
+                console.log('Management: Updated version to 5.1.2 - Bug Fixes');
             }
         } else {
             // Default settings
-            this.settings = {
-                darkMode: false,
-                notifications: true,
-                sessionRetentionDays: 60,
-                goalsEnabled: true,
-                autoBackup: false,
-                soundEnabled: true,
-                compactMode: false,
-                showSeconds: true,
-                version: "5.1.0 - UX Polish"
-            };
+            this.settings = this.getDefaultSettings();
             this.saveSettings();
         }
         
@@ -1007,5 +997,13 @@ export class Management {
         document.getElementById('modal-container').innerHTML = '';
         this.editingCategory = null;
         this.editingActivity = null;
+    }
+
+    getDefaultSettings() {
+        return {
+            appTitle: "Alona's Activity Tracker",
+            goalsEnabled: true,
+            version: "5.1.2 - Bug Fixes"
+        };
     }
 } 

@@ -1849,30 +1849,35 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    gap: 12px;
+    min-width: 0;
 }
 
 .goal-category {
     font-weight: 500;
-    color: var(--text-primary);
-    font-size: 0.9em;
+    color: #2c3e50;
+    font-size: 0.95em;
+    flex-shrink: 0;
 }
 
 .goal-status {
-    font-size: 0.8em;
-    font-weight: 500;
-    padding: 4px 8px;
-    border-radius: 12px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex-shrink: 1;
 }
 
 .goal-status.achieved {
-    background: #e8f5e8;
-    color: #388e3c;
+    color: #27ae60;
 }
 
 .goal-status.in-progress {
-    background: #fff3e0;
-    color: #f57c00;
+    color: #f39c12;
 }
 
 .goal-progress-bar {

@@ -1052,8 +1052,6 @@ export class Reports {
             return '';
         }
 
-        const goalsSummary = this.getGoalsSummary ? this.getGoalsSummary() : '';
-        
         // Add goals progress for current report period
         const goalsProgress = this.calculateGoalsProgress();
         
@@ -1061,7 +1059,6 @@ export class Reports {
             <div class="goals-section">
                 <h3>🎯 Goals Progress</h3>
                 ${goalsProgress}
-                ${goalsSummary}
             </div>
         `;
     }
