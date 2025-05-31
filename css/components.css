@@ -1846,30 +1846,20 @@
 }
 
 .goal-header {
-    display: flex;
-    justify-content: space-between;
+    flex-direction: row;
     align-items: center;
-    margin-bottom: 12px;
-    gap: 12px;
-    min-width: 0;
+    justify-content: space-between;
+    gap: 6px;
 }
 
 .goal-category {
-    font-weight: 500;
-    color: #2c3e50;
-    font-size: 0.95em;
-    flex-shrink: 0;
+    font-size: 0.85em;
+    max-width: 55%;
 }
 
 .goal-status {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 0.9em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
-    flex-shrink: 1;
+    font-size: 0.65em;
+    max-width: 45%;
 }
 
 .goal-status.achieved {
@@ -2595,5 +2585,156 @@
             transform: translateY(0);
             opacity: 1;
         }
+    }
+}
+
+/* Ultra-Compact Stats Section - Single Row Layout */
+.stats-section-ultra-compact {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 0 4px;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.stats-section-ultra-compact::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.stat-card-mini {
+    flex: 1;
+    min-width: 110px;
+    max-width: 140px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: 1px solid #f0f0f0;
+}
+
+.stat-card-mini:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+}
+
+.stat-mini-content {
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+}
+
+.stat-mini-icon {
+    font-size: 1.6em;
+    line-height: 1;
+}
+
+.stat-mini-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.stat-mini-value {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.stat-mini-label {
+    font-size: 0.75em;
+    color: var(--text-secondary);
+    font-weight: 500;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Color variants for mini cards */
+.stat-card-mini.primary {
+    border-left: 4px solid #1976d2;
+}
+
+.stat-card-mini.primary .stat-mini-icon {
+    color: #1976d2;
+}
+
+.stat-card-mini.success {
+    border-left: 4px solid #388e3c;
+}
+
+.stat-card-mini.success .stat-mini-icon {
+    color: #388e3c;
+}
+
+.stat-card-mini.info {
+    border-left: 4px solid #00796b;
+}
+
+.stat-card-mini.info .stat-mini-icon {
+    color: #00796b;
+}
+
+.stat-card-mini.warning {
+    border-left: 4px solid #f57c00;
+}
+
+.stat-card-mini.warning .stat-mini-icon {
+    color: #f57c00;
+}
+
+.stat-card-mini.empty {
+    flex: 1;
+    border-left: 4px solid #bdc3c7;
+}
+
+.stat-card-mini.empty .stat-mini-content {
+    padding: 14px;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.stat-card-mini.empty .stat-mini-text {
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Mobile responsiveness for ultra-compact */
+@media (max-width: 480px) {
+    .stats-section-ultra-compact {
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+    
+    .stat-card-mini {
+        min-width: 85px;
+        max-width: 115px;
+    }
+    
+    .stat-mini-content {
+        padding: 10px 8px;
+        gap: 6px;
+    }
+    
+    .stat-mini-icon {
+        font-size: 1.4em;
+    }
+    
+    .stat-mini-value {
+        font-size: 0.8em;
+    }
+    
+    .stat-mini-label {
+        font-size: 0.7em;
     }
 } 

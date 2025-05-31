@@ -85,7 +85,7 @@
                     </div>
                     <div style="text-align: center;">
                         <button class="pause-button" id="pause-button" onclick="togglePause()">Pause</button>
-                        <button class="stop-button" onclick="stopTimer()">Stop</button>
+                    <button class="stop-button" onclick="stopTimer()">Stop</button>
                     </div>
                 </div>
             </div>
@@ -100,12 +100,12 @@
             </div>
             
             <div class="reports-header">
-                <div class="date-nav">
-                    <button onclick="navigateDate(-1)">‹‹ Prev</button>
-                    <span class="current-date" id="current-report-date"></span>
-                    <button onclick="navigateDate(1)">Next ››</button>
+                    <div class="date-nav">
+                        <button onclick="navigateDate(-1)">‹‹ Prev</button>
+                        <span class="current-date" id="current-report-date"></span>
+                        <button onclick="navigateDate(1)">Next ››</button>
+                    </div>
                 </div>
-            </div>
             
             <!-- Goals Summary will be inserted here by JavaScript -->
             <div id="goals-summary-container"></div>
@@ -164,4 +164,4 @@
     <!-- JavaScript Imports -->
     <script type="module" src="js/app.js"></script>
 </body>
-</html> 
+</html>

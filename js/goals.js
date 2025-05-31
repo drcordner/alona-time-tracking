@@ -8,6 +8,7 @@ export class Goals {
         this.getSetting = getSetting; // Function to get setting values
         this.goals = {};
         this.achievements = [];
+        this.saveTimeout = null;
     }
 
     // Check if goals are enabled in settings
@@ -425,10 +426,6 @@ export class Goals {
         const currentTarget = goal ? Math.floor(goal.target / 60) : 0; // Convert to minutes
         const progress = goal ? this.calculateProgress(categoryName, period) : null;
         
-        // Add event handlers for auto-calculation if this is a daily goal
-        const eventHandlers = period === 'daily' ? 
-            `onchange="goals.handleDailyGoalChange('${categoryName}')"` : '';
-        
         return `
             <div class="goal-period-setting">
                 <div class="goal-period-header">
@@ -442,11 +439,10 @@ export class Goals {
                            min="0" 
                            max="1440"
                            placeholder="0"
-                           ${eventHandlers}>
+                           onchange="goals.autoSaveGoal('${categoryName}', '${period}', this)"
+                           oninput="goals.showSavingIndicator(this)">
                     <span class="goal-unit">minutes</span>
-                    <button class="btn-small" onclick="goals.saveGoal('${categoryName}', '${period}')">
-                        ${goal ? 'Update' : 'Set'}
-                    </button>
+                    <span class="goal-save-status" id="status-${categoryName}-${period}"></span>
                 </div>
                 ${goal && goal.streak > 0 ? `<div class="goal-streak-display">🔥 ${goal.streak} ${period.replace('ly', '')} streak</div>` : ''}
             </div>
@@ -489,32 +485,73 @@ export class Goals {
         }
     }
 
-    // Save a goal from the modal
-    saveGoal(categoryName, period) {
-        const inputId = `goal-${categoryName}-${period}`;
-        const input = document.getElementById(inputId);
-        const minutes = parseInt(input.value) || 0;
+    // Auto-save goal when changed (replaces manual save buttons)
+    autoSaveGoal(categoryName, period, inputElement) {
+        const minutes = parseInt(inputElement.value) || 0;
+        const statusElement = document.getElementById(`status-${categoryName}-${period}`);
         
-        if (minutes <= 0) {
-            // Remove goal if set to 0
-            if (this.goals[categoryName]) {
-                delete this.goals[categoryName][period];
-                if (Object.keys(this.goals[categoryName]).length === 0) {
-                    delete this.goals[categoryName];
+        // Show saving indicator
+        statusElement.innerHTML = `<span class="goal-saving">💾 Saving...</span>`;
+        statusElement.className = 'goal-save-status saving';
+        
+        // Debounce save to prevent too many calls
+        clearTimeout(this.saveTimeout);
+        this.saveTimeout = setTimeout(() => {
+            try {
+                if (minutes <= 0) {
+                    // Remove goal if set to 0
+                    if (this.goals[categoryName]) {
+                        delete this.goals[categoryName][period];
+                        if (Object.keys(this.goals[categoryName]).length === 0) {
+                            delete this.goals[categoryName];
+                        }
+                    }
+                } else {
+                    // Set goal (convert minutes to seconds)
+                    this.setGoal(categoryName, period, minutes * 60);
                 }
+                
+                this.saveGoals();
+                
+                // Show success indicator
+                statusElement.innerHTML = `<span class="goal-saved">✓ Saved</span>`;
+                statusElement.className = 'goal-save-status saved';
+                
+                // Hide success indicator after 2 seconds
+                setTimeout(() => {
+                    statusElement.innerHTML = '';
+                    statusElement.className = 'goal-save-status';
+                }, 2000);
+                
+                // Trigger goal calculation for daily goals
+                if (period === 'daily') {
+                    this.handleDailyGoalChange(categoryName);
+                }
+                
+                // Refresh other parts of the UI if needed
+                if (window.app?.renderGoalsUI) {
+                    window.app.renderGoalsUI();
+                }
+                
+            } catch (error) {
+                console.error('Error auto-saving goal:', error);
+                statusElement.innerHTML = `<span class="goal-error">⚠️ Error</span>`;
+                statusElement.className = 'goal-save-status error';
             }
-        } else {
-            // Set goal (convert minutes to seconds)
-            this.setGoal(categoryName, period, minutes * 60);
+        }, 500); // 500ms debounce
+    }
+    
+    // Show saving indicator while typing
+    showSavingIndicator(inputElement) {
+        const categoryPeriod = inputElement.id.replace('goal-', '').split('-');
+        const categoryName = categoryPeriod.slice(0, -1).join('-');
+        const period = categoryPeriod[categoryPeriod.length - 1];
+        const statusElement = document.getElementById(`status-${categoryName}-${period}`);
+        
+        if (statusElement) {
+            statusElement.innerHTML = `<span class="goal-typing">✏️</span>`;
+            statusElement.className = 'goal-save-status typing';
         }
-        
-        this.saveGoals();
-        
-        // Refresh the modal
-        this.showGoalsModal();
-        
-        // Show success message
-        this.showToast(`${period.charAt(0).toUpperCase() + period.slice(1)} goal ${minutes > 0 ? 'set' : 'removed'} for ${categoryName}`);
     }
 
     // Show toast notification

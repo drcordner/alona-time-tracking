@@ -10,6 +10,10 @@ export class Management {
         this.collapsedCategories = new Set(); // Track collapsed categories
         this.currentTab = 'categories'; // Track active tab
         this.settings = null; // App settings
+        this.goalSaveTimeout = null;
+        
+        // Load settings
+        this.loadSettings();
     }
 
     // Initialize management with custom or default categories and settings
@@ -695,17 +699,16 @@ export class Management {
         ).join('');
     }
 
-    // Render goals section for category modal
+    // Render goals section within category modal (inline goals)
     renderGoalsSection(categoryName, currentGoals) {
         const dailyGoal = currentGoals.daily ? Math.floor(currentGoals.daily.target / 60) : 0;
         const weeklyGoal = currentGoals.weekly ? Math.floor(currentGoals.weekly.target / 60) : 0;
         const monthlyGoal = currentGoals.monthly ? Math.floor(currentGoals.monthly.target / 60) : 0;
         
-        // Get current progress if goals exist
-        const dailyProgress = currentGoals.daily && window.app.goals ? window.app.goals.calculateProgress(categoryName, 'daily') : null;
-        const weeklyProgress = currentGoals.weekly && window.app.goals ? window.app.goals.calculateProgress(categoryName, 'weekly') : null;
-        const monthlyProgress = currentGoals.monthly && window.app.goals ? window.app.goals.calculateProgress(categoryName, 'monthly') : null;
-        
+        const dailyProgress = currentGoals.daily ? window.app.goals.calculateProgress(categoryName, 'daily') : null;
+        const weeklyProgress = currentGoals.weekly ? window.app.goals.calculateProgress(categoryName, 'weekly') : null;
+        const monthlyProgress = currentGoals.monthly ? window.app.goals.calculateProgress(categoryName, 'monthly') : null;
+
         return `
             <div class="form-section">
                 <h4>🎯 Time Goals</h4>
@@ -716,9 +719,16 @@ export class Management {
                         <label>Daily Goal</label>
                         ${dailyProgress ? `<span class="goal-progress-hint">${Math.round(dailyProgress.percentage)}% today</span>` : ''}
                         <div class="goal-input-group">
-                            <input type="number" id="daily-goal" value="${dailyGoal}" min="0" max="1440" placeholder="0" 
-                                   onchange="management.handleDailyGoalChange()">
+                            <input type="number" 
+                                   id="daily-goal" 
+                                   value="${dailyGoal}" 
+                                   min="0" 
+                                   max="1440" 
+                                   placeholder="0" 
+                                   onchange="management.autoSaveGoalInModal('${categoryName}', 'daily', this)"
+                                   oninput="management.showGoalSavingIndicator(this, 'daily')">
                             <span class="goal-unit">minutes</span>
+                            <span class="goal-save-status" id="daily-goal-status"></span>
                         </div>
                     </div>
                     
@@ -726,8 +736,16 @@ export class Management {
                         <label>Weekly Goal</label>
                         ${weeklyProgress ? `<span class="goal-progress-hint">${Math.round(weeklyProgress.percentage)}% this week</span>` : ''}
                         <div class="goal-input-group">
-                            <input type="number" id="weekly-goal" value="${weeklyGoal}" min="0" max="10080" placeholder="0">
+                            <input type="number" 
+                                   id="weekly-goal" 
+                                   value="${weeklyGoal}" 
+                                   min="0" 
+                                   max="10080" 
+                                   placeholder="0"
+                                   onchange="management.autoSaveGoalInModal('${categoryName}', 'weekly', this)"
+                                   oninput="management.showGoalSavingIndicator(this, 'weekly')">
                             <span class="goal-unit">minutes</span>
+                            <span class="goal-save-status" id="weekly-goal-status"></span>
                         </div>
                     </div>
                     
@@ -735,48 +753,25 @@ export class Management {
                         <label>Monthly Goal</label>
                         ${monthlyProgress ? `<span class="goal-progress-hint">${Math.round(monthlyProgress.percentage)}% this month</span>` : ''}
                         <div class="goal-input-group">
-                            <input type="number" id="monthly-goal" value="${monthlyGoal}" min="0" max="43800" placeholder="0">
+                            <input type="number" 
+                                   id="monthly-goal" 
+                                   value="${monthlyGoal}" 
+                                   min="0" 
+                                   max="43200" 
+                                   placeholder="0"
+                                   onchange="management.autoSaveGoalInModal('${categoryName}', 'monthly', this)"
+                                   oninput="management.showGoalSavingIndicator(this, 'monthly')">
                             <span class="goal-unit">minutes</span>
+                            <span class="goal-save-status" id="monthly-goal-status"></span>
                         </div>
                     </div>
                 </div>
                 
-                <p class="goal-hint">💡 Set goals to 0 to remove them. Setting a daily goal will auto-calculate weekly (×7) and monthly (×30) suggestions.</p>
+                <div class="goal-hint">
+                    💡 Goals auto-save as you type. Set to 0 to remove a goal.
+                </div>
             </div>
         `;
-    }
-
-    // Handle daily goal change to auto-calculate weekly/monthly
-    handleDailyGoalChange() {
-        const dailyInput = document.getElementById('daily-goal');
-        const weeklyInput = document.getElementById('weekly-goal');
-        const monthlyInput = document.getElementById('monthly-goal');
-        
-        if (!dailyInput || !weeklyInput || !monthlyInput) return;
-        
-        const dailyValue = parseInt(dailyInput.value) || 0;
-        
-        // Only auto-calculate if weekly and monthly are currently 0 or empty
-        const currentWeekly = parseInt(weeklyInput.value) || 0;
-        const currentMonthly = parseInt(monthlyInput.value) || 0;
-        
-        if (dailyValue > 0 && currentWeekly === 0 && currentMonthly === 0) {
-            // Auto-calculate weekly (daily * 7) and monthly (daily * 30)
-            const suggestedWeekly = dailyValue * 7;
-            const suggestedMonthly = dailyValue * 30;
-            
-            weeklyInput.value = suggestedWeekly;
-            monthlyInput.value = suggestedMonthly;
-            
-            // Add a subtle animation to show the auto-calculation
-            weeklyInput.style.background = '#e8f5e8';
-            monthlyInput.style.background = '#e8f5e8';
-            
-            setTimeout(() => {
-                weeklyInput.style.background = '';
-                monthlyInput.style.background = '';
-            }, 1500);
-        }
     }
 
     // Select color preset
@@ -807,67 +802,129 @@ export class Management {
             this.addCategory(name, color, emoji);
         } else {
             this.updateCategory(this.editingCategory, name, color, emoji);
-            
-            // Save goals if editing (goals section only appears when editing)
-            this.saveGoalsFromForm(name);
         }
         
-        this.closeModal();
-        this.renderManagementScreen();
+        // Save the category to data
+        const success = this.storage.saveCategory(name, this.getCategories()[name]);
         
-        // Refresh home screen goals if currently visible
-        if (window.app && window.app.currentScreen === 'home') {
-            window.app.renderGoalsSection();
+        if (success) {
+            // Goals are now auto-saved individually, no need to save from form
+            this.showToast(`Category ${mode === 'edit' ? 'updated' : 'created'} successfully!`, 'success');
+            this.closeModal();
+            this.renderTab(); // Refresh the current tab
+        } else {
+            this.showToast('Failed to save category', 'error');
         }
     }
 
-    // Save goals from the category form
-    saveGoalsFromForm(categoryName) {
+    // Auto-save goal from category modal
+    autoSaveGoalInModal(categoryName, period, inputElement) {
         // Only save goals if the feature is enabled
         if (!window.app.goals || !this.getSetting('goalsEnabled')) return;
         
-        const dailyGoal = parseInt(document.getElementById('daily-goal')?.value) || 0;
-        const weeklyGoal = parseInt(document.getElementById('weekly-goal')?.value) || 0;
-        const monthlyGoal = parseInt(document.getElementById('monthly-goal')?.value) || 0;
+        const minutes = parseInt(inputElement.value) || 0;
+        const statusElement = document.getElementById(`${period}-goal-status`);
         
-        // Save or remove goals based on values
-        if (dailyGoal > 0) {
-            window.app.goals.setGoal(categoryName, 'daily', dailyGoal * 60); // Convert to seconds
-        } else {
-            // Remove daily goal
-            if (window.app.goals.goals[categoryName]) {
-                delete window.app.goals.goals[categoryName].daily;
-                if (Object.keys(window.app.goals.goals[categoryName]).length === 0) {
-                    delete window.app.goals.goals[categoryName];
-                }
-            }
+        // Show saving indicator
+        if (statusElement) {
+            statusElement.innerHTML = `<span class="goal-saving">💾</span>`;
+            statusElement.className = 'goal-save-status saving';
         }
         
-        if (weeklyGoal > 0) {
-            window.app.goals.setGoal(categoryName, 'weekly', weeklyGoal * 60);
-        } else {
-            // Remove weekly goal
-            if (window.app.goals.goals[categoryName]) {
-                delete window.app.goals.goals[categoryName].weekly;
-                if (Object.keys(window.app.goals.goals[categoryName]).length === 0) {
-                    delete window.app.goals.goals[categoryName];
+        // Debounce save to prevent too many calls
+        clearTimeout(this.goalSaveTimeout);
+        this.goalSaveTimeout = setTimeout(() => {
+            try {
+                if (minutes > 0) {
+                    window.app.goals.setGoal(categoryName, period, minutes * 60); // Convert to seconds
+                } else {
+                    // Remove goal
+                    if (window.app.goals.goals[categoryName]) {
+                        delete window.app.goals.goals[categoryName][period];
+                        if (Object.keys(window.app.goals.goals[categoryName]).length === 0) {
+                            delete window.app.goals.goals[categoryName];
+                        }
+                    }
+                }
+                
+                window.app.goals.saveGoals();
+                
+                // Show success indicator
+                if (statusElement) {
+                    statusElement.innerHTML = `<span class="goal-saved">✓</span>`;
+                    statusElement.className = 'goal-save-status saved';
+                    
+                    // Hide success indicator after 2 seconds
+                    setTimeout(() => {
+                        statusElement.innerHTML = '';
+                        statusElement.className = 'goal-save-status';
+                    }, 2000);
+                }
+                
+                // Trigger goal calculation for daily goals
+                if (period === 'daily') {
+                    this.handleDailyGoalAutoCalculation(inputElement);
+                }
+                
+                // Refresh goals UI if needed
+                if (window.app?.renderGoalsUI) {
+                    window.app.renderGoalsUI();
+                }
+                
+            } catch (error) {
+                console.error('Error auto-saving goal in modal:', error);
+                if (statusElement) {
+                    statusElement.innerHTML = `<span class="goal-error">⚠️</span>`;
+                    statusElement.className = 'goal-save-status error';
                 }
             }
+        }, 500); // 500ms debounce
+    }
+    
+    // Show saving indicator while typing
+    showGoalSavingIndicator(inputElement, period) {
+        const statusElement = document.getElementById(`${period}-goal-status`);
+        if (statusElement) {
+            statusElement.innerHTML = `<span class="goal-typing">✏️</span>`;
+            statusElement.className = 'goal-save-status typing';
         }
+    }
+    
+    // Handle daily goal auto-calculation (optional feature)
+    handleDailyGoalAutoCalculation(dailyInput) {
+        const weeklyInput = document.getElementById('weekly-goal');
+        const monthlyInput = document.getElementById('monthly-goal');
         
-        if (monthlyGoal > 0) {
-            window.app.goals.setGoal(categoryName, 'monthly', monthlyGoal * 60);
-        } else {
-            // Remove monthly goal
-            if (window.app.goals.goals[categoryName]) {
-                delete window.app.goals.goals[categoryName].monthly;
-                if (Object.keys(window.app.goals.goals[categoryName]).length === 0) {
-                    delete window.app.goals.goals[categoryName];
-                }
+        if (!weeklyInput || !monthlyInput) return;
+        
+        const dailyValue = parseInt(dailyInput.value) || 0;
+        const currentWeekly = parseInt(weeklyInput.value) || 0;
+        const currentMonthly = parseInt(monthlyInput.value) || 0;
+        
+        // Only auto-calculate if weekly and monthly are currently 0 and daily > 0
+        if (dailyValue > 0 && currentWeekly === 0 && currentMonthly === 0) {
+            const suggestedWeekly = dailyValue * 7;
+            const suggestedMonthly = dailyValue * 30;
+            
+            weeklyInput.value = suggestedWeekly;
+            monthlyInput.value = suggestedMonthly;
+            
+            // Auto-save the calculated values
+            if (window.app.goals) {
+                window.app.goals.setGoal(this.editingCategory || 'Unknown', 'weekly', suggestedWeekly * 60);
+                window.app.goals.setGoal(this.editingCategory || 'Unknown', 'monthly', suggestedMonthly * 60);
+                window.app.goals.saveGoals();
             }
+            
+            // Visual feedback
+            weeklyInput.style.background = '#e8f5e8';
+            monthlyInput.style.background = '#e8f5e8';
+            
+            setTimeout(() => {
+                weeklyInput.style.background = '';
+                monthlyInput.style.background = '';
+            }, 1500);
         }
-        
-        window.app.goals.saveGoals();
     }
 
     // Add new category

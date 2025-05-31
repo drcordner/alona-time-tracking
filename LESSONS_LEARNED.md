@@ -189,6 +189,16 @@ Successfully implemented a comprehensive design token system across all CSS file
 - **Solution**: Removed unused `goalsSummary` variable and improved CSS with `white-space: nowrap` and proper flexbox layout
 - **Lesson**: Always validate function return types and use appropriate CSS for preventing text wrapping in UI elements
 
+### **Enhanced Session Editing UX (v5.1.2)**
+- **Enhancement**: Made duration field editable in session edit modal
+- **User Need**: Users want to quickly set session duration in minutes rather than calculating end times
+- **Implementation**: 
+  - Duration field now automatically updates end time when changed
+  - Added visual highlighting to show the field is interactive
+  - Preserved bidirectional sync (changing start/end still updates duration)
+  - Added validation to warn if duration and time range don't match
+- **UX Lesson**: Prioritize the most common user workflow - editing duration is more intuitive than calculating end times
+
 ---
 
 ## 🏗️ **Architectural Patterns**

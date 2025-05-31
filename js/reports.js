@@ -861,11 +861,12 @@ export class Reports {
     renderCompactStatsCards() {
         if (this.totalTime === 0) {
             return `
-                <div class="stat-card empty">
-                    <div class="stat-icon">📊</div>
-                    <div class="stat-content">
-                        <h3>No Activity</h3>
-                        <p>No time recorded for this ${this.reportView}</p>
+                <div class="stats-section-ultra-compact">
+                    <div class="stat-card-mini empty">
+                        <div class="stat-mini-content">
+                            <span class="stat-mini-icon">📊</span>
+                            <span class="stat-mini-text">No activity recorded</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -884,35 +885,45 @@ export class Reports {
                              this.reportView === 'week' ? Math.floor(this.totalTime / 7) : this.totalTime;
 
         return `
-            <div class="stat-card primary">
-                <div class="stat-icon">⏱️</div>
-                <div class="stat-content">
-                    <h3>${formatTime(this.totalTime)}</h3>
-                    <p>Total Time</p>
+            <div class="stats-section-ultra-compact">
+                <div class="stat-card-mini primary">
+                    <div class="stat-mini-content">
+                        <span class="stat-mini-icon">⏱️</span>
+                        <div class="stat-mini-info">
+                            <div class="stat-mini-value">${formatTime(this.totalTime)}</div>
+                            <div class="stat-mini-label">Total</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="stat-card success">
-                <div class="stat-icon">${topCategory.emoji}</div>
-                <div class="stat-content">
-                    <h3>${topCategory.name}</h3>
-                    <p>Top Category (${formatTime(topCategory.time)})</p>
+                
+                <div class="stat-card-mini success">
+                    <div class="stat-mini-content">
+                        <span class="stat-mini-icon">${topCategory.emoji}</span>
+                        <div class="stat-mini-info">
+                            <div class="stat-mini-value">${topCategory.name.length > 8 ? topCategory.name.substring(0, 8) + '...' : topCategory.name}</div>
+                            <div class="stat-mini-label">Top</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="stat-card info">
-                <div class="stat-icon">📅</div>
-                <div class="stat-content">
-                    <h3>${formatTime(averagePerDay)}</h3>
-                    <p>Average per ${this.reportView === 'day' ? 'day' : 'day'}</p>
+                
+                <div class="stat-card-mini info">
+                    <div class="stat-mini-content">
+                        <span class="stat-mini-icon">📅</span>
+                        <div class="stat-mini-info">
+                            <div class="stat-mini-value">${formatTime(averagePerDay)}</div>
+                            <div class="stat-mini-label">Avg/Day</div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="stat-card warning">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-content">
-                    <h3>${categoryTotals.length}</h3>
-                    <p>Active Categories</p>
+                
+                <div class="stat-card-mini warning">
+                    <div class="stat-mini-content">
+                        <span class="stat-mini-icon">🎯</span>
+                        <div class="stat-mini-info">
+                            <div class="stat-mini-value">${categoryTotals.length}</div>
+                            <div class="stat-mini-label">Categories</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -1300,7 +1311,7 @@ export class Reports {
                                 <label for="session-duration">Duration (minutes)</label>
                                 <input type="number" id="session-duration" class="input-base" 
                                        value="${Math.round(session.duration / 60)}" min="1" required>
-                                <small class="form-hint">Calculated from start/end times, or set manually</small>
+                                <small class="form-hint">Edit duration to automatically adjust end time</small>
                             </div>
                             <div class="form-group">
                                 <label for="session-paused">Paused Time (minutes)</label>
@@ -1330,7 +1341,7 @@ export class Reports {
         const endInput = document.getElementById('session-end');
         const durationInput = document.getElementById('session-duration');
 
-        const calculateDuration = () => {
+        const calculateDurationFromTimes = () => {
             const start = new Date(startInput.value);
             const end = new Date(endInput.value);
             
@@ -1340,8 +1351,31 @@ export class Reports {
             }
         };
 
-        startInput.addEventListener('change', calculateDuration);
-        endInput.addEventListener('change', calculateDuration);
+        const calculateEndTimeFromDuration = () => {
+            const start = new Date(startInput.value);
+            const durationMinutes = parseInt(durationInput.value);
+            
+            if (start && durationMinutes > 0) {
+                const end = new Date(start.getTime() + (durationMinutes * 60 * 1000));
+                
+                // Format for datetime-local input
+                const year = end.getFullYear();
+                const month = String(end.getMonth() + 1).padStart(2, '0');
+                const day = String(end.getDate()).padStart(2, '0');
+                const hours = String(end.getHours()).padStart(2, '0');
+                const minutes = String(end.getMinutes()).padStart(2, '0');
+                
+                endInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        };
+
+        // When start or end time changes, update duration
+        startInput.addEventListener('change', calculateDurationFromTimes);
+        endInput.addEventListener('change', calculateDurationFromTimes);
+        
+        // When duration changes, update end time
+        durationInput.addEventListener('input', calculateEndTimeFromDuration);
+        durationInput.addEventListener('change', calculateEndTimeFromDuration);
     }
 
     updateActivityOptions() {
@@ -1379,12 +1413,22 @@ export class Reports {
             return;
         }
 
+        // Calculate expected end time from start + duration to verify consistency
+        const expectedEndTime = startTime + (durationMinutes * 60 * 1000);
+        const timeDifference = Math.abs(endTime - expectedEndTime);
+        
+        // If there's more than a 1-minute discrepancy, warn the user but allow it
+        if (timeDifference > 60000) { // 60 seconds
+            const proceed = confirm('The duration and time range don\'t match exactly. Do you want to proceed with the duration you entered?');
+            if (!proceed) return;
+        }
+
         const updates = {
             category,
             activity,
             startTime,
             endTime,
-            duration: durationMinutes * 60, // convert to seconds
+            duration: durationMinutes * 60, // convert to seconds - use the user-entered duration
             pausedTime: pausedMinutes * 60  // convert to seconds
         };
 
