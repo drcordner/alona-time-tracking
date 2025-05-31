@@ -156,7 +156,7 @@
 
 .quick-start-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-md);
 }
 
@@ -2736,5 +2736,13 @@
     
     .stat-mini-label {
         font-size: 0.7em;
+    }
+}
+
+/* Mobile responsive: 2 columns on smaller screens */
+@media (max-width: 480px) {
+    .quick-start-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-sm);
     }
 } 

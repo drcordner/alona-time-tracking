@@ -17,10 +17,14 @@ class TimeTrackerApp {
         // Initialize modules
         this.storage = new Storage(this.sandbox);
         this.management = new Management(this.storage);
-        this.goals = new Goals(this.storage, () => this.getCategories(), (key) => this.management.getSetting(key));
-        this.quickStart = new QuickStart(this.storage, () => this.getCategories());
+        this.goals = new Goals(this.storage, () => this.management.getCategories());
+        this.quickStart = new QuickStart(
+            this.storage, 
+            () => this.management.getCategories(),
+            (key) => this.management.getSetting(key)
+        );
         this.reports = new Reports(this.storage, () => this.getCategories(), () => this.renderGoalsSummary());
-        this.timer = new Timer(this.storage, this.showScreen.bind(this), this.updateTimerStatus.bind(this), this.onTimerStop.bind(this));
+        this.timer = new Timer(this.storage, this.showScreen.bind(this), this.updateTimerStatus.bind(this));
         
         // Initialize UX enhancements last (after all other modules)
         this.ux = null; // Will be initialized in init()
@@ -158,6 +162,12 @@ class TimeTrackerApp {
                 deferredPrompt = null;
             }
         };
+
+        // Make globally available for components
+        window.activityEmojis = activityEmojis;
+        
+        // Load custom activity emojis
+        this.loadCustomActivityEmojis();
     }
 
     // Refresh manifest cache to fix "undefined" app name issue
@@ -377,6 +387,21 @@ class TimeTrackerApp {
         //         .catch(err => console.log('Service Worker registration failed:', err));
         // }
         console.log('Service Worker registration disabled for compatibility');
+    }
+
+    // Load custom activity emojis
+    loadCustomActivityEmojis() {
+        try {
+            const stored = localStorage.getItem('customActivityEmojis');
+            if (stored) {
+                const customEmojis = JSON.parse(stored);
+                // Merge custom emojis with defaults
+                Object.assign(window.activityEmojis, customEmojis);
+                console.log('Custom activity emojis loaded:', Object.keys(customEmojis).length);
+            }
+        } catch (error) {
+            console.error('Error loading custom activity emojis:', error);
+        }
     }
 }
 

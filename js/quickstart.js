@@ -2,9 +2,10 @@
 import { activityEmojis } from './data.js';
 
 export class QuickStart {
-    constructor(storage, getCategories) {
+    constructor(storage, getCategories, getSetting) {
         this.storage = storage;
         this.getCategories = getCategories;
+        this.getSetting = getSetting; // Function to get setting values
     }
 
     renderQuickStart(startActivityCallback) {
@@ -44,6 +45,9 @@ export class QuickStart {
         const now = Date.now();
         const oneWeekAgo = now - (7 * 24 * 60 * 60 * 1000);
         
+        // Get configurable count from settings (default to 6)
+        const quickStartCount = this.getSetting ? (this.getSetting('quickStartCount') || 6) : 6;
+        
         const scores = [];
         const categories = this.getCategories();
         
@@ -75,9 +79,9 @@ export class QuickStart {
             scores.push({ category, activity, score });
         });
         
-        // Sort by score and take top 4
+        // Sort by score and take configured count
         return scores
             .sort((a, b) => b.score - a.score)
-            .slice(0, 4);
+            .slice(0, quickStartCount);
     }
 } 

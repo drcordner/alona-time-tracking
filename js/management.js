@@ -30,10 +30,10 @@ export class Management {
         if (stored) {
             this.settings = stored;
             // Check for version updates and migrate if needed
-            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish") {
-                this.settings.version = "5.1.2 - Bug Fixes";
+            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes") {
+                this.settings.version = "5.1.3 - Bug Fixes & Enhancements";
                 this.saveSettings();
-                console.log('Management: Updated version to 5.1.2 - Bug Fixes');
+                console.log('Management: Updated version to 5.1.3 - Bug Fixes & Enhancements');
             }
         } else {
             // Default settings
@@ -223,6 +223,18 @@ export class Management {
                                    class="input-base input-medium">
                             <p class="setting-description">Customize the title shown in the header and browser tab</p>
                         </div>
+                        <div class="setting-item">
+                            <label for="quick-start-count">Quick Start Items</label>
+                            <select id="quick-start-count" 
+                                    class="input-base input-medium"
+                                    onchange="management.updateSetting('quickStartCount', parseInt(this.value))">
+                                <option value="4" ${this.settings.quickStartCount === 4 ? 'selected' : ''}>4 items</option>
+                                <option value="6" ${(this.settings.quickStartCount || 6) === 6 ? 'selected' : ''}>6 items</option>
+                                <option value="8" ${this.settings.quickStartCount === 8 ? 'selected' : ''}>8 items</option>
+                                <option value="10" ${this.settings.quickStartCount === 10 ? 'selected' : ''}>10 items</option>
+                            </select>
+                            <p class="setting-description">Number of smart activity suggestions shown on the home screen</p>
+                        </div>
                     </div>
                 </div>
 
@@ -249,25 +261,35 @@ export class Management {
                 </div>
 
                 <div class="settings-section">
-                    <h3>📊 Data Management</h3>
+                    <h3>📱 App Management</h3>
                     <div class="settings-grid">
                         <div class="setting-item">
-                            <label for="session-retention">Session Detail Retention</label>
+                            <label>App Updates</label>
+                            <button class="btn btn-secondary" onclick="management.checkForUpdates()">
+                                <span id="update-btn-text">Check for Updates</span>
+                            </button>
+                            <p class="setting-description">Manually check for app updates and refresh if needed</p>
+                        </div>
+                        <div class="setting-item">
+                            <label for="session-retention">Data Retention</label>
                             <select id="session-retention" 
                                     class="input-base input-medium"
                                     onchange="management.updateSetting('sessionRetentionDays', parseInt(this.value))">
                                 <option value="30" ${this.settings.sessionRetentionDays === 30 ? 'selected' : ''}>30 days</option>
                                 <option value="60" ${this.settings.sessionRetentionDays === 60 ? 'selected' : ''}>60 days</option>
-                                <option value="90" ${this.settings.sessionRetentionDays === 90 ? 'selected' : ''}>90 days</option>
+                                <option value="90" ${(this.settings.sessionRetentionDays || 90) === 90 ? 'selected' : ''}>90 days (default)</option>
                                 <option value="180" ${this.settings.sessionRetentionDays === 180 ? 'selected' : ''}>6 months</option>
                                 <option value="365" ${this.settings.sessionRetentionDays === 365 ? 'selected' : ''}>1 year</option>
+                                <option value="-1" ${this.settings.sessionRetentionDays === -1 ? 'selected' : ''}>Keep forever</option>
                             </select>
-                            <p class="setting-description">
-                                How long to keep detailed session data for timeline views. 
-                                Older sessions are automatically removed to save storage space. 
-                                Statistical summaries are always preserved.
-                            </p>
+                            <p class="setting-description">How long to keep session data before cleanup</p>
                         </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>📊 Data Management</h3>
+                    <div class="settings-grid">
                         <div class="setting-item">
                             <button class="btn-secondary" onclick="management.exportData()">
                                 📤 Export Data
@@ -506,7 +528,7 @@ export class Management {
         const sortedActivities = [...activities].sort();
         
         return sortedActivities.map(activity => {
-            const emoji = activityEmojis[activity] || '⭐';
+            const emoji = this.getActivityEmoji(activity);
             return `
                 <div class="activity-management-item" data-activity="${activity}">
                     <div class="activity-info">
@@ -542,7 +564,7 @@ export class Management {
         const isEdit = mode === 'edit';
         const title = isEdit ? 'Edit Activity' : 'Add Activity';
         const submitText = isEdit ? 'Update Activity' : 'Create Activity';
-        const currentEmoji = isEdit ? (activityEmojis[activityName] || '⭐') : '⭐';
+        const currentEmoji = isEdit ? this.getActivityEmoji(activityName) : '⭐';
         
         const modal = `
             <div class="modal-overlay" onclick="management.closeModal()">
@@ -693,10 +715,11 @@ export class Management {
 
     // Render emoji presets
     renderEmojiPresets() {
-        const emojis = ['📁', '🎨', '💪', '🧘', '☕', '👥', '🔨', '😴', '📚', '🎵', '🌱', '🏠'];
-        return emojis.map(emoji => 
+        const commonEmojis = ['📚', '💼', '🏃', '🍳', '🧹', '🎮', '📺', '🛌', '🚗', '🛒', '👨‍👩‍👧‍👦', '📞', '💻', '📖', '🎨', '🎵'];
+        return commonEmojis.map(emoji => 
             `<span class="emoji-preset" onclick="management.selectEmoji('${emoji}', 'category')">${emoji}</span>`
         ).join('');
+        // TODO: Replace with enhanced emoji-picker-element for better UX
     }
 
     // Render goals section within category modal (inline goals)
@@ -962,7 +985,7 @@ export class Management {
             delete this.customCategories[oldName];
         }
         
-        // Update category
+        // Update category (use newName which equals oldName if unchanged)
         this.customCategories[newName] = {
             ...categoryData,
             color: color,
@@ -1004,10 +1027,9 @@ export class Management {
         category.activities.push(activityName);
         category.activities.sort(); // Keep alphabetically sorted
         
-        // Update activity emojis mapping if emoji provided
+        // Save custom activity emoji if provided
         if (emoji && emoji !== '⭐') {
-            // We could store custom activity emojis in the future
-            // For now, they're handled by the global activityEmojis mapping
+            this.saveActivityEmoji(activityName, emoji);
         }
         
         this.saveCustomCategories();
@@ -1027,14 +1049,90 @@ export class Management {
             const index = category.activities.indexOf(oldActivityName);
             category.activities[index] = newActivityName;
             
+            // Migrate custom emoji if exists
+            const oldEmoji = this.getActivityEmoji(oldActivityName);
+            if (oldEmoji && oldEmoji !== '⭐') {
+                this.saveActivityEmoji(newActivityName, oldEmoji);
+                this.removeActivityEmoji(oldActivityName);
+            }
+            
             // Migrate time tracking data
             this.storage.migrateActivityData(categoryName, oldActivityName, newActivityName);
+        }
+        
+        // Save custom activity emoji
+        if (emoji && emoji !== '⭐') {
+            this.saveActivityEmoji(newActivityName, emoji);
+        } else if (emoji === '⭐') {
+            // Remove custom emoji if set back to default
+            this.removeActivityEmoji(newActivityName);
         }
         
         category.activities.sort(); // Keep alphabetically sorted
         
         this.saveCustomCategories();
         this.editingActivity = null;
+    }
+
+    // Save custom activity emoji
+    saveActivityEmoji(activityName, emoji) {
+        let customEmojis = {};
+        try {
+            const stored = localStorage.getItem('customActivityEmojis');
+            if (stored) {
+                customEmojis = JSON.parse(stored);
+            }
+        } catch (error) {
+            console.error('Error loading custom activity emojis:', error);
+        }
+        
+        customEmojis[activityName] = emoji;
+        localStorage.setItem('customActivityEmojis', JSON.stringify(customEmojis));
+        
+        // Update global activityEmojis for immediate use
+        if (window.activityEmojis) {
+            window.activityEmojis[activityName] = emoji;
+        }
+    }
+
+    // Get activity emoji (custom or default)
+    getActivityEmoji(activityName) {
+        // Check custom emojis first
+        try {
+            const stored = localStorage.getItem('customActivityEmojis');
+            if (stored) {
+                const customEmojis = JSON.parse(stored);
+                if (customEmojis[activityName]) {
+                    return customEmojis[activityName];
+                }
+            }
+        } catch (error) {
+            console.error('Error loading custom activity emojis:', error);
+        }
+        
+        // Fall back to default emojis
+        return window.activityEmojis?.[activityName] || '⭐';
+    }
+
+    // Remove custom activity emoji
+    removeActivityEmoji(activityName) {
+        try {
+            const stored = localStorage.getItem('customActivityEmojis');
+            if (stored) {
+                const customEmojis = JSON.parse(stored);
+                if (customEmojis[activityName]) {
+                    delete customEmojis[activityName];
+                    localStorage.setItem('customActivityEmojis', JSON.stringify(customEmojis));
+                    
+                    // Update global activityEmojis
+                    if (window.activityEmojis && window.activityEmojis[activityName]) {
+                        delete window.activityEmojis[activityName];
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error removing custom activity emoji:', error);
+        }
     }
 
     // Delete activity (soft delete)
@@ -1060,7 +1158,71 @@ export class Management {
         return {
             appTitle: "Alona's Activity Tracker",
             goalsEnabled: true,
-            version: "5.1.2 - Bug Fixes"
+            quickStartCount: 6,
+            sessionRetentionDays: 90,
+            version: "5.1.3 - Bug Fixes & Enhancements"
         };
+    }
+
+    // Check for app updates
+    async checkForUpdates() {
+        const button = document.getElementById('update-btn-text');
+        if (!button) return;
+        
+        button.textContent = 'Checking...';
+        
+        try {
+            // Force service worker update check
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration) {
+                    await registration.update();
+                    
+                    // Check if there's a waiting service worker
+                    if (registration.waiting) {
+                        // New version available
+                        button.textContent = 'Update Available - Refresh';
+                        this.showToast('Update available! Click the button to refresh.', 'info');
+                        
+                        // Update button to trigger refresh
+                        const updateBtn = button.parentElement;
+                        updateBtn.onclick = () => {
+                            registration.waiting.postMessage({ action: 'skipWaiting' });
+                            window.location.reload();
+                        };
+                        return;
+                    } else if (registration.installing) {
+                        button.textContent = 'Installing Update...';
+                        // Wait for the installing worker to become waiting
+                        registration.installing.addEventListener('statechange', () => {
+                            if (registration.installing.state === 'installed') {
+                                button.textContent = 'Update Ready - Refresh';
+                                this.showToast('Update ready! Click the button to refresh.', 'success');
+                            }
+                        });
+                        return;
+                    }
+                }
+            }
+            
+            // No update available
+            button.textContent = 'App is Up to Date';
+            this.showToast('Your app is up to date!', 'success');
+            
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                button.textContent = 'Check for Updates';
+            }, 3000);
+            
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+            button.textContent = 'Check Failed';
+            this.showToast('Failed to check for updates. Please try again.', 'error');
+            
+            // Reset button after 3 seconds
+            setTimeout(() => {
+                button.textContent = 'Check for Updates';
+            }, 3000);
+        }
     }
 } 

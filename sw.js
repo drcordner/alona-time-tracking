@@ -1,7 +1,7 @@
 // Time Tracker Service Worker
-const CACHE_NAME = 'time-tracker-v5.1.2';
-const STATIC_CACHE = 'time-tracker-static-v5.1.2';
-const DYNAMIC_CACHE = 'time-tracker-dynamic-v5.1.2';
+const CACHE_VERSION = 'v5.1.3';
+const STATIC_CACHE = `time-tracker-${CACHE_VERSION}`;
+const DYNAMIC_CACHE = `time-tracker-dynamic-${CACHE_VERSION}`;
 
 // Files to cache immediately
 const STATIC_FILES = [
@@ -145,34 +145,30 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Message handling for manual cache refresh
-self.addEventListener('message', event => {
-  console.log('[SW] Message received:', event.data);
-  
-  if (event.data && event.data.type === 'REFRESH_MANIFEST') {
-    event.waitUntil(
-      caches.open(STATIC_CACHE)
-        .then(cache => {
-          return fetch('/manifest.json', { cache: 'no-cache' })
-            .then(response => {
-              if (response.ok) {
-                return cache.put('/manifest.json', response);
-              }
-            });
-        })
-        .then(() => {
-          event.ports[0].postMessage({ success: true });
-        })
-        .catch(error => {
-          console.error('[SW] Manifest refresh failed:', error);
-          event.ports[0].postMessage({ success: false, error: error.message });
-        })
-    );
-  }
-  
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+// Handle messages from the application
+self.addEventListener('message', (event) => {
+    const { action } = event.data;
+    
+    if (action === 'skipWaiting') {
+        console.log('[SW] Received skip waiting message');
+        return self.skipWaiting();
+    }
+    
+    if (action === 'forceUpdate') {
+        console.log('[SW] Received force update message');
+        // Force a cache refresh
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    if (cacheName.startsWith('time-tracker-v')) {
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => {
+            return self.skipWaiting();
+        });
+    }
 });
 
 // Background sync for data persistence
