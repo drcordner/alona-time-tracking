@@ -16,9 +16,140 @@ export class Timer {
         this.pausedTime = 0;
         this.pauseStartTime = null;
         this.isPaused = false;
+        
+        // Instance management
+        this.instanceId = `instance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        this.heartbeatInterval = null;
+        
+        // Initialize instance communication
+        this.initInstanceCommunication();
+    }
+    
+    initInstanceCommunication() {
+        // Check if BroadcastChannel is supported
+        if ('BroadcastChannel' in window) {
+            this.broadcastChannel = new BroadcastChannel('timer-instances');
+            this.broadcastChannel.onmessage = (event) => {
+                this.handleInstanceMessage(event.data);
+            };
+        }
+        
+        // Start heartbeat to indicate this instance is alive
+        this.startHeartbeat();
+        
+        // Listen for page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                this.checkForConflictingTimers();
+            }
+        });
+    }
+    
+    startHeartbeat() {
+        this.heartbeatInterval = setInterval(() => {
+            if (this.timerInterval) {
+                // Timer is running, send heartbeat
+                this.broadcastTimerStatus('heartbeat');
+                this.updateInstanceTimestamp();
+            }
+        }, 5000); // Every 5 seconds
+    }
+    
+    updateInstanceTimestamp() {
+        if (this.timerInterval) {
+            const timerState = this.storage.getTimerState();
+            if (timerState) {
+                timerState.lastHeartbeat = Date.now();
+                timerState.instanceId = this.instanceId;
+                this.storage.saveTimerState(timerState);
+            }
+        }
+    }
+    
+    broadcastTimerStatus(action, data = {}) {
+        if (this.broadcastChannel) {
+            this.broadcastChannel.postMessage({
+                action,
+                instanceId: this.instanceId,
+                timerActive: !!this.timerInterval,
+                category: this.currentCategory,
+                activity: this.currentActivity,
+                startTime: this.startTime,
+                ...data
+            });
+        }
+    }
+    
+    handleInstanceMessage(message) {
+        if (message.instanceId === this.instanceId) return; // Ignore own messages
+        
+        switch (message.action) {
+            case 'timer-started':
+                if (this.timerInterval && message.timerActive) {
+                    this.handleTimerConflict(message);
+                }
+                break;
+            case 'timer-stopped':
+                // Another instance stopped its timer, safe to continue
+                break;
+            case 'heartbeat':
+                if (this.timerInterval && message.timerActive) {
+                    this.handleTimerConflict(message);
+                }
+                break;
+        }
+    }
+    
+    handleTimerConflict(otherInstance) {
+        // Check which timer started first
+        const myStartTime = this.startTime;
+        const otherStartTime = otherInstance.startTime;
+        
+        if (otherStartTime < myStartTime) {
+            // Other timer started first, offer to stop this one
+            const shouldStop = confirm(
+                `Another instance is already tracking "${otherInstance.category} - ${otherInstance.activity}". ` +
+                `Would you like to stop this timer and continue with the other instance?`
+            );
+            
+            if (shouldStop) {
+                this.stopTimer();
+                return;
+            }
+        } else {
+            // This timer started first, offer to take control
+            const shouldTakeControl = confirm(
+                `This instance was tracking time first. Would you like to stop the other timer and continue here?`
+            );
+            
+            if (shouldTakeControl) {
+                this.broadcastTimerStatus('stop-request');
+            }
+        }
+    }
+    
+    checkForConflictingTimers() {
+        const timerState = this.storage.getTimerState();
+        if (timerState && timerState.instanceId !== this.instanceId && timerState.lastHeartbeat) {
+            const timeSinceHeartbeat = Date.now() - timerState.lastHeartbeat;
+            
+            // If another instance's heartbeat is recent (less than 10 seconds)
+            if (timeSinceHeartbeat < 10000 && this.timerInterval) {
+                this.handleTimerConflict({
+                    category: timerState.category,
+                    activity: timerState.activity,
+                    startTime: timerState.startTime
+                });
+            }
+        }
     }
 
     startActivity(category, activity, recovery = false) {
+        // Check for conflicting timers before starting
+        if (!recovery) {
+            this.checkForConflictingTimers();
+        }
+        
         this.currentCategory = category;
         this.currentActivity = activity;
         
@@ -62,6 +193,9 @@ export class Timer {
         if (!recovery) {
             this.saveTimerState();
             this.storage.updateActivityUsage(category, activity);
+            
+            // Broadcast that this instance started a timer
+            this.broadcastTimerStatus('timer-started');
         }
     }
 
@@ -152,6 +286,9 @@ export class Timer {
 
         this.storage.clearTimerState();
         
+        // Broadcast that this instance stopped its timer
+        this.broadcastTimerStatus('timer-stopped');
+        
         // Check for goal achievements
         if (this.onTimerStop) {
             this.onTimerStop(categoryName);
@@ -168,7 +305,9 @@ export class Timer {
             startTime: this.startTime,
             pausedTime: this.pausedTime,
             isPaused: this.isPaused,
-            pauseStartTime: this.pauseStartTime
+            pauseStartTime: this.pauseStartTime,
+            instanceId: this.instanceId,
+            lastHeartbeat: Date.now()
         };
         this.storage.saveTimerState(timerState);
     }
