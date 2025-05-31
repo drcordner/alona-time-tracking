@@ -28,6 +28,9 @@ export class Goals {
         if (!this.areGoalsEnabled()) return;
         this.loadGoals();
         this.loadAchievements();
+        
+        // Recalculate all streaks to fix any incorrect data
+        this.recalculateAllStreaks();
     }
 
     // Load goals from storage
@@ -196,31 +199,41 @@ export class Goals {
         if (!this.goals[categoryName] || !this.goals[categoryName][period]) return;
         
         const goal = this.goals[categoryName][period];
-        const previousDate = this.getPreviousPeriodDate(period, date);
-        const previousProgress = this.calculateProgress(categoryName, period, previousDate);
         
-        if (previousProgress && previousProgress.achieved) {
-            goal.streak = (goal.streak || 0) + 1;
-        } else {
-            goal.streak = 1; // Start new streak
+        // Calculate the actual streak by counting consecutive achievements
+        let streak = 0;
+        let checkDate = new Date(date);
+        
+        // Count consecutive days where the goal was achieved
+        while (true) {
+            const progress = this.calculateProgress(categoryName, period, checkDate);
+            
+            // If goal was achieved on this date, increment streak
+            if (progress && progress.achieved) {
+                streak++;
+            } else {
+                // Streak is broken, stop counting
+                break;
+            }
+            
+            // Move to previous period
+            if (period === 'daily') {
+                checkDate.setDate(checkDate.getDate() - 1);
+            } else if (period === 'weekly') {
+                checkDate.setDate(checkDate.getDate() - 7);
+            } else if (period === 'monthly') {
+                checkDate.setMonth(checkDate.getMonth() - 1);
+            }
+            
+            // Safety check: don't go back more than reasonable amount
+            const daysDiff = Math.abs((new Date() - checkDate) / (1000 * 60 * 60 * 24));
+            if (daysDiff > 365) { // Don't check more than a year back
+                break;
+            }
         }
         
+        goal.streak = streak;
         this.saveGoals();
-    }
-
-    // Get previous period date
-    getPreviousPeriodDate(period, date) {
-        const prevDate = new Date(date);
-        
-        if (period === 'daily') {
-            prevDate.setDate(date.getDate() - 1);
-        } else if (period === 'weekly') {
-            prevDate.setDate(date.getDate() - 7);
-        } else if (period === 'monthly') {
-            prevDate.setMonth(date.getMonth() - 1);
-        }
-        
-        return prevDate;
     }
 
     // Show achievement notification
@@ -601,5 +614,32 @@ export class Goals {
         });
         
         return summary.sort((a, b) => b.percentage - a.percentage);
+    }
+
+    // Recalculate all streaks to fix any incorrect data
+    recalculateAllStreaks() {
+        if (!this.areGoalsEnabled()) return;
+        
+        const today = new Date();
+        let streaksUpdated = 0;
+        
+        // Go through all categories and periods
+        Object.keys(this.goals).forEach(categoryName => {
+            Object.keys(this.goals[categoryName]).forEach(period => {
+                const oldStreak = this.goals[categoryName][period].streak || 0;
+                this.updateStreak(categoryName, period, today);
+                const newStreak = this.goals[categoryName][period].streak || 0;
+                
+                if (oldStreak !== newStreak) {
+                    streaksUpdated++;
+                    console.log(`Streak updated for ${categoryName} ${period}: ${oldStreak} → ${newStreak}`);
+                }
+            });
+        });
+        
+        if (streaksUpdated > 0) {
+            console.log(`Goals: Recalculated ${streaksUpdated} streaks`);
+            this.saveGoals();
+        }
     }
 } 
