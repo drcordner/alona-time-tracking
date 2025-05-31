@@ -112,6 +112,9 @@ export class Reports {
                 if (container) {
                     container.innerHTML = reportsHTML;
                     
+                    // Set up event delegation for session edit/delete buttons
+                    this.setupSessionEventHandlers(container);
+                    
                     // Add fade-in animation to new content
                     if (window.app?.ux) {
                         window.app.ux.addAnimation(container, 'fade-in');
@@ -1009,10 +1012,10 @@ export class Reports {
                                         <span class="timeline-session-category">${session.category}</span>
                                     </div>
                                     <div class="timeline-session-actions">
-                                        <button class="btn-icon-small" onclick="reports.editSession('${session.id}')" title="Edit Session">
+                                        <button class="btn-icon-small edit-session-btn" data-session-id="${session.id}" title="Edit Session">
                                             ✏️
                                         </button>
-                                        <button class="btn-icon-small btn-danger" onclick="reports.deleteSession('${session.id}')" title="Delete Session">
+                                        <button class="btn-icon-small btn-danger delete-session-btn" data-session-id="${session.id}" title="Delete Session">
                                             🗑️
                                         </button>
                                     </div>
@@ -1404,5 +1407,25 @@ export class Reports {
 
     closeSessionModal() {
         document.getElementById('modal-container').innerHTML = '';
+    }
+
+    // Set up event delegation for session edit/delete buttons
+    setupSessionEventHandlers(container) {
+        const editButtons = container.querySelectorAll('.edit-session-btn');
+        const deleteButtons = container.querySelectorAll('.delete-session-btn');
+
+        editButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const sessionId = button.getAttribute('data-session-id');
+                this.editSession(sessionId);
+            });
+        });
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const sessionId = button.getAttribute('data-session-id');
+                this.deleteSession(sessionId);
+            });
+        });
     }
 } 
