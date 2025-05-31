@@ -2,330 +2,62 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alona's Activity Tracking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Time Tracker - Activity & Goals Management</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Track your time across activities and achieve your goals with beautiful analytics and insights.">
     <meta name="theme-color" content="#4A90E2">
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQWxvbmEncyBBY3Rpdml0eSBUcmFja2luZyIsInNob3J0X25hbWUiOiJUaW1lVHJhY2tlciIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZmZmZmZmIiwidGhlbWVfY29sb3IiOiIjNEE5MEUyIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1qUXdJaUJvWldsbmFIUTlJakkwTUNJZ2RtbGxkMEp2ZUQwaU1DQXdJakkwTUNBeU5EQWlJSGh0Ykc1elBTSm9kSFJ3T2k4dmQzZDNMbmN6TG05eVp5OHlNREF3TDNOMlp5SStQSEpsWTNRZ2QybGtkR2c5SWpJME1DSWdhR1ZwWjJoMFBTSXlOREFpSUhKNFBTSXhNaUlnWm1sc2JEMGlJelEyT0RCR01pSXZQand2YzNablBnPT0iLCJzaXplcyI6IjI0MHgyNDAiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding-bottom: 80px;
-        }
-
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: calc(100vh - 80px);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px 0;
-        }
-
-        .header h1 {
-            color: #2c3e50;
-            font-size: 1.8em;
-            font-weight: 300;
-        }
-
-        .screen {
-            display: none;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        .category-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .category-button {
-            background: white;
-            border: none;
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            text-align: left;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .category-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
-
-        .category-button::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 6px;
-            background: var(--category-color);
-        }
-
-        .category-name {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .category-time {
-            color: #7f8c8d;
-            font-size: 0.9em;
-        }
-
-        .activity-list {
-            margin-bottom: 20px;
-        }
-
-        .activity-button {
-            background: white;
-            border: none;
-            border-radius: 8px;
-            padding: 15px 20px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            width: 100%;
-            text-align: left;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .activity-button:hover {
-            background: #f8f9fa;
-            transform: translateY(-1px);
-        }
-
-        .activity-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .activity-name {
-            font-weight: 500;
-            color: #2c3e50;
-            margin-bottom: 3px;
-        }
-
-        .activity-time {
-            color: #7f8c8d;
-            font-size: 0.8em;
-        }
-
-        .timer-container {
-            text-align: center;
-            margin: 40px 0;
-            padding: 40px 20px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-        }
-
-        .timer-display {
-            font-size: 3em;
-            font-weight: 300;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .current-activity {
-            font-size: 1.2em;
-            color: #7f8c8d;
-            margin-bottom: 30px;
-        }
-
-        .stop-button {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 15px 40px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .stop-button:hover {
-            background: #c0392b;
-            transform: scale(1.05);
-        }
-
-        .navigation {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid #e9ecef;
-            display: flex;
-            height: 80px;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-        }
-
-        .nav-button {
-            flex: 1;
-            background: none;
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .nav-button:hover {
-            background: #f8f9fa;
-        }
-
-        .nav-button.active {
-            color: #4A90E2;
-            background: #f0f7ff;
-        }
-
-        .nav-icon {
-            width: 24px;
-            height: 24px;
-            margin-bottom: 5px;
-        }
-
-        .nav-text {
-            font-size: 0.8em;
-        }
-
-        .timeline {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .timeline-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .date-nav {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .date-nav button {
-            background: #4A90E2;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 12px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        .date-nav button:hover {
-            background: #357abd;
-        }
-
-        .current-date {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .timeline-bar {
-            height: 40px;
-            background: #f8f9fa;
-            border-radius: 20px;
-            overflow: hidden;
-            margin-bottom: 20px;
-            display: flex;
-        }
-
-        .timeline-segment {
-            height: 100%;
-            transition: all 0.3s ease;
-        }
-
-        .category-summary {
-            margin-bottom: 20px;
-        }
-
-        .category-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-        }
-
-        .category-item:hover {
-            background: #f8f9fa;
-            margin: 0 -10px;
-            padding: 10px;
-            border-radius: 6px;
-        }
-
-        .category-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .view-toggles {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .toggle-button {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .toggle-button.active {
-            background: #4A90E2;
-            color: white;
-            border-color: #4A90E2;
-        }
-    </style>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TimeTracker">
+    <meta name="msapplication-TileColor" content="#4A90E2">
+    <meta name="msapplication-tap-highlight" content="no">
+    
+    <!-- Manifest and Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/icon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="images/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="images/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="images/icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="images/icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="images/icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="images/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="images/icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="images/icon-57x57.png">
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preload" href="css/main.css" as="style">
+    <link rel="preload" href="js/app.js" as="script">
+    
+    <!-- CSS Imports -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/timer.css">
+    <link rel="stylesheet" href="css/management.css">
+    <link rel="stylesheet" href="css/goals.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Alona's Activity Tracking</h1>
+            <h1>Alona's Activity Tracker</h1>
         </div>
 
         <!-- Home Screen -->
         <div id="home-screen" class="screen active">
+            <div class="quick-start-section">
+                <div class="quick-start-header">Quick Start</div>
+                <div class="quick-start-grid">
+                    <!-- Quick start buttons will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Goals Section will be inserted here by JavaScript -->
+            <div id="goals-container"></div>
+            
             <div class="category-grid" id="category-list">
                 <!-- Categories will be populated by JavaScript -->
             </div>
@@ -346,7 +78,13 @@
                     <div style="margin-bottom: 20px; color: #2c3e50; font-size: 1.1em;">
                         <div>Today Total: <span id="today-total-time">00:00:00</span></div>
                     </div>
-                    <button class="stop-button" onclick="stopTimer()">Stop</button>
+                    <div id="timer-status" style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.9em; height: 20px;">
+                        <!-- Timer status (running/paused) will show here -->
+                    </div>
+                    <div style="text-align: center;">
+                        <button class="pause-button" id="pause-button" onclick="togglePause()">Pause</button>
+                        <button class="stop-button" onclick="stopTimer()">Stop</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -359,16 +97,27 @@
                 <button class="toggle-button" onclick="setReportView('month')">Month</button>
             </div>
             
-            <div class="timeline">
-                <div class="timeline-header">
-                    <div class="date-nav">
-                        <button onclick="navigateDate(-1)">‹‹ Prev</button>
-                        <span class="current-date" id="current-report-date"></span>
-                        <button onclick="navigateDate(1)">Next ››</button>
-                    </div>
+            <div class="reports-header">
+                <div class="date-nav">
+                    <button onclick="navigateDate(-1)">‹‹ Prev</button>
+                    <span class="current-date" id="current-report-date"></span>
+                    <button onclick="navigateDate(1)">Next ››</button>
                 </div>
-                <div class="timeline-bar" id="timeline-bar"></div>
-                <div class="category-summary" id="category-summary"></div>
+            </div>
+            
+            <!-- Goals Summary will be inserted here by JavaScript -->
+            <div id="goals-summary-container"></div>
+            
+            <!-- Enhanced Reports Content -->
+            <div id="reports-content">
+                <!-- Enhanced reports will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Management Screen -->
+        <div id="management-screen" class="screen">
+            <div id="management-content">
+                <!-- Management content will be populated by JavaScript -->
             </div>
         </div>
     </div>
@@ -393,416 +142,24 @@
             </svg>
             <span class="nav-text">Reports</span>
         </button>
+        <button class="nav-button" onclick="showScreen('management')">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            <span class="nav-text">Manage</span>
+        </button>
+        <button class="nav-button" onclick="showHelp()">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+            </svg>
+            <span class="nav-text">Help</span>
+        </button>
     </div>
 
-    <script>
-        // Data structure
-        const categories = {
-            'Artistic Expression': {
-                color: '#e74c3c',
-                activities: ['Draw/Paint', 'Fabric', 'Food', 'Guitar', 'Learn', 'Music', 'Piano', 'Scales', 'Sing', 'Write']
-            },
-            'Break': {
-                color: '#95a5a6',
-                activities: ['Break']
-            },
-            'Create': {
-                color: '#f39c12',
-                activities: ['Build', 'Clean', 'Cook', 'Garden', 'Home', 'Learn', 'Outdoors', 'Prep', 'Shop']
-            },
-            'Move': {
-                color: '#27ae60',
-                activities: ['Jog', 'Learn', 'Pelvic Floor', 'Strength', 'Stretch', 'Tai Chi', 'Walk', 'Yoga']
-            },
-            'Sleep': {
-                color: '#8e44ad',
-                activities: ['Sleep']
-            },
-            'Socialise': {
-                color: '#e67e22',
-                activities: ['Acquaintance', 'Close']
-            },
-            'Sustain': {
-                color: '#3498db',
-                activities: ['Beautify', 'Breath', 'Eat', 'Ground', 'Hygiene', 'Learn', 'Light', 'Meditate', 'Therapy']
-            }
-        };
+    <!-- Modal Container for Goals Management -->
+    <div id="modal-container"></div>
 
-        // Configuration
-        const sandbox = false; // Set to false to use localStorage instead of in-memory storage
-
-        // State management
-        let currentScreen = 'home';
-        let currentCategory = null;
-        let currentActivity = null;
-        let timerInterval = null;
-        let startTime = null;
-        let reportDate = new Date();
-        let reportView = 'day';
-        
-        // In-memory storage (used when sandbox = true)
-        let timeTrackingData = {};
-
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
-            if (!sandbox) {
-                loadData();
-            }
-            renderCategories();
-            updateReportDate();
-            showScreen('home');
-        });
-
-        // Storage functions (sandbox-aware)
-        function saveData() {
-            if (sandbox) return;
-            localStorage.setItem('timeTracking', JSON.stringify(timeTrackingData));
-        }
-
-        function loadData() {
-            if (sandbox) return;
-            const stored = localStorage.getItem('timeTracking');
-            if (stored) {
-                timeTrackingData = JSON.parse(stored);
-            } else {
-                localStorage.setItem('timeTracking', JSON.stringify({}));
-            }
-        }
-
-        function addTimeRecord(category, activity, duration, date = new Date()) {
-            const dateKey = date.toDateString();
-            
-            if (!timeTrackingData[dateKey]) {
-                timeTrackingData[dateKey] = {};
-            }
-            if (!timeTrackingData[dateKey][category]) {
-                timeTrackingData[dateKey][category] = {};
-            }
-            if (!timeTrackingData[dateKey][category][activity]) {
-                timeTrackingData[dateKey][category][activity] = 0;
-            }
-            
-            timeTrackingData[dateKey][category][activity] += duration;
-            
-            if (!sandbox) {
-                saveData();
-            }
-        }
-
-        function getTodayTime(category, activity = null) {
-            const today = new Date().toDateString();
-            
-            if (!timeTrackingData[today] || !timeTrackingData[today][category]) return 0;
-            
-            if (activity) {
-                return timeTrackingData[today][category][activity] || 0;
-            } else {
-                return Object.values(timeTrackingData[today][category]).reduce((sum, time) => sum + time, 0);
-            }
-        }
-
-        function getDateData(date) {
-            const dateKey = date.toDateString();
-            return timeTrackingData[dateKey] || {};
-        }
-
-        // Screen management
-        function showScreen(screenName) {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
-            document.getElementById(screenName + '-screen').classList.add('active');
-            
-            document.querySelectorAll('.nav-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            if (screenName === 'home') {
-                document.querySelectorAll('.nav-button')[1].classList.add('active');
-                renderCategories();
-            } else if (screenName === 'reports') {
-                document.querySelectorAll('.nav-button')[2].classList.add('active');
-                renderReports();
-            }
-            
-            currentScreen = screenName;
-        }
-
-        function goBack() {
-            if (currentScreen === 'activity') {
-                showScreen('home');
-            } else if (currentScreen === 'reports') {
-                showScreen('home');
-            }
-        }
-
-        // Category rendering
-        function renderCategories() {
-            const container = document.getElementById('category-list');
-            container.innerHTML = '';
-
-            Object.entries(categories).forEach(([categoryName, categoryData]) => {
-                const todayTime = getTodayTime(categoryName);
-                const button = document.createElement('button');
-                button.className = 'category-button';
-                button.style.setProperty('--category-color', categoryData.color);
-                
-                // If category has only one activity, go directly to timer
-                if (categoryData.activities.length === 1) {
-                    button.onclick = () => startActivity(categoryName, categoryData.activities[0]);
-                } else {
-                    button.onclick = () => showActivities(categoryName);
-                }
-
-                button.innerHTML = `
-                    <div class="category-name">${categoryName}</div>
-                    <div class="category-time">${formatTime(todayTime)}</div>
-                `;
-
-                container.appendChild(button);
-            });
-        }
-
-        // Activity rendering
-        function showActivities(categoryName) {
-            currentCategory = categoryName;
-            const container = document.getElementById('activity-list');
-            container.innerHTML = '';
-
-            const activities = categories[categoryName].activities.sort();
-            
-            activities.forEach(activity => {
-                const todayTime = getTodayTime(categoryName, activity);
-                const button = document.createElement('button');
-                button.className = 'activity-button';
-                button.onclick = () => startActivity(categoryName, activity);
-
-                button.innerHTML = `
-                    <div class="activity-name">${activity}</div>
-                    <div class="activity-time">${formatTime(todayTime)}</div>
-                `;
-
-                container.appendChild(button);
-            });
-
-            showScreen('activity');
-        }
-
-        // Timer functions
-        function startActivity(category, activity) {
-            currentCategory = category;
-            currentActivity = activity;
-            startTime = Date.now();
-
-            document.getElementById('current-activity-name').textContent = `${category} - ${activity}`;
-            
-            // Set initial today total time
-            const todayTime = getTodayTime(category, activity);
-            document.getElementById('today-total-time').textContent = formatTime(todayTime);
-            
-            document.getElementById('timer-section').style.display = 'block';
-            document.getElementById('activity-list').style.display = 'none';
-
-            // Disable all activity buttons
-            document.querySelectorAll('.activity-button').forEach(btn => {
-                btn.disabled = true;
-            });
-
-            // Show activity screen (timer will be visible)
-            showScreen('activity');
-
-            timerInterval = setInterval(updateTimerDisplay, 1000);
-            updateTimerDisplay();
-        }
-
-        function updateTimerDisplay() {
-            if (!startTime) return;
-            
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            document.getElementById('timer-display').textContent = formatTime(elapsed);
-            
-            // Update today's total time including current session
-            const previousTime = getTodayTime(currentCategory, currentActivity);
-            const totalTime = previousTime + elapsed;
-            document.getElementById('today-total-time').textContent = formatTime(totalTime);
-        }
-
-        function stopTimer() {
-            if (!timerInterval || !startTime) return;
-
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            addTimeRecord(currentCategory, currentActivity, elapsed);
-
-            clearInterval(timerInterval);
-            timerInterval = null;
-            startTime = null;
-
-            document.getElementById('timer-section').style.display = 'none';
-            document.getElementById('activity-list').style.display = 'block';
-
-            // Re-enable activity buttons
-            document.querySelectorAll('.activity-button').forEach(btn => {
-                btn.disabled = false;
-            });
-
-            showScreen('home');
-        }
-
-        // Report functions
-        function setReportView(view) {
-            reportView = view;
-            document.querySelectorAll('.toggle-button').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            renderReports();
-        }
-
-        function navigateDate(direction) {
-            const currentDate = new Date(reportDate);
-            
-            if (reportView === 'day') {
-                currentDate.setDate(currentDate.getDate() + direction);
-            } else if (reportView === 'week') {
-                currentDate.setDate(currentDate.getDate() + (direction * 7));
-            } else if (reportView === 'month') {
-                currentDate.setMonth(currentDate.getMonth() + direction);
-            }
-            
-            reportDate = currentDate;
-            updateReportDate();
-            renderReports();
-        }
-
-        function updateReportDate() {
-            const dateEl = document.getElementById('current-report-date');
-            if (reportView === 'day') {
-                dateEl.textContent = reportDate.toLocaleDateString();
-            } else if (reportView === 'week') {
-                const startOfWeek = new Date(reportDate);
-                startOfWeek.setDate(reportDate.getDate() - reportDate.getDay());
-                const endOfWeek = new Date(startOfWeek);
-                endOfWeek.setDate(startOfWeek.getDate() + 6);
-                dateEl.textContent = `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
-            } else if (reportView === 'month') {
-                dateEl.textContent = reportDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-            }
-        }
-
-        function renderReports() {
-            updateReportDate();
-            
-            let data = {};
-            
-            if (reportView === 'day') {
-                data = getDateData(reportDate);
-            } else if (reportView === 'week') {
-                // Aggregate week data
-                for (let i = 0; i < 7; i++) {
-                    const date = new Date(reportDate);
-                    date.setDate(reportDate.getDate() - reportDate.getDay() + i);
-                    const dayData = getDateData(date);
-                    
-                    Object.entries(dayData).forEach(([category, activities]) => {
-                        if (!data[category]) data[category] = {};
-                        Object.entries(activities).forEach(([activity, time]) => {
-                            if (!data[category][activity]) data[category][activity] = 0;
-                            data[category][activity] += time;
-                        });
-                    });
-                }
-            } else if (reportView === 'month') {
-                // Aggregate month data
-                const year = reportDate.getFullYear();
-                const month = reportDate.getMonth();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const date = new Date(year, month, day);
-                    const dayData = getDateData(date);
-                    
-                    Object.entries(dayData).forEach(([category, activities]) => {
-                        if (!data[category]) data[category] = {};
-                        Object.entries(activities).forEach(([activity, time]) => {
-                            if (!data[category][activity]) data[category][activity] = 0;
-                            data[category][activity] += time;
-                        });
-                    });
-                }
-            }
-
-            renderTimeline(data);
-            renderCategorySummary(data);
-        }
-
-        function renderTimeline(data) {
-            const timeline = document.getElementById('timeline-bar');
-            timeline.innerHTML = '';
-
-            const totalTime = Object.values(data).reduce((total, activities) => {
-                return total + Object.values(activities).reduce((sum, time) => sum + time, 0);
-            }, 0);
-
-            if (totalTime === 0) {
-                timeline.innerHTML = '<div style="padding: 20px; text-align: center; color: #7f8c8d;">No activity recorded</div>';
-                return;
-            }
-
-            Object.entries(data).forEach(([category, activities]) => {
-                const categoryTotal = Object.values(activities).reduce((sum, time) => sum + time, 0);
-                const percentage = (categoryTotal / totalTime) * 100;
-                
-                if (percentage > 0) {
-                    const segment = document.createElement('div');
-                    segment.className = 'timeline-segment';
-                    segment.style.width = percentage + '%';
-                    segment.style.backgroundColor = categories[category]?.color || '#bdc3c7';
-                    segment.title = `${category}: ${formatTime(categoryTotal)}`;
-                    timeline.appendChild(segment);
-                }
-            });
-        }
-
-        function renderCategorySummary(data) {
-            const container = document.getElementById('category-summary');
-            container.innerHTML = '';
-
-            Object.entries(data).forEach(([category, activities]) => {
-                const categoryTotal = Object.values(activities).reduce((sum, time) => sum + time, 0);
-                
-                const item = document.createElement('div');
-                item.className = 'category-item';
-                item.innerHTML = `
-                    <div style="display: flex; align-items: center;">
-                        <div class="category-dot" style="background-color: ${categories[category]?.color || '#bdc3c7'}"></div>
-                        <span>${category}</span>
-                    </div>
-                    <span>${formatTime(categoryTotal)}</span>
-                `;
-                
-                container.appendChild(item);
-            });
-        }
-
-        // Utility functions
-        function formatTime(totalSeconds) {
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-
-            if (hours > 0) {
-                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            } else {
-                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }
-        }
-
-        // Service Worker for offline functionality (only when not in sandbox)
-        if (!sandbox && 'serviceWorker' in navigator) {
-            navigator.serviceWorker.register('data:application/javascript;base64,Y29uc3QgQ0FDSEVfTkFNRSA9ICd0aW1lLXRyYWNrZXItdjEnOwpjb25zdCB1cmxzVG9DYWNoZSA9IFsKICAnLycsICAgCiAgJy9tYW5pZmVzdC5qc29uJwpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZXZlbnQgPT4gewogIGV2ZW50LndhaXRVbnRpbCgKICAgIGNhY2hlcy5vcGVuKENBQ0hFX05BTUUpCiAgICAgIC50aGVuKGNhY2hlID0+IGNhY2hlLmFkZEFsbCh1cmxzVG9DYWNoZSkpCiAgKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZXZlbnQgPT4gewogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKGV2ZW50LnJlcXVlc3QpCiAgICAgIC50aGVuKHJlc3BvbnNlID0+IHsKICAgICAgICByZXR1cm4gcmVzcG9uc2UgfHwgZmV0Y2goZXZlbnQucmVxdWVzdCk7CiAgICAgIH0pCiAgKTsKfSk7')
-                .then(() => console.log('Service Worker registered'))
-                .catch(err => console.log('Service Worker registration failed:', err));
-        }
-    </script>
+    <!-- JavaScript Imports -->
+    <script type="module" src="js/app.js"></script>
 </body>
-</html>
+</html> 

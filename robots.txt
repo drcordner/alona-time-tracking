@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://alonastimetracking.netlify.app/sitemap.xml
+
+# Disallow service worker and manifest from crawling
+Disallow: /sw.js
+Disallow: /manifest.json
+
+# Allow images and icons
+Allow: /images/
+
+# Performance files
+Disallow: /*.js$
+Allow: /js/app.js 
