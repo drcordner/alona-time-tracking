@@ -996,20 +996,44 @@ export class Reports {
                 ${sessions.map(session => {
                     const category = categories[session.category];
                     const startTime = new Date(session.startTime);
+                    const endTime = new Date(session.endTime);
                     const emoji = window.activityEmojis?.[session.activity] || category?.emoji || '⭐';
                     
                     return `
-                        <div class="timeline-session-item" onclick="this.classList.toggle('expanded')">
+                        <div class="timeline-session-item" data-session-id="${session.id}">
                             <div class="timeline-session-bar" style="background-color: ${category?.color || '#4A90E2'}"></div>
                             <div class="timeline-session-info">
-                                <div class="timeline-session-label">
-                                    <span class="timeline-session-emoji">${emoji} ${session.activity}</span>
-                                    <span class="timeline-session-category">${session.category}</span>
+                                <div class="timeline-session-header">
+                                    <div class="timeline-session-label">
+                                        <span class="timeline-session-emoji">${emoji} ${session.activity}</span>
+                                        <span class="timeline-session-category">${session.category}</span>
+                                    </div>
+                                    <div class="timeline-session-actions">
+                                        <button class="btn-icon-small" onclick="reports.editSession('${session.id}')" title="Edit Session">
+                                            ✏️
+                                        </button>
+                                        <button class="btn-icon-small btn-danger" onclick="reports.deleteSession('${session.id}')" title="Delete Session">
+                                            🗑️
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="timeline-session-meta">
-                                    <span class="timeline-session-time">${startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                    <span class="timeline-session-time">
+                                        ${startTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - 
+                                        ${endTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    </span>
                                     <span class="timeline-session-duration">${formatTime(session.duration)}</span>
                                 </div>
+                                ${session.pausedTime > 0 ? `
+                                    <div class="timeline-session-paused">
+                                        ⏸️ Paused: ${formatTime(session.pausedTime)}
+                                    </div>
+                                ` : ''}
+                                ${session.modifiedAt ? `
+                                    <div class="timeline-session-modified">
+                                        ✏️ Modified: ${new Date(session.modifiedAt).toLocaleString()}
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
                     `;
@@ -1179,5 +1203,206 @@ export class Reports {
                 </button>
             </div>
         `;
+    }
+
+    // Session editing methods
+    editSession(sessionId) {
+        const found = this.storage.findSessionById(sessionId);
+        if (!found) {
+            alert('Session not found');
+            return;
+        }
+
+        const { session } = found;
+        const categories = this.getCategories();
+        
+        this.showSessionEditModal(session, categories);
+    }
+
+    deleteSession(sessionId) {
+        const found = this.storage.findSessionById(sessionId);
+        if (!found) {
+            alert('Session not found');
+            return;
+        }
+
+        const { session } = found;
+        const confirmMessage = `Delete this session?\n\n${session.category} - ${session.activity}\n${formatTime(session.duration)} on ${new Date(session.startTime).toLocaleDateString()}`;
+        
+        if (confirm(confirmMessage)) {
+            const success = this.storage.deleteSession(sessionId);
+            if (success) {
+                this.showToast('Session deleted successfully', 'success');
+                this.renderReports(); // Refresh the reports
+            } else {
+                this.showToast('Failed to delete session', 'error');
+            }
+        }
+    }
+
+    showSessionEditModal(session, categories) {
+        const startTime = new Date(session.startTime);
+        const endTime = new Date(session.endTime);
+        
+        // Format datetime-local values
+        const formatDateTime = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        };
+
+        const modal = `
+            <div class="modal-overlay" onclick="reports.closeSessionModal()">
+                <div class="modal-content session-edit-modal" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3>Edit Session</h3>
+                        <button class="modal-close" onclick="reports.closeSessionModal()">✕</button>
+                    </div>
+                    
+                    <form id="session-edit-form" onsubmit="reports.saveSessionEdit(event, '${session.id}')">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="session-category">Category</label>
+                                <select id="session-category" class="input-base" required onchange="reports.updateActivityOptions()">
+                                    ${Object.entries(categories).map(([catName, catData]) => 
+                                        `<option value="${catName}" ${catName === session.category ? 'selected' : ''}>${catData.emoji} ${catName}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-activity">Activity</label>
+                                <select id="session-activity" class="input-base" required>
+                                    ${categories[session.category].activities.map(activity => 
+                                        `<option value="${activity}" ${activity === session.activity ? 'selected' : ''}>${activity}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="session-start">Start Time</label>
+                                <input type="datetime-local" id="session-start" class="input-base" 
+                                       value="${formatDateTime(startTime)}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-end">End Time</label>
+                                <input type="datetime-local" id="session-end" class="input-base" 
+                                       value="${formatDateTime(endTime)}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="session-duration">Duration (minutes)</label>
+                                <input type="number" id="session-duration" class="input-base" 
+                                       value="${Math.round(session.duration / 60)}" min="1" required>
+                                <small class="form-hint">Calculated from start/end times, or set manually</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="session-paused">Paused Time (minutes)</label>
+                                <input type="number" id="session-paused" class="input-base" 
+                                       value="${Math.round(session.pausedTime / 60)}" min="0">
+                                <small class="form-hint">Time the timer was paused during this session</small>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="reports.closeSessionModal()">Cancel</button>
+                            <button type="submit" class="btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('modal-container').innerHTML = modal;
+        
+        // Auto-calculate duration when start/end times change
+        this.setupSessionFormValidation();
+    }
+
+    setupSessionFormValidation() {
+        const startInput = document.getElementById('session-start');
+        const endInput = document.getElementById('session-end');
+        const durationInput = document.getElementById('session-duration');
+
+        const calculateDuration = () => {
+            const start = new Date(startInput.value);
+            const end = new Date(endInput.value);
+            
+            if (start && end && end > start) {
+                const duration = Math.round((end - start) / (1000 * 60)); // in minutes
+                durationInput.value = duration;
+            }
+        };
+
+        startInput.addEventListener('change', calculateDuration);
+        endInput.addEventListener('change', calculateDuration);
+    }
+
+    updateActivityOptions() {
+        const categorySelect = document.getElementById('session-category');
+        const activitySelect = document.getElementById('session-activity');
+        const selectedCategory = categorySelect.value;
+        const categories = this.getCategories();
+
+        if (categories[selectedCategory]) {
+            activitySelect.innerHTML = categories[selectedCategory].activities.map(activity => 
+                `<option value="${activity}">${activity}</option>`
+            ).join('');
+        }
+    }
+
+    saveSessionEdit(event, sessionId) {
+        event.preventDefault();
+        
+        const formData = new FormData(event.target);
+        const category = document.getElementById('session-category').value;
+        const activity = document.getElementById('session-activity').value;
+        const startTime = new Date(document.getElementById('session-start').value).getTime();
+        const endTime = new Date(document.getElementById('session-end').value).getTime();
+        const durationMinutes = parseInt(document.getElementById('session-duration').value);
+        const pausedMinutes = parseInt(document.getElementById('session-paused').value) || 0;
+
+        // Validation
+        if (startTime >= endTime) {
+            alert('Start time must be before end time');
+            return;
+        }
+
+        if (durationMinutes <= 0) {
+            alert('Duration must be positive');
+            return;
+        }
+
+        const updates = {
+            category,
+            activity,
+            startTime,
+            endTime,
+            duration: durationMinutes * 60, // convert to seconds
+            pausedTime: pausedMinutes * 60  // convert to seconds
+        };
+
+        try {
+            const success = this.storage.updateSession(sessionId, updates);
+            if (success) {
+                this.showToast('Session updated successfully', 'success');
+                this.closeSessionModal();
+                this.renderReports(); // Refresh the reports
+            } else {
+                this.showToast('Failed to update session', 'error');
+            }
+        } catch (error) {
+            alert('Error updating session: ' + error.message);
+        }
+    }
+
+    closeSessionModal() {
+        document.getElementById('modal-container').innerHTML = '';
     }
 } 

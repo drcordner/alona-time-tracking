@@ -455,4 +455,148 @@ export class Storage {
         console.warn('Hard delete deprecated - use soft delete instead');
         // Don't actually delete - this preserves historical data
     }
+
+    // Session editing methods
+    findSessionById(sessionId) {
+        for (const [dateKey, dayData] of Object.entries(this.timeTrackingData)) {
+            if (dayData._sessions) {
+                const session = dayData._sessions.find(s => s.id === sessionId);
+                if (session) {
+                    return { session, dateKey };
+                }
+            }
+        }
+        return null;
+    }
+
+    updateSession(sessionId, updates) {
+        const found = this.findSessionById(sessionId);
+        if (!found) return false;
+
+        const { session, dateKey } = found;
+        const oldSession = { ...session };
+        
+        // Validate updates
+        const newStartTime = updates.startTime || session.startTime;
+        const newEndTime = updates.endTime || session.endTime;
+        const newDuration = updates.duration !== undefined ? updates.duration : 
+                           Math.floor((newEndTime - newStartTime) / 1000);
+        
+        if (newStartTime >= newEndTime) {
+            throw new Error('Start time must be before end time');
+        }
+        
+        if (newDuration <= 0) {
+            throw new Error('Duration must be positive');
+        }
+
+        // Check if the session needs to move to a different date
+        const newStartDate = new Date(newStartTime);
+        const newDateKey = newStartDate.toDateString();
+        
+        if (newDateKey !== dateKey) {
+            // Remove from old date
+            this.timeTrackingData[dateKey]._sessions = 
+                this.timeTrackingData[dateKey]._sessions.filter(s => s.id !== sessionId);
+            
+            // Update aggregates for old date
+            this.updateAggregatesForSessionChange(dateKey, oldSession, null);
+            
+            // Add to new date
+            if (!this.timeTrackingData[newDateKey]) {
+                this.timeTrackingData[newDateKey] = { _aggregates: {}, _sessions: [] };
+            }
+            if (!this.timeTrackingData[newDateKey]._sessions) {
+                this.timeTrackingData[newDateKey]._sessions = [];
+            }
+        }
+
+        // Update session properties
+        Object.assign(session, {
+            category: updates.category || session.category,
+            activity: updates.activity || session.activity,
+            startTime: newStartTime,
+            endTime: newEndTime,
+            duration: newDuration,
+            pausedTime: updates.pausedTime !== undefined ? updates.pausedTime : session.pausedTime,
+            modifiedAt: Date.now()
+        });
+
+        // If moving to different date, add to new date's sessions
+        if (newDateKey !== dateKey) {
+            this.timeTrackingData[newDateKey]._sessions.push(session);
+            // Update aggregates for new date
+            this.updateAggregatesForSessionChange(newDateKey, null, session);
+        } else {
+            // Update aggregates for same date
+            this.updateAggregatesForSessionChange(dateKey, oldSession, session);
+        }
+
+        this.saveData();
+        return true;
+    }
+
+    deleteSession(sessionId) {
+        const found = this.findSessionById(sessionId);
+        if (!found) return false;
+
+        const { session, dateKey } = found;
+        
+        // Remove session from array
+        this.timeTrackingData[dateKey]._sessions = 
+            this.timeTrackingData[dateKey]._sessions.filter(s => s.id !== sessionId);
+        
+        // Update aggregates
+        this.updateAggregatesForSessionChange(dateKey, session, null);
+        
+        this.saveData();
+        return true;
+    }
+
+    updateAggregatesForSessionChange(dateKey, oldSession, newSession) {
+        if (!this.timeTrackingData[dateKey]._aggregates) {
+            this.timeTrackingData[dateKey]._aggregates = {};
+        }
+        
+        // Remove old session from aggregates
+        if (oldSession) {
+            const oldCat = this.timeTrackingData[dateKey]._aggregates[oldSession.category];
+            if (oldCat && oldCat[oldSession.activity]) {
+                oldCat[oldSession.activity] = Math.max(0, oldCat[oldSession.activity] - oldSession.duration);
+                if (oldCat[oldSession.activity] === 0) {
+                    delete oldCat[oldSession.activity];
+                    if (Object.keys(oldCat).length === 0) {
+                        delete this.timeTrackingData[dateKey]._aggregates[oldSession.category];
+                    }
+                }
+            }
+        }
+        
+        // Add new session to aggregates
+        if (newSession) {
+            if (!this.timeTrackingData[dateKey]._aggregates[newSession.category]) {
+                this.timeTrackingData[dateKey]._aggregates[newSession.category] = {};
+            }
+            if (!this.timeTrackingData[dateKey]._aggregates[newSession.category][newSession.activity]) {
+                this.timeTrackingData[dateKey]._aggregates[newSession.category][newSession.activity] = 0;
+            }
+            this.timeTrackingData[dateKey]._aggregates[newSession.category][newSession.activity] += newSession.duration;
+        }
+    }
+
+    // Batch operations for efficiency
+    updateMultipleSessions(sessionUpdates) {
+        const results = [];
+        
+        sessionUpdates.forEach(({ sessionId, updates }) => {
+            try {
+                const success = this.updateSession(sessionId, updates);
+                results.push({ sessionId, success, error: null });
+            } catch (error) {
+                results.push({ sessionId, success: false, error: error.message });
+            }
+        });
+        
+        return results;
+    }
 } 
