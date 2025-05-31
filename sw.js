@@ -1,7 +1,7 @@
 // Time Tracker Service Worker
-const CACHE_NAME = 'time-tracker-v5.1.0';
-const STATIC_CACHE = 'time-tracker-static-v5.1.0';
-const DYNAMIC_CACHE = 'time-tracker-dynamic-v5.1.0';
+const CACHE_NAME = 'time-tracker-v5.1.1';
+const STATIC_CACHE = 'time-tracker-static-v5.1.1';
+const DYNAMIC_CACHE = 'time-tracker-dynamic-v5.1.1';
 
 // Files to cache immediately
 const STATIC_FILES = [
@@ -30,7 +30,7 @@ const STATIC_FILES = [
 
 // Install event - cache static files
 self.addEventListener('install', event => {
-  console.log('[SW] Installing service worker...');
+  console.log('[SW] Installing service worker v5.1.1...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
@@ -39,7 +39,7 @@ self.addEventListener('install', event => {
         return cache.addAll(STATIC_FILES);
       })
       .then(() => {
-        console.log('[SW] Skip waiting...');
+        console.log('[SW] Skip waiting to force update...');
         return self.skipWaiting();
       })
       .catch(error => {
@@ -48,13 +48,14 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and handle manifest updates
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating service worker...');
+  console.log('[SW] Activating service worker v5.1.1...');
   
   event.waitUntil(
-    caches.keys()
-      .then(cacheNames => {
+    Promise.all([
+      // Clean up old caches
+      caches.keys().then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
             if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
@@ -63,15 +64,27 @@ self.addEventListener('activate', event => {
             }
           })
         );
-      })
-      .then(() => {
-        console.log('[SW] Claiming clients...');
-        return self.clients.claim();
-      })
+      }),
+      // Force refresh of manifest and critical files
+      caches.open(STATIC_CACHE).then(cache => {
+        console.log('[SW] Force refreshing manifest.json...');
+        return fetch('/manifest.json', { cache: 'no-cache' })
+          .then(response => {
+            if (response.ok) {
+              return cache.put('/manifest.json', response);
+            }
+          })
+          .catch(error => {
+            console.warn('[SW] Could not refresh manifest:', error);
+          });
+      }),
+      // Claim clients to immediately take control
+      self.clients.claim()
+    ])
   );
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - serve from cache when offline, with manifest handling
 self.addEventListener('fetch', event => {
   const { request } = event;
   
@@ -80,6 +93,24 @@ self.addEventListener('fetch', event => {
   
   // Skip external requests
   if (!request.url.startsWith(self.location.origin)) return;
+  
+  // Special handling for manifest.json to ensure fresh copy
+  if (request.url.includes('manifest.json')) {
+    event.respondWith(
+      fetch(request, { cache: 'no-cache' })
+        .then(response => {
+          if (response.ok) {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE)
+              .then(cache => cache.put(request, responseClone));
+            return response;
+          }
+          return caches.match(request);
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
   
   event.respondWith(
     caches.match(request)
@@ -112,6 +143,36 @@ self.addEventListener('fetch', event => {
           });
       })
   );
+});
+
+// Message handling for manual cache refresh
+self.addEventListener('message', event => {
+  console.log('[SW] Message received:', event.data);
+  
+  if (event.data && event.data.type === 'REFRESH_MANIFEST') {
+    event.waitUntil(
+      caches.open(STATIC_CACHE)
+        .then(cache => {
+          return fetch('/manifest.json', { cache: 'no-cache' })
+            .then(response => {
+              if (response.ok) {
+                return cache.put('/manifest.json', response);
+              }
+            });
+        })
+        .then(() => {
+          event.ports[0].postMessage({ success: true });
+        })
+        .catch(error => {
+          console.error('[SW] Manifest refresh failed:', error);
+          event.ports[0].postMessage({ success: false, error: error.message });
+        })
+    );
+  }
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Background sync for data persistence

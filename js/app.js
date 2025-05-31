@@ -94,6 +94,13 @@ class TimeTrackerApp {
                             });
                         }
                     });
+
+                    // Check for existing service worker and force manifest refresh
+                    if (navigator.serviceWorker.controller) {
+                        console.log('Service Worker is controlling the page, refreshing manifest...');
+                        this.refreshManifestCache();
+                    }
+
                 } catch (error) {
                     console.log('Service Worker registration failed:', error);
                 }
@@ -151,6 +158,26 @@ class TimeTrackerApp {
                 deferredPrompt = null;
             }
         };
+    }
+
+    // Refresh manifest cache to fix "undefined" app name issue
+    refreshManifestCache() {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            const messageChannel = new MessageChannel();
+            
+            messageChannel.port1.onmessage = (event) => {
+                if (event.data.success) {
+                    console.log('Manifest cache refreshed successfully');
+                } else {
+                    console.warn('Failed to refresh manifest cache:', event.data.error);
+                }
+            };
+            
+            navigator.serviceWorker.controller.postMessage(
+                { type: 'REFRESH_MANIFEST' },
+                [messageChannel.port2]
+            );
+        }
     }
 
     // Get current categories (custom or default)
