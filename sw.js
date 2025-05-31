@@ -1,5 +1,5 @@
 // Time Tracker Service Worker
-const CACHE_VERSION = 'v5.1.3';
+const CACHE_VERSION = 'v5.1.4';
 const STATIC_CACHE = `time-tracker-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `time-tracker-dynamic-${CACHE_VERSION}`;
 
@@ -30,7 +30,7 @@ const STATIC_FILES = [
 
 // Install event - cache static files
 self.addEventListener('install', event => {
-  console.log('[SW] Installing service worker v5.1.2...');
+  console.log('[SW] Installing service worker v5.1.4...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE)

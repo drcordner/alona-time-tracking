@@ -30,10 +30,10 @@ export class Management {
         if (stored) {
             this.settings = stored;
             // Check for version updates and migrate if needed
-            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes") {
-                this.settings.version = "5.1.3 - Bug Fixes & Enhancements";
+            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes" || this.settings.version === "5.1.3 - Bug Fixes & Enhancements") {
+                this.settings.version = "5.1.4 - Enhanced Emoji Picker";
                 this.saveSettings();
-                console.log('Management: Updated version to 5.1.3 - Bug Fixes & Enhancements');
+                console.log('Management: Updated version to 5.1.4 - Enhanced Emoji Picker');
             }
         } else {
             // Default settings
@@ -255,6 +255,22 @@ export class Management {
                             <p class="setting-description">
                                 Enable goal setting and progress tracking features. 
                                 ${this.settings.goalsEnabled ? 'Goals will appear on the home screen and in reports.' : 'Goal features will be hidden throughout the app.'}
+                            </p>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-toggle">
+                                <label for="enhanced-emoji-picker">Enhanced Emoji Picker</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" 
+                                           id="enhanced-emoji-picker" 
+                                           ${(this.settings.enhancedEmojiPicker !== false) ? 'checked' : ''}
+                                           onchange="management.updateSetting('enhancedEmojiPicker', this.checked)">
+                                    <span class="toggle-slider" onclick="document.getElementById('enhanced-emoji-picker').click()"></span>
+                                </div>
+                            </div>
+                            <p class="setting-description">
+                                Use the modern emoji picker with search and categories. 
+                                ${(this.settings.enhancedEmojiPicker !== false) ? 'Enhanced picker provides better emoji selection experience.' : 'Simple preset-based emoji selection will be used.'}
                             </p>
                         </div>
                     </div>
@@ -582,12 +598,7 @@ export class Management {
                         
                         <div class="form-group">
                             <label>Emoji</label>
-                            <div class="emoji-picker">
-                                <input type="text" id="activity-emoji" value="${currentEmoji}" maxlength="2">
-                                <div class="emoji-presets">
-                                    ${this.renderActivityEmojiPresets()}
-                                </div>
-                            </div>
+                            ${this.createEmojiPicker(currentEmoji, 'activity-emoji', false)}
                         </div>
                         
                         <div class="modal-actions">
@@ -600,6 +611,29 @@ export class Management {
         `;
         
         document.getElementById('modal-container').innerHTML = modal;
+    }
+
+    // Create emoji picker based on user preference
+    createEmojiPicker(currentEmoji, inputId, isCategory = true) {
+        // Check user preference for enhanced emoji picker
+        if (this.getSetting('enhancedEmojiPicker') !== false) {
+            return this.createEnhancedEmojiPicker(currentEmoji, inputId, isCategory);
+        } else {
+            // Fallback to simple emoji picker
+            return this.createSimpleEmojiPicker(currentEmoji, inputId, isCategory);
+        }
+    }
+
+    // Simple emoji picker (legacy/fallback)
+    createSimpleEmojiPicker(currentEmoji, inputId, isCategory = true) {
+        return `
+            <div class="emoji-picker">
+                <input type="text" id="${inputId}" value="${currentEmoji}" maxlength="2">
+                <div class="emoji-presets">
+                    ${isCategory ? this.renderEmojiPresets() : this.renderActivityEmojiPresets()}
+                </div>
+            </div>
+        `;
     }
 
     // Render activity-specific emoji presets
@@ -683,12 +717,7 @@ export class Management {
                         
                         <div class="form-group">
                             <label>Emoji</label>
-                            <div class="emoji-picker">
-                                <input type="text" id="category-emoji" value="${categoryData?.emoji || '📁'}" maxlength="2">
-                                <div class="emoji-presets">
-                                    ${this.renderEmojiPresets()}
-                                </div>
-                            </div>
+                            ${this.createEmojiPicker(categoryData?.emoji || '📁', 'category-emoji', true)}
                         </div>
                         
                         ${isEdit && this.getSetting('goalsEnabled') ? this.renderGoalsSection(categoryName, currentGoals) : ''}
@@ -1149,6 +1178,10 @@ export class Management {
 
     // Close modal
     closeModal() {
+        // Close any open emoji pickers
+        this.closeAllEmojiPickers();
+        
+        // Clear modal content
         document.getElementById('modal-container').innerHTML = '';
         this.editingCategory = null;
         this.editingActivity = null;
@@ -1160,7 +1193,8 @@ export class Management {
             goalsEnabled: true,
             quickStartCount: 6,
             sessionRetentionDays: 90,
-            version: "5.1.3 - Bug Fixes & Enhancements"
+            enhancedEmojiPicker: true,
+            version: "5.1.4 - Enhanced Emoji Picker"
         };
     }
 
@@ -1224,5 +1258,117 @@ export class Management {
                 button.textContent = 'Check for Updates';
             }, 3000);
         }
+    }
+
+    // Enhanced emoji picker methods
+    createEnhancedEmojiPicker(currentEmoji, inputId, isCategory = true) {
+        const pickerId = `emoji-picker-${Date.now()}`;
+        
+        return `
+            <div class="emoji-picker-enhanced">
+                <div class="emoji-input-container">
+                    <input type="text" 
+                           id="${inputId}" 
+                           value="${currentEmoji}" 
+                           maxlength="2" 
+                           placeholder="🎯"
+                           readonly>
+                    <button type="button" 
+                            class="emoji-picker-button" 
+                            onclick="management.toggleEmojiPicker('${pickerId}', '${inputId}')">
+                        <span>😀</span>
+                        <span>Pick Emoji</span>
+                    </button>
+                </div>
+                <div id="${pickerId}" class="emoji-picker-container">
+                    <!-- Emoji picker will be loaded here -->
+                </div>
+            </div>
+        `;
+    }
+
+    // Toggle emoji picker visibility
+    async toggleEmojiPicker(pickerId, inputId) {
+        const container = document.getElementById(pickerId);
+        const isVisible = container.classList.contains('show');
+        
+        // Close all other emoji pickers
+        document.querySelectorAll('.emoji-picker-container.show').forEach(picker => {
+            if (picker.id !== pickerId) {
+                picker.classList.remove('show');
+            }
+        });
+        
+        if (isVisible) {
+            container.classList.remove('show');
+            return;
+        }
+        
+        // Show this picker
+        container.classList.add('show');
+        
+        // Load emoji picker if not already loaded
+        if (!container.querySelector('emoji-picker')) {
+            await this.loadEmojiPicker(container, inputId);
+        }
+    }
+
+    // Load and configure emoji picker
+    async loadEmojiPicker(container, inputId) {
+        try {
+            // Show loading state
+            container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;"><div class="loading-spinner"></div><p style="margin-top: 1rem;">Loading emoji picker...</p></div>';
+            
+            // Wait for emoji-picker-element to be available
+            if (!customElements.get('emoji-picker')) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                if (!customElements.get('emoji-picker')) {
+                    throw new Error('emoji-picker-element not loaded');
+                }
+            }
+            
+            // Create and configure emoji picker
+            const picker = document.createElement('emoji-picker');
+            picker.addEventListener('emoji-click', (event) => {
+                const emoji = event.detail.emoji.unicode;
+                document.getElementById(inputId).value = emoji;
+                container.classList.remove('show');
+                document.getElementById(inputId).dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            
+            // Clear loading and add picker
+            container.innerHTML = '';
+            container.appendChild(picker);
+            
+            // Add click outside handler
+            const handleClickOutside = (event) => {
+                if (!container.contains(event.target) && !event.target.closest('.emoji-picker-button')) {
+                    container.classList.remove('show');
+                    document.removeEventListener('click', handleClickOutside);
+                }
+            };
+            setTimeout(() => document.addEventListener('click', handleClickOutside), 100);
+            
+        } catch (error) {
+            console.error('Error loading emoji picker:', error);
+            // Fallback to simple picker
+            container.innerHTML = `
+                <div style="padding: 1rem;">
+                    <p style="margin-bottom: 1rem; text-align: center; color: #666; font-size: 0.9em;">
+                        Enhanced picker unavailable. Using simple selection:
+                    </p>
+                    <div class="emoji-presets" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
+                        ${this.renderEmojiPresets()}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // Close all emoji pickers
+    closeAllEmojiPickers() {
+        document.querySelectorAll('.emoji-picker-container.show').forEach(picker => {
+            picker.classList.remove('show');
+        });
     }
 } 
