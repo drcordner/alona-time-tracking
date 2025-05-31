@@ -287,7 +287,7 @@ export class Storage {
         
         if (!dayData || !dayData._sessions) return [];
         
-        return dayData._sessions.sort((a, b) => a.startTime - b.startTime);
+        return dayData._sessions.sort((a, b) => b.startTime - a.startTime);
     }
 
     // Get sessions for a date range
@@ -301,7 +301,7 @@ export class Storage {
             currentDate.setDate(currentDate.getDate() + 1);
         }
         
-        return sessions.sort((a, b) => a.startTime - b.startTime);
+        return sessions.sort((a, b) => b.startTime - a.startTime);
     }
 
     // Get storage statistics
