@@ -1,5 +1,5 @@
 // Time Tracker Service Worker
-const CACHE_VERSION = 'v5.1.4';
+const CACHE_VERSION = 'v5.1.4-streak-fix';
 const STATIC_CACHE = `time-tracker-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `time-tracker-dynamic-${CACHE_VERSION}`;
 
@@ -30,7 +30,7 @@ const STATIC_FILES = [
 
 // Install event - cache static files
 self.addEventListener('install', event => {
-  console.log('[SW] Installing service worker v5.1.4...');
+  console.log('[SW] Installing service worker v5.1.4-streak-fix...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
@@ -50,7 +50,7 @@ self.addEventListener('install', event => {
 
 // Activate event - clean up old caches and handle manifest updates
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating service worker v5.1.2...');
+  console.log('[SW] Activating service worker v5.1.4-streak-fix...');
   
   event.waitUntil(
     Promise.all([
