@@ -1,5 +1,72 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# 📊 Phase Development Workflow
+
+## 🎯 **Current Status: Phase 6 Complete**
+
+### **Phase 6 Completed (v5.1.4+):**
+- ✅ Streak calculation algorithm fix with data migration
+- ✅ Enhanced PWA update mechanism for mobile devices
+- ✅ Version consistency across Help and About dialogs
+- ✅ Staging/Production deployment pipeline
+- ✅ Enhanced emoji picker with search functionality
+- ✅ Quick Start configuration (4/6/8/10 items)
+
+## 🚀 **Phase 7: Planned Features**
+
+### **High Priority:**
+- **Dark Mode**: Complete theme switching system
+- **Enhanced Exports**: PDF reports, CSV with date ranges
+- **Notifications**: Break reminders, goal progress alerts
+- **Performance**: Large dataset optimization
+
+### **Medium Priority:**
+- **Analytics**: Productivity insights and patterns
+- **Accessibility**: Enhanced screen reader support
+- **PWA Enhancements**: Better offline functionality
+
+## 🔧 **Phase Development Process**
+
+### **Starting a New Phase:**
+1. **Review** docs/project-management/BACKLOG.md for current priorities
+2. **Plan** features with user feedback in mind
+3. **Design** following established design token system
+4. **Implement** with mobile-first approach
+5. **Test** thoroughly on staging environment
+6. **Document** patterns in docs/development/LESSONS_LEARNED.md
+
+### **Completing a Phase:**
+1. **Update** docs/project-management/BACKLOG.md with completion status
+2. **Document** technical lessons learned
+3. **Update** docs/development/CONSISTENCY_ANALYSIS.md scores
+4. **Deploy** to production with proper testing
+5. **Create** release notes with user-focused descriptions
+
+## 📋 **Feature Development Standards**
+
+### **Technical Requirements:**
+- Mobile-first responsive design
+- Design token usage for all styling
+- PWA compatibility maintenance
+- Accessibility considerations (ARIA labels, keyboard nav)
+- Performance optimization (Core Web Vitals)
+
+### **Documentation Requirements:**
+- Update relevant .md files immediately
+- Include code examples in lessons learned
+- Track design consistency improvements
+- Document deployment and testing procedures
+
+## 🎯 **Success Metrics**
+
+- **Consistency Score**: Maintain 95%+ design token usage
+- **Performance**: Lighthouse scores 90%+ across categories
+- **User Experience**: Mobile-responsive, accessible, intuitive
+- **Documentation**: Complete, current, and cross-referenced
+
+@docs/project-management/BACKLOG.md
+@docs/development/LESSONS_LEARNED.md
+
