@@ -26,6 +26,30 @@
 - **Trust Restoration**: Accurate metrics restore confidence in goal tracking
 - **Future-Proof**: New algorithm prevents similar issues going forward
 
+## 🚀 **Version 5.1.4+ - Enhanced Update Mechanism & Version Consistency** 
+*Released: Current Session*
+
+### 🔧 **CRITICAL FIXES**
+
+#### 📱 **Enhanced PWA Update Mechanism**
+- **Aggressive Cache Clearing**: Now clears ALL browser caches during updates, not just specific ones
+- **PWA Detection**: Automatically detects PWA installations and uses appropriate update method
+- **Hard Refresh for Mobile**: Uses URL-based hard refresh for PWA installations to force complete reload
+- **Better Update Process**: Enhanced "Check for Updates" with clear progress feedback
+- **Service Worker Enhancement**: Improved message handling between app and service worker
+
+#### 🔄 **Version Consistency Fix**
+- **Single Version Source**: Added `APP_VERSION` constant in management module for consistency
+- **Help Page Sync**: Help page now dynamically pulls version from management module
+- **Updated Version String**: Now shows "5.1.4+ - Streak Calculation Fix" reflecting latest improvements
+- **Automatic Migration**: Existing installations automatically update to new version format
+
+### 🎯 **USER IMPACT**
+- **Mobile PWA Updates**: No more getting stuck on old versions - updates now work reliably
+- **Consistent Information**: Version numbers match between About dialog and Help page
+- **Better Feedback**: Clear progress indicators during update process
+- **Reliable Updates**: Enhanced mechanism ensures users get latest features and fixes
+
 ---
 
 ## 🚀 **Version 5.1.4 - Enhanced Emoji Picker** 
