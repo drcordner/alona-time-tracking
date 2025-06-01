@@ -719,13 +719,18 @@ const shortcutsCSS = `
     }
     
     .shortcut-group {
-        margin-bottom: 24px;
+        background: #f8f9fa;
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+        margin-bottom: 16px;
     }
     
-    .shortcut-group h4 {
+    .shortcut-group h5 {
         margin: 0 0 12px 0;
         color: #2c3e50;
-        font-size: 1em;
+        font-size: 0.95em;
+        font-weight: 600;
         border-bottom: 1px solid #e9ecef;
         padding-bottom: 8px;
     }
@@ -735,7 +740,7 @@ const shortcutsCSS = `
         justify-content: space-between;
         align-items: center;
         padding: 8px 0;
-        border-bottom: 1px solid #f8f9fa;
+        border-bottom: 1px solid #ffffff;
     }
     
     .shortcut-item:last-child {
@@ -749,16 +754,52 @@ const shortcutsCSS = `
 
     /* Enhanced Help Modal Styles */
     .help-modal {
-        max-width: 700px;
-        width: 95vw;
-        max-height: 90vh;
-        overflow-y: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+        box-sizing: border-box;
     }
 
     .help-content {
-        padding: 0;
-        max-height: 70vh;
+        background: white;
+        border-radius: 12px;
+        max-width: 800px;
+        width: 100%;
+        max-height: 90vh;
         overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .help-header {
+        padding: 24px 24px 16px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        background: white;
+        border-radius: 12px 12px 0 0;
+        z-index: 1;
+    }
+
+    .help-header h2 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.4em;
+        font-weight: 600;
+    }
+
+    .help-body {
+        padding: 24px;
     }
 
     .help-section {
@@ -773,7 +814,7 @@ const shortcutsCSS = `
     }
 
     .help-section h4 {
-        margin: 0 0 16px 0;
+        margin: 0 0 20px 0;
         color: #2c3e50;
         font-size: 1.2em;
         font-weight: 600;
@@ -782,16 +823,10 @@ const shortcutsCSS = `
         gap: 8px;
     }
 
-    .help-section h5 {
-        margin: 0 0 12px 0;
-        color: #495057;
-        font-size: 1em;
-        font-weight: 600;
-    }
-
     .help-text {
-        color: #6c757d;
+        color: #495057;
         line-height: 1.6;
+        font-size: 0.95em;
     }
 
     .help-text p {
@@ -805,10 +840,12 @@ const shortcutsCSS = `
 
     .help-text li {
         margin-bottom: 8px;
+        line-height: 1.5;
     }
 
     .help-text strong {
-        color: #495057;
+        color: #2c3e50;
+        font-weight: 600;
     }
 
     .feature-list {
@@ -843,6 +880,7 @@ const shortcutsCSS = `
         flex: 1;
         color: #495057;
         line-height: 1.5;
+        font-size: 0.95em;
     }
 
     .feature-desc strong {
@@ -852,20 +890,14 @@ const shortcutsCSS = `
 
     .shortcuts-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 24px;
-    }
-
-    .shortcut-group {
-        background: #f8f9fa;
-        padding: 16px;
-        border-radius: 8px;
-        border-left: 4px solid #28a745;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
     }
 
     .version-info {
         text-align: center;
         padding-top: 16px;
+        border-top: 1px solid #e9ecef;
     }
 
     .version-badge {
@@ -874,14 +906,14 @@ const shortcutsCSS = `
         gap: 8px;
         background: linear-gradient(135deg, #4A90E2, #357abd);
         color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
+        padding: 10px 20px;
+        border-radius: 25px;
         font-size: 0.9em;
         box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        font-weight: 500;
     }
 
     .version-label {
-        font-weight: 500;
         opacity: 0.9;
     }
 
@@ -889,20 +921,66 @@ const shortcutsCSS = `
         font-weight: 600;
     }
 
+    /* Keyboard key styling */
+    kbd {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px #fff;
+        color: #495057;
+        display: inline-block;
+        font-family: monospace;
+        font-size: 0.8em;
+        font-weight: 600;
+        line-height: 1;
+        padding: 4px 6px;
+        white-space: nowrap;
+        margin: 0 2px;
+    }
+
+    /* Modal close button */
+    .modal-close {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        color: #6c757d;
+        cursor: pointer;
+        font-size: 18px;
+        height: 32px;
+        width: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+        background: #e9ecef;
+        color: #495057;
+    }
+
     /* Mobile Responsive */
     @media (max-width: 768px) {
         .help-modal {
-            width: 100vw;
-            max-width: none;
-            height: 100vh;
-            max-height: none;
-            border-radius: 0;
-            margin: 0;
+            padding: 10px;
         }
 
         .help-content {
-            max-height: none;
-            padding: 0 16px 16px;
+            max-height: 95vh;
+            border-radius: 8px;
+        }
+
+        .help-header {
+            padding: 16px 16px 12px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .help-header h2 {
+            font-size: 1.2em;
+        }
+
+        .help-body {
+            padding: 16px;
         }
 
         .shortcuts-grid {
@@ -912,39 +990,81 @@ const shortcutsCSS = `
 
         .feature-item {
             padding: 12px;
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
         }
 
         .feature-icon {
-            width: 32px;
-            height: 32px;
-            font-size: 1.2em;
+            width: 48px;
+            height: 48px;
+            font-size: 1.8em;
+            margin: 0 auto;
         }
 
         .help-section {
             margin-bottom: 24px;
             padding-bottom: 16px;
         }
+
+        .help-section h4 {
+            font-size: 1.1em;
+            margin-bottom: 16px;
+        }
+
+        .shortcut-group {
+            padding: 12px;
+        }
+
+        .version-badge {
+            padding: 8px 16px;
+            font-size: 0.85em;
+        }
     }
 
     @media (max-width: 480px) {
+        .help-modal {
+            padding: 5px;
+        }
+
+        .help-content {
+            border-radius: 6px;
+        }
+
+        .help-header {
+            padding: 12px;
+        }
+
+        .help-body {
+            padding: 12px;
+        }
+
         .shortcut-item {
             flex-direction: column;
             align-items: flex-start;
             gap: 4px;
+            padding: 10px 0;
         }
 
         .shortcut-item span:last-child {
             font-size: 0.85em;
+            color: #6c757d;
         }
+    }
 
-        .feature-item {
-            flex-direction: column;
-            text-align: center;
-            gap: 12px;
+    /* Animation */
+    .fade-in {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
         }
-
-        .help-section h4 {
-            font-size: 1.1em;
+        to {
+            opacity: 1;
+            transform: scale(1);
         }
     }
 `;
