@@ -1,0 +1,24 @@
+# Cursor AI Rules for Time Tracker Project
+
+## Documentation Maintenance Priority
+- ALWAYS check and update documentation files after ANY changes
+- Required files: BACKLOG.md, LESSONS_LEARNED.md, CONSISTENCY_ANALYSIS.md, DEPLOYMENT.md, RELEASE_NOTES.md
+- Read AI_INSTRUCTIONS.md at the start of each session
+
+## Design Standards
+- Use CSS custom properties (design tokens) for all styling
+- Follow component class patterns (.btn-base, .input-base)
+- Maintain 95% consistency score established in Phase 6
+
+## Development Patterns
+- Mobile-first responsive design
+- Vanilla JavaScript (no frameworks)
+- localStorage for data persistence
+- PWA best practices
+
+## Current Status
+- Phase 6 completed (v5.1.4+ with streak fix)
+- Deployed on Netlify with auto-deployment
+- Ready for Phase 7 development
+
+## Critical: Update documentation immediately after code changes 

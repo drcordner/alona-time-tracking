@@ -6,6 +6,21 @@
 ![PWA](https://img.shields.io/badge/PWA-Ready-brightgreen.svg)
 ![Mobile](https://img.shields.io/badge/Mobile-Optimized-orange.svg)
 
+## 🚨 **Documentation Maintenance Required**
+
+**Critical files to maintain after ANY code changes:**
+- `BACKLOG.md` - Feature roadmap and phase tracking
+- `LESSONS_LEARNED.md` - Technical patterns and best practices
+- `CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
+- `DEPLOYMENT.md` - Deployment status and procedures
+- `RELEASE_NOTES.md` - Comprehensive changelog
+
+## 🎯 **Current Status**
+- **Version**: 5.1.4+ (Streak calculation fix)
+- **Phase**: Completed Phase 6, Ready for Phase 7
+- **Deployed**: ✅ Live on Netlify
+- **Architecture**: Vanilla JS PWA with design token system
+
 ## 🌟 **Features**
 
 ### ⏱️ **Core Time Tracking**
