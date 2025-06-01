@@ -13,7 +13,7 @@ export class Management {
         this.goalSaveTimeout = null;
         
         // Version constant for consistency across the app
-        this.APP_VERSION = "5.1.4+ - Streak Calculation Fix";
+        this.APP_VERSION = "5.1.5 - Documentation Organization & Cache Improvements";
         
         // Load settings
         this.loadSettings();
@@ -33,7 +33,7 @@ export class Management {
         if (stored) {
             this.settings = stored;
             // Check for version updates and migrate if needed
-            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes" || this.settings.version === "5.1.3 - Bug Fixes & Enhancements" || this.settings.version === "5.1.4 - Enhanced Emoji Picker") {
+            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes" || this.settings.version === "5.1.3 - Bug Fixes & Enhancements" || this.settings.version === "5.1.4 - Enhanced Emoji Picker" || this.settings.version === "5.1.4+ - Streak Calculation Fix") {
                 this.settings.version = this.APP_VERSION;
                 this.saveSettings();
                 console.log('Management: Updated version to', this.APP_VERSION);

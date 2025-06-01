@@ -200,7 +200,7 @@ export class UXEnhancements {
         }
 
         // Get current version from management module
-        const currentVersion = window.management ? window.management.getAppVersion() : "5.1.4+ - Streak Calculation Fix";
+        const currentVersion = window.management ? window.management.getAppVersion() : "5.1.5 - Documentation Organization & Cache Improvements";
 
         const helpContent = `
             <div class="help-modal modal-overlay fade-in" onclick="this.remove()">
@@ -213,89 +213,120 @@ export class UXEnhancements {
                     <div class="help-body">
                         <!-- Keyboard Shortcuts -->
                         <div class="help-section">
-                            <h3>⌨️ Keyboard Shortcuts</h3>
+                            <h4>⌨️ Keyboard Shortcuts</h4>
                             <div class="shortcuts-grid">
-                                <div class="shortcut-item">
-                                    <kbd>Space</kbd>
-                                    <span>Start/Pause/Resume Timer</span>
+                                <div class="shortcut-group">
+                                    <h5>Timer Controls</h5>
+                                    <div class="shortcut-item">
+                                        <kbd>Space</kbd>
+                                        <span>Start/Pause/Resume Timer</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Escape</kbd>
+                                        <span>Stop Timer / Go Back</span>
+                                    </div>
                                 </div>
-                                <div class="shortcut-item">
-                                    <kbd>Escape</kbd>
-                                    <span>Stop Timer / Go Back</span>
+                                <div class="shortcut-group">
+                                    <h5>Navigation</h5>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl</kbd> + <kbd>H</kbd>
+                                        <span>Go to Home</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl</kbd> + <kbd>R</kbd>
+                                        <span>Go to Reports</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl</kbd> + <kbd>M</kbd>
+                                        <span>Go to Management</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>←</kbd> <kbd>→</kbd>
+                                        <span>Navigate Dates in Reports</span>
+                                    </div>
                                 </div>
-                                <div class="shortcut-item">
-                                    <kbd>Ctrl</kbd> + <kbd>H</kbd>
-                                    <span>Go to Home</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Ctrl</kbd> + <kbd>R</kbd>
-                                    <span>Go to Reports</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Ctrl</kbd> + <kbd>M</kbd>
-                                    <span>Go to Management</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>←</kbd> <kbd>→</kbd>
-                                    <span>Navigate Dates in Reports</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Ctrl</kbd> + <kbd>/</kbd>
-                                    <span>Show This Help</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Enter</kbd>
-                                    <span>Submit Forms</span>
+                                <div class="shortcut-group">
+                                    <h5>Other</h5>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl</kbd> + <kbd>/</kbd>
+                                        <span>Show This Help</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Enter</kbd>
+                                        <span>Submit Forms</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Features Overview -->
                         <div class="help-section">
-                            <h3>🌟 Key Features</h3>
-                            <div class="features-list">
+                            <h4>🌟 Key Features</h4>
+                            <div class="feature-list">
                                 <div class="feature-item">
-                                    <strong>⏱️ Time Tracking:</strong> Click any activity to start tracking time immediately
+                                    <div class="feature-icon">⏱️</div>
+                                    <div class="feature-desc">
+                                        <strong>Time Tracking:</strong> Click any activity to start tracking time immediately
+                                    </div>
                                 </div>
                                 <div class="feature-item">
-                                    <strong>🎯 Goals System:</strong> Set daily, weekly, or monthly time goals for categories
+                                    <div class="feature-icon">🎯</div>
+                                    <div class="feature-desc">
+                                        <strong>Goals System:</strong> Set daily, weekly, or monthly time goals for categories
+                                    </div>
                                 </div>
                                 <div class="feature-item">
-                                    <strong>📊 Reports:</strong> View detailed analytics with interactive charts
+                                    <div class="feature-icon">📊</div>
+                                    <div class="feature-desc">
+                                        <strong>Reports:</strong> View detailed analytics with interactive charts
+                                    </div>
                                 </div>
                                 <div class="feature-item">
-                                    <strong>⚡ Quick Start:</strong> Personalized suggestions based on your usage patterns
+                                    <div class="feature-icon">⚡</div>
+                                    <div class="feature-desc">
+                                        <strong>Quick Start:</strong> Personalized suggestions based on your usage patterns
+                                    </div>
                                 </div>
                                 <div class="feature-item">
-                                    <strong>📱 PWA Support:</strong> Install as an app on your device for offline use
+                                    <div class="feature-icon">📱</div>
+                                    <div class="feature-desc">
+                                        <strong>PWA Support:</strong> Install as an app on your device for offline use
+                                    </div>
                                 </div>
                                 <div class="feature-item">
-                                    <strong>🎨 Customization:</strong> Add custom categories, activities, and emojis
+                                    <div class="feature-icon">🎨</div>
+                                    <div class="feature-desc">
+                                        <strong>Customization:</strong> Add custom categories, activities, and emojis
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Getting Started -->
                         <div class="help-section">
-                            <h3>🚀 Getting Started</h3>
-                            <ol class="getting-started-list">
-                                <li>Start by clicking any activity from Quick Start or category view</li>
-                                <li>Use the timer controls to pause, resume, or stop tracking</li>
-                                <li>Set goals in Management → Categories to track your progress</li>
-                                <li>View your time data in Reports with different time periods</li>
-                                <li>Customize categories and activities in Management</li>
-                            </ol>
+                            <h4>🚀 Getting Started</h4>
+                            <div class="help-text">
+                                <ol>
+                                    <li>Start by clicking any activity from Quick Start or category view</li>
+                                    <li>Use the timer controls to pause, resume, or stop tracking</li>
+                                    <li>Set goals in Management → Categories to track your progress</li>
+                                    <li>View your time data in Reports with different time periods</li>
+                                    <li>Customize categories and activities in Management</li>
+                                </ol>
+                            </div>
                         </div>
 
                         <!-- Tips & Tricks -->
                         <div class="help-section">
-                            <h3>💡 Tips & Tricks</h3>
-                            <div class="tips-list">
-                                <div class="tip-item">Use spacebar for quick timer control from anywhere</div>
-                                <div class="tip-item">Goals auto-calculate weekly/monthly targets from daily values</div>
-                                <div class="tip-item">Export your data regularly as backup</div>
-                                <div class="tip-item">The app works offline after initial load</div>
-                                <div class="tip-item">Install as PWA for a native app experience</div>
+                            <h4>💡 Tips & Tricks</h4>
+                            <div class="help-text">
+                                <ul>
+                                    <li>Use spacebar for quick timer control from anywhere</li>
+                                    <li>Goals auto-calculate weekly/monthly targets from daily values</li>
+                                    <li>Export your data regularly as backup</li>
+                                    <li>The app works offline after initial load</li>
+                                    <li>Install as PWA for a native app experience</li>
+                                </ul>
                             </div>
                         </div>
 
