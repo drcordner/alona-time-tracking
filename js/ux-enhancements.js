@@ -192,135 +192,110 @@ export class UXEnhancements {
     }
 
     showHelp() {
+        // Remove existing help modal if present
+        const existingModal = document.querySelector('.help-modal');
+        if (existingModal) {
+            existingModal.remove();
+            return;
+        }
+
+        // Get current version from management module
+        const currentVersion = window.management ? window.management.getAppVersion() : "5.1.4+ - Streak Calculation Fix";
+
         const helpContent = `
-            <div class="modal-overlay" onclick="this.remove()">
-                <div class="modal-content help-modal" onclick="event.stopPropagation()">
-                    <div class="modal-header">
-                        <h3>📚 Help & Instructions</h3>
-                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">✕</button>
+            <div class="help-modal modal-overlay fade-in" onclick="this.remove()">
+                <div class="help-content modal-content" onclick="event.stopPropagation()">
+                    <div class="help-header modal-header">
+                        <h2>📖 Time Tracker - Help & Shortcuts</h2>
+                        <button class="modal-close" onclick="this.closest('.help-modal').remove()">✕</button>
                     </div>
                     
-                    <div class="help-content">
-                        <!-- Getting Started -->
+                    <div class="help-body">
+                        <!-- Keyboard Shortcuts -->
                         <div class="help-section">
-                            <h4>🚀 Getting Started</h4>
-                            <div class="help-text">
-                                <p><strong>Alona's Activity Tracker</strong> helps you track how you spend your time across different categories and activities.</p>
-                                <ol>
-                                    <li><strong>Start Tracking:</strong> Tap a category or use Quick Start buttons to begin timing an activity</li>
-                                    <li><strong>Pause/Resume:</strong> Use the pause button during timing sessions</li>
-                                    <li><strong>View Reports:</strong> Check your daily, weekly, or monthly time summaries</li>
-                                    <li><strong>Set Goals:</strong> Configure time goals in the Management section</li>
-                                </ol>
+                            <h3>⌨️ Keyboard Shortcuts</h3>
+                            <div class="shortcuts-grid">
+                                <div class="shortcut-item">
+                                    <kbd>Space</kbd>
+                                    <span>Start/Pause/Resume Timer</span>
+                                </div>
+                                <div class="shortcut-item">
+                                    <kbd>Escape</kbd>
+                                    <span>Stop Timer / Go Back</span>
+                                </div>
+                                <div class="shortcut-item">
+                                    <kbd>Ctrl</kbd> + <kbd>H</kbd>
+                                    <span>Go to Home</span>
+                                </div>
+                                <div class="shortcut-item">
+                                    <kbd>Ctrl</kbd> + <kbd>R</kbd>
+                                    <span>Go to Reports</span>
+                                </div>
+                                <div class="shortcut-item">
+                                    <kbd>Ctrl</kbd> + <kbd>M</kbd>
+                                    <span>Go to Management</span>
+                                </div>
+                                <div class="shortcut-item">
+                                    <kbd>←</kbd> <kbd>→</kbd>
+                                    <span>Navigate Dates in Reports</span>
+                                </div>
+                                <div class="shortcut-item">
+                                    <kbd>Ctrl</kbd> + <kbd>/</kbd>
+                                    <span>Show This Help</span>
+                                </div>
+                                <div class="shortcut-item">
+                                    <kbd>Enter</kbd>
+                                    <span>Submit Forms</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Main Features -->
+                        <!-- Features Overview -->
                         <div class="help-section">
-                            <h4>⭐ Main Features</h4>
-                            <div class="feature-list">
+                            <h3>🌟 Key Features</h3>
+                            <div class="features-list">
                                 <div class="feature-item">
-                                    <span class="feature-icon">🏠</span>
-                                    <div class="feature-desc">
-                                        <strong>Home Screen:</strong> Quick start buttons and category overview with today's time
-                                    </div>
+                                    <strong>⏱️ Time Tracking:</strong> Click any activity to start tracking time immediately
                                 </div>
                                 <div class="feature-item">
-                                    <span class="feature-icon">📊</span>
-                                    <div class="feature-desc">
-                                        <strong>Reports:</strong> Interactive charts, timelines, and detailed breakdowns
-                                    </div>
+                                    <strong>🎯 Goals System:</strong> Set daily, weekly, or monthly time goals for categories
                                 </div>
                                 <div class="feature-item">
-                                    <span class="feature-icon">⚙️</span>
-                                    <div class="feature-desc">
-                                        <strong>Management:</strong> Customize categories, activities, and settings
-                                    </div>
+                                    <strong>📊 Reports:</strong> View detailed analytics with interactive charts
                                 </div>
                                 <div class="feature-item">
-                                    <span class="feature-icon">🎯</span>
-                                    <div class="feature-desc">
-                                        <strong>Goals:</strong> Set daily, weekly, or monthly time targets
-                                    </div>
+                                    <strong>⚡ Quick Start:</strong> Personalized suggestions based on your usage patterns
+                                </div>
+                                <div class="feature-item">
+                                    <strong>📱 PWA Support:</strong> Install as an app on your device for offline use
+                                </div>
+                                <div class="feature-item">
+                                    <strong>🎨 Customization:</strong> Add custom categories, activities, and emojis
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Getting Started -->
+                        <div class="help-section">
+                            <h3>🚀 Getting Started</h3>
+                            <ol class="getting-started-list">
+                                <li>Start by clicking any activity from Quick Start or category view</li>
+                                <li>Use the timer controls to pause, resume, or stop tracking</li>
+                                <li>Set goals in Management → Categories to track your progress</li>
+                                <li>View your time data in Reports with different time periods</li>
+                                <li>Customize categories and activities in Management</li>
+                            </ol>
                         </div>
 
                         <!-- Tips & Tricks -->
                         <div class="help-section">
-                            <h4>💡 Tips & Tricks</h4>
-                            <div class="help-text">
-                                <ul>
-                                    <li><strong>Quick Start:</strong> The app learns your patterns and shows your most-used activities</li>
-                                    <li><strong>Timer Recovery:</strong> If you close the app with a timer running, it will offer to continue when you return</li>
-                                    <li><strong>Export Data:</strong> Use CSV or JSON export in Reports to backup your data</li>
-                                    <li><strong>Categories:</strong> Single-activity categories go directly to timing</li>
-                                    <li><strong>Goals:</strong> Green checkmarks show achieved goals, progress bars show your advancement</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- Keyboard Shortcuts (Desktop) -->
-                        <div class="help-section">
-                            <h4>⌨️ Keyboard Shortcuts (Desktop)</h4>
-                            <div class="shortcuts-grid">
-                                <div class="shortcut-group">
-                                    <h5>Timer Controls</h5>
-                                    <div class="shortcut-item">
-                                        <span class="kbd">Space</span>
-                                        <span>Start quick activity / Pause/Resume timer</span>
-                                    </div>
-                                    <div class="shortcut-item">
-                                        <span class="kbd">Esc</span>
-                                        <span>Stop timer / Go back / Close modals</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="shortcut-group">
-                                    <h5>Navigation</h5>
-                                    <div class="shortcut-item">
-                                        <span class="kbd">Ctrl</span> + <span class="kbd">H</span>
-                                        <span>Go to Home</span>
-                                    </div>
-                                    <div class="shortcut-item">
-                                        <span class="kbd">Ctrl</span> + <span class="kbd">R</span>
-                                        <span>Go to Reports</span>
-                                    </div>
-                                    <div class="shortcut-item">
-                                        <span class="kbd">Ctrl</span> + <span class="kbd">M</span>
-                                        <span>Go to Management</span>
-                                    </div>
-                                    <div class="shortcut-item">
-                                        <span class="kbd">←</span> <span class="kbd">→</span>
-                                        <span>Navigate dates (in Reports)</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="shortcut-group">
-                                    <h5>General</h5>
-                                    <div class="shortcut-item">
-                                        <span class="kbd">Ctrl</span> + <span class="kbd">/</span>
-                                        <span>Show this help</span>
-                                    </div>
-                                    <div class="shortcut-item">
-                                        <span class="kbd">Enter</span>
-                                        <span>Submit form / Confirm action</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Data & Privacy -->
-                        <div class="help-section">
-                            <h4>🔒 Data & Privacy</h4>
-                            <div class="help-text">
-                                <p>All your data is stored locally in your browser. Nothing is sent to external servers:</p>
-                                <ul>
-                                    <li><strong>Time tracking data:</strong> Stored in browser's localStorage</li>
-                                    <li><strong>Settings & goals:</strong> Saved locally on your device</li>
-                                    <li><strong>Export options:</strong> Create backups anytime via Reports section</li>
-                                    <li><strong>No accounts:</strong> No registration or login required</li>
-                                </ul>
+                            <h3>💡 Tips & Tricks</h3>
+                            <div class="tips-list">
+                                <div class="tip-item">Use spacebar for quick timer control from anywhere</div>
+                                <div class="tip-item">Goals auto-calculate weekly/monthly targets from daily values</div>
+                                <div class="tip-item">Export your data regularly as backup</div>
+                                <div class="tip-item">The app works offline after initial load</div>
+                                <div class="tip-item">Install as PWA for a native app experience</div>
                             </div>
                         </div>
 
@@ -328,7 +303,7 @@ export class UXEnhancements {
                         <div class="help-section version-info">
                             <div class="version-badge">
                                 <span class="version-label">Version</span>
-                                <span class="version-number">5.1.2 - Bug Fixes</span>
+                                <span class="version-number">${currentVersion}</span>
                             </div>
                         </div>
                     </div>

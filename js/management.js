@@ -12,6 +12,9 @@ export class Management {
         this.settings = null; // App settings
         this.goalSaveTimeout = null;
         
+        // Version constant for consistency across the app
+        this.APP_VERSION = "5.1.4+ - Streak Calculation Fix";
+        
         // Load settings
         this.loadSettings();
     }
@@ -30,10 +33,10 @@ export class Management {
         if (stored) {
             this.settings = stored;
             // Check for version updates and migrate if needed
-            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes" || this.settings.version === "5.1.3 - Bug Fixes & Enhancements") {
-                this.settings.version = "5.1.4 - Enhanced Emoji Picker";
+            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes" || this.settings.version === "5.1.3 - Bug Fixes & Enhancements" || this.settings.version === "5.1.4 - Enhanced Emoji Picker") {
+                this.settings.version = this.APP_VERSION;
                 this.saveSettings();
-                console.log('Management: Updated version to 5.1.4 - Enhanced Emoji Picker');
+                console.log('Management: Updated version to', this.APP_VERSION);
             }
         } else {
             // Default settings
@@ -1192,71 +1195,125 @@ export class Management {
             appTitle: "Alona's Activity Tracker",
             goalsEnabled: true,
             quickStartCount: 6,
-            sessionRetentionDays: 90,
+            sessionRetentionDays: 60,
             enhancedEmojiPicker: true,
-            version: "5.1.4 - Enhanced Emoji Picker"
+            version: this.APP_VERSION
         };
     }
 
     // Check for app updates
     async checkForUpdates() {
-        const button = document.getElementById('update-btn-text');
-        if (!button) return;
+        const updateBtn = document.getElementById('update-btn-text');
+        const originalText = updateBtn.textContent;
         
-        button.textContent = 'Checking...';
+        updateBtn.textContent = 'Checking...';
         
         try {
-            // Force service worker update check
+            // First, try to update the service worker
             if ('serviceWorker' in navigator) {
                 const registration = await navigator.serviceWorker.getRegistration();
                 if (registration) {
+                    console.log('Management: Found service worker registration');
+                    
+                    // Force an immediate update check
                     await registration.update();
                     
-                    // Check if there's a waiting service worker
+                    // Wait a moment for the update to process
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Check if there's a waiting worker (new version available)
                     if (registration.waiting) {
-                        // New version available
-                        button.textContent = 'Update Available - Refresh';
-                        this.showToast('Update available! Click the button to refresh.', 'info');
+                        console.log('Management: New service worker is waiting');
+                        updateBtn.textContent = 'Update Available - Applying...';
                         
-                        // Update button to trigger refresh
-                        const updateBtn = button.parentElement;
-                        updateBtn.onclick = () => {
-                            registration.waiting.postMessage({ action: 'skipWaiting' });
-                            window.location.reload();
-                        };
+                        // Force the waiting worker to become active
+                        registration.waiting.postMessage({ action: 'skipWaiting' });
+                        
+                        // Clear all caches more aggressively
+                        if ('caches' in window) {
+                            const cacheNames = await caches.keys();
+                            console.log('Management: Clearing all caches:', cacheNames);
+                            await Promise.all(
+                                cacheNames.map(cacheName => {
+                                    console.log('Management: Deleting cache:', cacheName);
+                                    return caches.delete(cacheName);
+                                })
+                            );
+                        }
+                        
+                        // Force reload after a short delay
+                        updateBtn.textContent = 'Reloading...';
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
+                        // For PWA installations, use more aggressive reload
+                        if (window.matchMedia('(display-mode: standalone)').matches || 
+                            window.navigator.standalone || 
+                            document.referrer.includes('android-app://')) {
+                            
+                            console.log('Management: PWA detected - performing hard reload');
+                            // PWA mode - use hard reload
+                            window.location.href = window.location.href + '?force-refresh=' + Date.now();
+                        } else {
+                            console.log('Management: Browser mode - performing standard reload');
+                            window.location.reload(true);
+                        }
+                        
                         return;
                     } else if (registration.installing) {
-                        button.textContent = 'Installing Update...';
-                        // Wait for the installing worker to become waiting
-                        registration.installing.addEventListener('statechange', () => {
-                            if (registration.installing.state === 'installed') {
-                                button.textContent = 'Update Ready - Refresh';
-                                this.showToast('Update ready! Click the button to refresh.', 'success');
-                            }
+                        console.log('Management: Service worker is installing');
+                        updateBtn.textContent = 'Installing Update...';
+                        
+                        // Wait for installation to complete
+                        await new Promise((resolve) => {
+                            registration.installing.addEventListener('statechange', () => {
+                                if (registration.installing.state === 'installed') {
+                                    resolve();
+                                }
+                            });
                         });
-                        return;
+                        
+                        // Now check again for waiting worker
+                        if (registration.waiting) {
+                            registration.waiting.postMessage({ action: 'skipWaiting' });
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            window.location.reload(true);
+                            return;
+                        }
                     }
                 }
             }
             
-            // No update available
-            button.textContent = 'App is Up to Date';
-            this.showToast('Your app is up to date!', 'success');
+            // If no service worker update available, try hard refresh
+            console.log('Management: No service worker update available, trying hard refresh');
+            updateBtn.textContent = 'Refreshing...';
             
-            // Reset button after 3 seconds
-            setTimeout(() => {
-                button.textContent = 'Check for Updates';
-            }, 3000);
+            // Clear localStorage version tracking to force re-check
+            if (this.settings.lastUpdateCheck) {
+                delete this.settings.lastUpdateCheck;
+                this.saveSettings();
+            }
+            
+            // Wait a moment
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Hard refresh
+            if (window.location.search.includes('force-refresh')) {
+                updateBtn.textContent = 'App is up to date!';
+                setTimeout(() => {
+                    updateBtn.textContent = originalText;
+                }, 3000);
+            } else {
+                window.location.href = window.location.href + '?force-refresh=' + Date.now();
+            }
             
         } catch (error) {
-            console.error('Error checking for updates:', error);
-            button.textContent = 'Check Failed';
-            this.showToast('Failed to check for updates. Please try again.', 'error');
-            
-            // Reset button after 3 seconds
+            console.error('Management: Update check failed:', error);
+            updateBtn.textContent = 'Update Failed';
             setTimeout(() => {
-                button.textContent = 'Check for Updates';
+                updateBtn.textContent = originalText;
             }, 3000);
+            
+            this.showToast('Update check failed. Try again later.', 'error');
         }
     }
 
@@ -1370,5 +1427,10 @@ export class Management {
         document.querySelectorAll('.emoji-picker-container.show').forEach(picker => {
             picker.classList.remove('show');
         });
+    }
+
+    // Get app version for use by other modules
+    getAppVersion() {
+        return this.APP_VERSION;
     }
 } 

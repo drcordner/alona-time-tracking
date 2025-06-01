@@ -109,6 +109,21 @@ class TimeTrackerApp {
                     console.log('Service Worker registration failed:', error);
                 }
             });
+            
+            // Listen for messages from service worker
+            navigator.serviceWorker.addEventListener('message', (event) => {
+                const { action } = event.data;
+                
+                if (action === 'reload') {
+                    console.log('App: Received reload message from service worker');
+                    window.location.reload(true);
+                }
+                
+                if (action === 'updateAvailable') {
+                    console.log('App: Update available notification from service worker');
+                    showUpdateNotification();
+                }
+            });
         }
 
         // PWA Install prompt

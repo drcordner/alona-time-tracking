@@ -150,23 +150,50 @@ self.addEventListener('message', (event) => {
     const { action } = event.data;
     
     if (action === 'skipWaiting') {
-        console.log('[SW] Received skip waiting message');
+        console.log('[SW] Received skip waiting message - forcing immediate activation');
         return self.skipWaiting();
     }
     
     if (action === 'forceUpdate') {
-        console.log('[SW] Received force update message');
-        // Force a cache refresh
+        console.log('[SW] Received force update message - clearing all caches');
+        // Force a complete cache refresh
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cacheName => {
-                    if (cacheName.startsWith('time-tracker-v')) {
-                        return caches.delete(cacheName);
-                    }
+                    console.log('[SW] Force deleting cache:', cacheName);
+                    return caches.delete(cacheName);
                 })
             );
         }).then(() => {
+            console.log('[SW] All caches cleared, skipping waiting');
             return self.skipWaiting();
+        }).then(() => {
+            // Force clients to reload
+            self.clients.matchAll().then(clients => {
+                clients.forEach(client => {
+                    console.log('[SW] Sending reload message to client');
+                    client.postMessage({ action: 'reload' });
+                });
+            });
+        });
+    }
+    
+    if (action === 'clearCache') {
+        console.log('[SW] Received clear cache message');
+        // Clear all caches
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    console.log('[SW] Clearing cache:', cacheName);
+                    return caches.delete(cacheName);
+                })
+            );
+        }).then(() => {
+            console.log('[SW] Cache clearing complete');
+            event.ports[0].postMessage({ success: true });
+        }).catch(error => {
+            console.error('[SW] Cache clearing failed:', error);
+            event.ports[0].postMessage({ success: false, error: error.message });
         });
     }
 });
