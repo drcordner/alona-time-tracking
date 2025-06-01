@@ -1201,119 +1201,51 @@ export class Management {
         };
     }
 
-    // Check for app updates
+    // Check for app updates - Simplified approach
     async checkForUpdates() {
         const updateBtn = document.getElementById('update-btn-text');
         const originalText = updateBtn.textContent;
         
-        updateBtn.textContent = 'Checking...';
+        updateBtn.textContent = 'Refreshing...';
         
         try {
-            // First, try to update the service worker
+            // Clear all caches
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                console.log('Management: Clearing all caches:', cacheNames);
+                await Promise.all(
+                    cacheNames.map(cacheName => {
+                        console.log('Management: Deleting cache:', cacheName);
+                        return caches.delete(cacheName);
+                    })
+                );
+            }
+
+            // Clear service worker and force update
             if ('serviceWorker' in navigator) {
                 const registration = await navigator.serviceWorker.getRegistration();
                 if (registration) {
-                    console.log('Management: Found service worker registration');
-                    
-                    // Force an immediate update check
-                    await registration.update();
-                    
-                    // Wait a moment for the update to process
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    
-                    // Check if there's a waiting worker (new version available)
-                    if (registration.waiting) {
-                        console.log('Management: New service worker is waiting');
-                        updateBtn.textContent = 'Update Available - Applying...';
-                        
-                        // Force the waiting worker to become active
-                        registration.waiting.postMessage({ action: 'skipWaiting' });
-                        
-                        // Clear all caches more aggressively
-                        if ('caches' in window) {
-                            const cacheNames = await caches.keys();
-                            console.log('Management: Clearing all caches:', cacheNames);
-                            await Promise.all(
-                                cacheNames.map(cacheName => {
-                                    console.log('Management: Deleting cache:', cacheName);
-                                    return caches.delete(cacheName);
-                                })
-                            );
-                        }
-                        
-                        // Force reload after a short delay
-                        updateBtn.textContent = 'Reloading...';
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        
-                        // For PWA installations, use more aggressive reload
-                        if (window.matchMedia('(display-mode: standalone)').matches || 
-                            window.navigator.standalone || 
-                            document.referrer.includes('android-app://')) {
-                            
-                            console.log('Management: PWA detected - performing hard reload');
-                            // PWA mode - use hard reload
-                            window.location.href = window.location.href + '?force-refresh=' + Date.now();
-                        } else {
-                            console.log('Management: Browser mode - performing standard reload');
-                            window.location.reload(true);
-                        }
-                        
-                        return;
-                    } else if (registration.installing) {
-                        console.log('Management: Service worker is installing');
-                        updateBtn.textContent = 'Installing Update...';
-                        
-                        // Wait for installation to complete
-                        await new Promise((resolve) => {
-                            registration.installing.addEventListener('statechange', () => {
-                                if (registration.installing.state === 'installed') {
-                                    resolve();
-                                }
-                            });
-                        });
-                        
-                        // Now check again for waiting worker
-                        if (registration.waiting) {
-                            registration.waiting.postMessage({ action: 'skipWaiting' });
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                            window.location.reload(true);
-                            return;
-                        }
-                    }
+                    console.log('Management: Unregistering service worker for fresh start');
+                    await registration.unregister();
                 }
             }
             
-            // If no service worker update available, try hard refresh
-            console.log('Management: No service worker update available, trying hard refresh');
-            updateBtn.textContent = 'Refreshing...';
+            updateBtn.textContent = 'Reloading...';
             
-            // Clear localStorage version tracking to force re-check
-            if (this.settings.lastUpdateCheck) {
-                delete this.settings.lastUpdateCheck;
-                this.saveSettings();
-            }
-            
-            // Wait a moment
+            // Short delay then hard reload
             await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Hard refresh
-            if (window.location.search.includes('force-refresh')) {
-                updateBtn.textContent = 'App is up to date!';
-                setTimeout(() => {
-                    updateBtn.textContent = originalText;
-                }, 3000);
-            } else {
-                window.location.href = window.location.href + '?force-refresh=' + Date.now();
-            }
+            // Force complete reload with cache busting
+            window.location.href = window.location.href.split('?')[0] + '?refresh=' + Date.now();
             
         } catch (error) {
-            console.error('Management: Update check failed:', error);
-            updateBtn.textContent = 'Update Failed';
+            console.error('Management: Update failed:', error);
+            updateBtn.textContent = 'Refresh Failed';
             setTimeout(() => {
                 updateBtn.textContent = originalText;
             }, 3000);
             
-            this.showToast('Update check failed. Try again later.', 'error');
+            this.showToast('Refresh failed. Try reloading the page manually.', 'error');
         }
     }
 

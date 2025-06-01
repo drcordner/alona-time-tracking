@@ -1,42 +1,24 @@
-// Time Tracker Service Worker
-const CACHE_VERSION = 'v5.1.4-streak-fix';
+// Time Tracker Service Worker - Simplified for reliable updates
+const CACHE_VERSION = 'v5.1.5-docs-org';
 const STATIC_CACHE = `time-tracker-${CACHE_VERSION}`;
-const DYNAMIC_CACHE = `time-tracker-dynamic-${CACHE_VERSION}`;
+const RUNTIME_CACHE = `time-tracker-runtime-${CACHE_VERSION}`;
 
-// Files to cache immediately
-const STATIC_FILES = [
+// Files to cache for offline access (minimal set)
+const CORE_FILES = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/css/main.css',
-  '/css/components.css', 
-  '/css/timer.css',
-  '/css/management.css',
-  '/css/goals.css',
-  '/js/app.js',
-  '/js/data.js',
-  '/js/storage.js',
-  '/js/timer.js',
-  '/js/quickstart.js',
-  '/js/reports.js',
-  '/js/management.js',
-  '/js/goals.js',
-  '/js/utils.js',
-  '/js/ux-enhancements.js',
-  // Add any icons when available
-  '/images/icon-192x192.png',
-  '/images/icon-512x512.png'
+  '/manifest.json'
 ];
 
-// Install event - cache static files
+// Install event - cache only core files
 self.addEventListener('install', event => {
-  console.log('[SW] Installing service worker v5.1.4-streak-fix...');
+  console.log('[SW] Installing service worker v5.1.5-docs-org...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then(cache => {
-        console.log('[SW] Caching static files');
-        return cache.addAll(STATIC_FILES);
+        console.log('[SW] Caching core files');
+        return cache.addAll(CORE_FILES);
       })
       .then(() => {
         console.log('[SW] Skip waiting to force update...');
@@ -48,9 +30,9 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activate event - clean up old caches and handle manifest updates
+// Activate event - clean up old caches
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating service worker v5.1.4-streak-fix...');
+  console.log('[SW] Activating service worker v5.1.5-docs-org...');
   
   event.waitUntil(
     Promise.all([
@@ -58,33 +40,20 @@ self.addEventListener('activate', event => {
       caches.keys().then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
-            if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
+            if (cacheName !== STATIC_CACHE && cacheName !== RUNTIME_CACHE) {
               console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       }),
-      // Force refresh of manifest and critical files
-      caches.open(STATIC_CACHE).then(cache => {
-        console.log('[SW] Force refreshing manifest.json...');
-        return fetch('/manifest.json', { cache: 'no-cache' })
-          .then(response => {
-            if (response.ok) {
-              return cache.put('/manifest.json', response);
-            }
-          })
-          .catch(error => {
-            console.warn('[SW] Could not refresh manifest:', error);
-          });
-      }),
-      // Claim clients to immediately take control
+      // Claim clients immediately
       self.clients.claim()
     ])
   );
 });
 
-// Fetch event - serve from cache when offline, with manifest handling
+// Fetch event - Network First with Cache Fallback
 self.addEventListener('fetch', event => {
   const { request } = event;
   
@@ -94,172 +63,85 @@ self.addEventListener('fetch', event => {
   // Skip external requests
   if (!request.url.startsWith(self.location.origin)) return;
   
-  // Special handling for manifest.json to ensure fresh copy
+  // For HTML requests: Always try network first
+  if (request.headers.get('accept').includes('text/html')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          if (response.ok) {
+            // Update cache with fresh content
+            const responseClone = response.clone();
+            caches.open(RUNTIME_CACHE)
+              .then(cache => cache.put(request, responseClone));
+          }
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache only if network fails
+          return caches.match(request);
+        })
+    );
+    return;
+  }
+  
+  // For manifest.json: Always fetch fresh
   if (request.url.includes('manifest.json')) {
     event.respondWith(
       fetch(request, { cache: 'no-cache' })
-        .then(response => {
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(STATIC_CACHE)
-              .then(cache => cache.put(request, responseClone));
-            return response;
-          }
-          return caches.match(request);
-        })
         .catch(() => caches.match(request))
     );
     return;
   }
   
+  // For other resources: Try network first, cache fallback
   event.respondWith(
-    caches.match(request)
-      .then(cachedResponse => {
-        if (cachedResponse) {
-          console.log('[SW] Serving from cache:', request.url);
-          return cachedResponse;
+    fetch(request)
+      .then(response => {
+        if (response.ok) {
+          const responseClone = response.clone();
+          caches.open(RUNTIME_CACHE)
+            .then(cache => cache.put(request, responseClone));
         }
-        
-        // Fetch from network and cache dynamic content
-        return fetch(request)
-          .then(response => {
-            // Only cache successful responses
-            if (response.status === 200) {
-              const responseClone = response.clone();
-              
-              caches.open(DYNAMIC_CACHE)
-                .then(cache => {
-                  cache.put(request, responseClone);
-                });
-            }
-            
-            return response;
-          })
-          .catch(() => {
-            // Return offline page for HTML requests
-            if (request.headers.get('accept').includes('text/html')) {
-              return caches.match('/index.html');
-            }
-          });
+        return response;
       })
+      .catch(() => caches.match(request))
   );
 });
 
-// Handle messages from the application
+// Simplified message handling
 self.addEventListener('message', (event) => {
-    const { action } = event.data;
-    
-    if (action === 'skipWaiting') {
-        console.log('[SW] Received skip waiting message - forcing immediate activation');
-        return self.skipWaiting();
-    }
-    
-    if (action === 'forceUpdate') {
-        console.log('[SW] Received force update message - clearing all caches');
-        // Force a complete cache refresh
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    console.log('[SW] Force deleting cache:', cacheName);
-                    return caches.delete(cacheName);
-                })
-            );
-        }).then(() => {
-            console.log('[SW] All caches cleared, skipping waiting');
-            return self.skipWaiting();
-        }).then(() => {
-            // Force clients to reload
-            self.clients.matchAll().then(clients => {
-                clients.forEach(client => {
-                    console.log('[SW] Sending reload message to client');
-                    client.postMessage({ action: 'reload' });
-                });
-            });
-        });
-    }
-    
-    if (action === 'clearCache') {
-        console.log('[SW] Received clear cache message');
-        // Clear all caches
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    console.log('[SW] Clearing cache:', cacheName);
-                    return caches.delete(cacheName);
-                })
-            );
-        }).then(() => {
-            console.log('[SW] Cache clearing complete');
-            event.ports[0].postMessage({ success: true });
-        }).catch(error => {
-            console.error('[SW] Cache clearing failed:', error);
-            event.ports[0].postMessage({ success: false, error: error.message });
-        });
-    }
-});
-
-// Background sync for data persistence
-self.addEventListener('sync', event => {
-  console.log('[SW] Background sync:', event.tag);
+  const { action, type } = event.data;
   
-  if (event.tag === 'background-sync-data') {
-    event.waitUntil(syncData());
+  if (action === 'skipWaiting' || type === 'SKIP_WAITING') {
+    console.log('[SW] Received skip waiting message');
+    self.skipWaiting();
+    return;
   }
-});
-
-// Sync data function
-async function syncData() {
-  try {
-    console.log('[SW] Syncing data...');
-    // Here you could sync data with a backend if needed
-    // For now, we just log the sync attempt
-    return Promise.resolve();
-  } catch (error) {
-    console.error('[SW] Sync failed:', error);
-    throw error;
-  }
-}
-
-// Handle push notifications (for future use)
-self.addEventListener('push', event => {
-  console.log('[SW] Push notification received');
   
-  if (event.data) {
-    const data = event.data.json();
-    
-    const options = {
-      body: data.body || 'Time tracking update',
-      icon: '/images/icon-192x192.png',
-      badge: '/images/icon-72x72.png',
-      data: data.data || {},
-      actions: [
-        {
-          action: 'view',
-          title: 'View App'
-        },
-        {
-          action: 'close',
-          title: 'Close'
+  if (action === 'clearCache' || type === 'CLEAR_CACHE') {
+    console.log('[SW] Clearing all caches');
+    event.waitUntil(
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            console.log('[SW] Deleting cache:', cacheName);
+            return caches.delete(cacheName);
+          })
+        );
+      }).then(() => {
+        console.log('[SW] All caches cleared');
+        // Send success message back if ports are available
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({ success: true });
         }
-      ]
-    };
-    
-    event.waitUntil(
-      self.registration.showNotification(data.title || 'Time Tracker', options)
+      }).catch(error => {
+        console.error('[SW] Cache clearing failed:', error);
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage({ success: false, error: error.message });
+        }
+      })
     );
-  }
-});
-
-// Handle notification clicks
-self.addEventListener('notificationclick', event => {
-  console.log('[SW] Notification clicked:', event.action);
-  
-  event.notification.close();
-  
-  if (event.action === 'view' || !event.action) {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
+    return;
   }
 });
 

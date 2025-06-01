@@ -86,42 +86,31 @@ class TimeTrackerApp {
                     const registration = await navigator.serviceWorker.register('/sw.js');
                     console.log('Service Worker registered successfully:', registration.scope);
                     
-                    // Handle updates
+                    // Simple update handling
                     registration.addEventListener('updatefound', () => {
                         const newWorker = registration.installing;
                         if (newWorker) {
                             newWorker.addEventListener('statechange', () => {
                                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Show update available notification
+                                    console.log('New service worker installed, showing update notification');
                                     showUpdateNotification();
                                 }
                             });
                         }
                     });
 
-                    // Check for existing service worker and force manifest refresh
-                    if (navigator.serviceWorker.controller) {
-                        console.log('Service Worker is controlling the page, refreshing manifest...');
-                        this.refreshManifestCache();
-                    }
-
                 } catch (error) {
                     console.log('Service Worker registration failed:', error);
                 }
             });
             
-            // Listen for messages from service worker
+            // Listen for messages from service worker (simplified)
             navigator.serviceWorker.addEventListener('message', (event) => {
                 const { action } = event.data;
                 
                 if (action === 'reload') {
                     console.log('App: Received reload message from service worker');
-                    window.location.reload(true);
-                }
-                
-                if (action === 'updateAvailable') {
-                    console.log('App: Update available notification from service worker');
-                    showUpdateNotification();
+                    window.location.reload();
                 }
             });
         }
@@ -183,26 +172,6 @@ class TimeTrackerApp {
         
         // Load custom activity emojis
         this.loadCustomActivityEmojis();
-    }
-
-    // Refresh manifest cache to fix "undefined" app name issue
-    refreshManifestCache() {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            const messageChannel = new MessageChannel();
-            
-            messageChannel.port1.onmessage = (event) => {
-                if (event.data.success) {
-                    console.log('Manifest cache refreshed successfully');
-                } else {
-                    console.warn('Failed to refresh manifest cache:', event.data.error);
-                }
-            };
-            
-            navigator.serviceWorker.controller.postMessage(
-                { type: 'REFRESH_MANIFEST' },
-                [messageChannel.port2]
-            );
-        }
     }
 
     // Get current categories (custom or default)
