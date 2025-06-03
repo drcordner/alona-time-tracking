@@ -1,15 +1,15 @@
 {
-    "version": "5.1.6 - UI/UX Improvements & Comprehensive Help Update",
-    "versionNumber": "5.1.6",
-    "description": "UI/UX Improvements & Comprehensive Help Update",
-    "timestamp": "2024-12-19T12:00:00Z",
+    "version": "5.1.7 - Auto-Update System & Centralized Version Management",
+    "versionNumber": "5.1.7",
+    "description": "Auto-Update System & Centralized Version Management",
+    "timestamp": "2024-12-19T16:30:00Z",
     "features": [
-        "Fixed UI consistency issues (Set Goal link)",
-        "Removed unnecessary Enhanced Emoji Picker setting",
-        "Fixed backup/restore to include Goals data",
-        "Implemented autosave for Categories and Activities",
-        "Fixed broken edit/delete links in Reports timeline",
-        "Updated comprehensive Help documentation",
-        "Added Cursor Rules for development consistency"
+        "Added automatic update detection and refresh system",
+        "Centralized version management in version.json",
+        "Version info now displays consistently in Help and Settings",
+        "Enhanced About section with latest features display",
+        "Updated Cursor Rules for version management consistency",
+        "Auto-updates enabled for production testing phase",
+        "Improved version information display with release details"
     ]
 } 

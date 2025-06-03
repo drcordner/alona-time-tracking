@@ -4,6 +4,137 @@
 
 ---
 
+## 🚀 **Version 5.1.7 - Auto-Update System & Centralized Version Management** 
+*Released: December 2024*
+
+### 🌟 **NEW FEATURES**
+
+#### 🔄 **Automatic Update System**
+- **Smart Version Detection**: App automatically checks for new versions on load
+- **Seamless Updates**: Auto-refresh when new version is detected (3-second delay)
+- **Production Ready**: Enabled for production during testing phase (`isDevelopment = true`)
+- **User Notifications**: Toast notifications show when new version is available
+- **Silent Fallback**: Graceful handling if version check fails
+
+#### 📋 **Centralized Version Management**
+- **version.json**: Single source of truth for all version information
+- **Dynamic Loading**: Version info loaded asynchronously from JSON file
+- **Consistent Display**: Help and Settings pages read from same source
+- **Rich Metadata**: Version includes description, timestamp, and features list
+- **Fallback Support**: Works even if JSON loading fails
+
+### 🔧 **IMPROVEMENTS**
+
+#### 📖 **Enhanced Version Display**
+- **Help Page**: Shows version number and description separately
+- **Settings About**: Enhanced with release details and expandable features list
+- **Timestamp Tracking**: Shows when version was released
+- **Feature Highlights**: Latest features displayed in collapsible section
+
+#### 🛠️ **Development Workflow**
+- **Updated Cursor Rules**: Version management now mandatory for all updates
+- **Automated Consistency**: No more hardcoded version numbers in JS files
+- **Testing Integration**: Easy version testing by changing JSON file
+
+### 📁 **FILES MODIFIED**
+- `version.json` - NEW: Centralized version information
+- `js/app.js` - Auto-update system integration
+- `js/management.js` - Version loading from JSON, enhanced About section
+- `js/ux-enhancements.js` - Help page version display improvements
+- `.cursorrules` - Added version management requirements
+
+### 🎯 **IMPACT**
+- **Streamlined Testing**: Auto-updates eliminate manual refresh needs
+- **Consistent Information**: Version displays match across all screens
+- **Future-Proof**: Centralized system prevents version inconsistencies
+- **Developer Efficiency**: Simplified version management workflow
+
+---
+
+## 🚀 **Version 5.1.6 - UI/UX Improvements & Comprehensive Help Update** 
+*Released: December 2024*
+
+### 🐛 **CRITICAL FIXES**
+
+#### 🎨 **UI Consistency Improvements**
+- **Set Goal Link Fixed**: Now consistently uses cog icon whether goals exist or not
+- **Enhanced Emoji Picker Setting Removed**: Eliminated unnecessary toggle, always use best UX
+- **Autosave Implementation**: Categories and Activities now autosave without "Update" buttons
+- **Broken Links Fixed**: Restored edit/delete functionality in Reports timeline
+- **Settings Simplification**: Removed feature bloat, defaulted to best user experience
+
+#### 💾 **Data Management Enhancements**
+- **Backup/Restore Fixed**: Goals data now properly included in exports and imports
+- **Complete Data Preservation**: All user data (goals, streaks, achievements) backed up
+- **Import Validation**: Enhanced error handling for data restoration
+- **Data Migration**: Automatic goals data restoration during imports
+
+### 🔧 **IMPROVEMENTS**
+
+#### 📖 **Comprehensive Help Documentation**
+- **Complete Rewrite**: Updated help content to reflect all current features
+- **Timeline Editing Prominent**: Featured ability to edit sessions in Reports
+- **Pro Tips Expanded**: 14 advanced tips including mistake correction
+- **New Sections Added**: Data Management and Troubleshooting
+- **Mobile Responsive**: Enhanced help design for all devices
+- **Feature Discovery**: Better documentation of powerful but hidden features
+
+#### ⚡ **Autosave System**
+- **Category Editing**: Name, color, and emoji changes save automatically
+- **Activity Editing**: Real-time saving with visual feedback
+- **Goals Integration**: Inline goal editing with autosave
+- **Status Indicators**: Visual feedback showing save state (saving, saved, error)
+- **Debounced Saves**: Prevents excessive API calls during typing
+
+### 🛠️ **Development Process**
+- **Cursor Rules Added**: Prevention system for future issues
+- **Consistency Patterns**: Established UI/UX standards
+- **Testing Checklist**: Systematic verification of critical functionality
+- **Error Prevention**: Rules to catch backup/restore issues early
+
+### 📁 **FILES MODIFIED**
+- `js/management.js` - Autosave implementation, emoji picker simplification
+- `js/goals.js` - UI consistency fixes for Set Goal link
+- `js/ux-enhancements.js` - Complete help documentation rewrite
+- `.cursorrules` - NEW: Development consistency rules
+
+### 🎯 **IMPACT**
+- **User Experience**: Streamlined interface with fewer manual actions
+- **Data Safety**: Reliable backup/restore prevents data loss
+- **Feature Discovery**: Updated help enables better app utilization
+- **Development Quality**: Cursor Rules prevent regression of fixed issues
+
+---
+
+## 🚀 **Version 5.1.5 - Documentation Organization & Cache Improvements** 
+*Released: December 2024*
+
+### 🔧 **IMPROVEMENTS**
+
+#### 📁 **Project Documentation**
+- **Organized Structure**: Improved documentation layout and accessibility
+- **Enhanced Cache Management**: Better browser cache handling for updates
+- **Performance Optimizations**: Faster loading and smoother user experience
+- **Code Organization**: Improved maintainability and structure
+
+#### 🛠️ **Technical Enhancements**
+- **Update Mechanism**: Enhanced app update process
+- **Cache Busting**: Improved version handling for reliable updates
+- **Browser Compatibility**: Better support across different browsers
+- **Memory Management**: Optimized resource usage
+
+### 📁 **FILES MODIFIED**
+- Various documentation files
+- Cache management improvements
+- Version handling enhancements
+
+### 🎯 **IMPACT**
+- **Maintenance**: Easier project management and updates
+- **Performance**: Faster loading and better reliability
+- **Developer Experience**: Improved codebase organization
+
+---
+
 ## 🚀 **Version 5.1.4+ - Streak Calculation Fix** 
 *Released: Current Session*
 

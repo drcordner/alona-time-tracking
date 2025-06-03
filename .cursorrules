@@ -8,6 +8,14 @@
 - Update timestamp in ISO format
 - Test auto-update functionality after version changes
 
+## Release Notes Management (CRITICAL)
+- **ALWAYS** update `docs/project-management/RELEASE_NOTES.md` when bumping version
+- **NEVER** release to production without updating release notes
+- Include comprehensive documentation of all changes, fixes, and new features
+- Use consistent format: Version header, features, improvements, bug fixes, files modified, impact
+- Document both user-facing changes and technical improvements
+- Add release notes BEFORE pushing to production branch
+
 ## Data Structure Changes
 - **ALWAYS** update backup/restore functionality when modifying data structures
 - Check `exportData()` and `handleFileImport()` in management.js
