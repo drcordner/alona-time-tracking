@@ -35,9 +35,10 @@ class TimeTrackerApp {
     }
 
     // Initialize the app
-    init() {
+    async init() {
         console.log('TimeTrackerApp: Initializing...');
         
+        // Initialize storage first
         if (!this.sandbox) {
             this.storage.loadData();
             this.storage.loadUsageStats();
@@ -53,7 +54,7 @@ class TimeTrackerApp {
         
         this.renderCategories();
         this.reports.updateReportDate();
-        
+
         // Check for timer recovery AFTER initial setup
         if (!this.sandbox) {
             this.timer.recoverActiveTimer();
@@ -63,9 +64,9 @@ class TimeTrackerApp {
         if (!this.timer.timerInterval) {
             this.showScreen('home');
         }
-        
+
         this.registerServiceWorker();
-        
+
         // Expose modules globally for onclick handlers
         window.app = this;
         window.reports = this.reports;
@@ -76,102 +77,52 @@ class TimeTrackerApp {
         // Initialize UX enhancements after everything else is set up
         this.ux = new UXEnhancements(this);
         console.log('TimeTrackerApp: UX enhancements initialized');
-        
+
         console.log('TimeTrackerApp: Initialization complete');
-
-        // Add service worker registration and PWA install prompt
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js');
-                    console.log('Service Worker registered successfully:', registration.scope);
-                    
-                    // Simple update handling
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        if (newWorker) {
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('New service worker installed, showing update notification');
-                                    showUpdateNotification();
-                                }
-                            });
-                        }
-                    });
-
-                } catch (error) {
-                    console.log('Service Worker registration failed:', error);
-                }
-            });
-            
-            // Listen for messages from service worker (simplified)
-            navigator.serviceWorker.addEventListener('message', (event) => {
-                const { action } = event.data;
-                
-                if (action === 'reload') {
-                    console.log('App: Received reload message from service worker');
-                    window.location.reload();
-                }
-            });
-        }
-
-        // PWA Install prompt
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            // Show install button (could be added to management screen)
-            showInstallPrompt();
-        });
-
-        function showInstallPrompt() {
-            // This could be integrated into the management screen
-            // For now, we'll just log it
-            console.log('PWA install prompt available');
-        }
-
-        function showUpdateNotification() {
-            // Show a subtle notification that an update is available
-            const notification = document.createElement('div');
-            notification.className = 'update-notification';
-            notification.innerHTML = `
-                <div class="update-content">
-                    <span>📱 New version available!</span>
-                    <button onclick="window.location.reload()" class="btn-small">Update</button>
-                    <button onclick="this.parentElement.parentElement.remove()" class="btn-small">Later</button>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Auto-remove after 10 seconds
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 10000);
-        }
-
-        // Global PWA install function
-        window.installPWA = async () => {
-            if (deferredPrompt) {
-                // Show the install prompt
-                deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to install prompt: ${outcome}`);
-                // Clear the deferredPrompt variable
-                deferredPrompt = null;
-            }
-        };
 
         // Make globally available for components
         window.activityEmojis = activityEmojis;
         
         // Load custom activity emojis
         this.loadCustomActivityEmojis();
+        
+        // Check for auto-updates after everything loads
+        setTimeout(() => this.checkForAutoUpdate(), 2000);
+    }
+
+    // Auto-update check functionality
+    async checkForAutoUpdate() {
+        // Enable auto-updates for now (you're the only user)
+        const isDevelopment = true;
+        
+        if (!isDevelopment) return; // Skip when disabled
+        
+        try {
+            const currentVersion = this.management.getAppVersion();
+            const response = await fetch('version.json?' + Date.now());
+            const versionData = await response.json();
+            const latestVersion = versionData.version;
+            
+            if (currentVersion !== latestVersion) {
+                console.log(`Auto-update detected: ${currentVersion} → ${latestVersion}`);
+                
+                // Show brief notification (optional)
+                if (this.ux) {
+                    this.ux.showToast(`New version available: ${versionData.versionNumber}`, 'info', 3000);
+                }
+                
+                // Auto-refresh after a short delay so user sees the notification
+                setTimeout(() => {
+                    console.log('Auto-updating to latest version...');
+                    this.management.checkForUpdates();
+                }, 3000);
+            } else {
+                console.log('App is up to date:', currentVersion);
+            }
+        } catch (error) {
+            // Silently fail - don't disrupt user experience
+            console.log('Auto-update check failed (this is normal):', error.message);
+        }
     }
 
     // Get current categories (custom or default)
@@ -385,6 +336,25 @@ class TimeTrackerApp {
             }
         } catch (error) {
             console.error('Error loading custom activity emojis:', error);
+        }
+    }
+
+    // Setup PWA install prompt
+    setupPWAInstallPrompt() {
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show install button (could be added to management screen)
+            showInstallPrompt();
+        });
+
+        function showInstallPrompt() {
+            // This could be integrated into the management screen
+            // For now, we'll just log it
+            console.log('PWA install prompt available');
         }
     }
 }

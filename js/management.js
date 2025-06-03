@@ -11,12 +11,30 @@ export class Management {
         this.currentTab = 'categories'; // Track active tab
         this.settings = null; // App settings
         this.goalSaveTimeout = null;
+        this.versionInfo = null; // Will store version info from JSON
         
-        // Version constant for consistency across the app
-        this.APP_VERSION = "5.1.6 - UI/UX Improvements & Comprehensive Help Update";
+        // Load version info from JSON
+        this.loadVersionInfo();
         
         // Load settings
         this.loadSettings();
+    }
+
+    // Load version information from version.json
+    async loadVersionInfo() {
+        try {
+            const response = await fetch('version.json?' + Date.now());
+            this.versionInfo = await response.json();
+            console.log('Management: Version info loaded:', this.versionInfo);
+        } catch (error) {
+            console.error('Management: Failed to load version info:', error);
+            // Fallback to hardcoded version
+            this.versionInfo = {
+                version: "5.1.6 - UI/UX Improvements & Comprehensive Help Update",
+                versionNumber: "5.1.6",
+                description: "UI/UX Improvements & Comprehensive Help Update"
+            };
+        }
     }
 
     // Initialize management with custom or default categories and settings
@@ -34,9 +52,9 @@ export class Management {
             this.settings = stored;
             // Check for version updates and migrate if needed
             if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes" || this.settings.version === "5.1.3 - Bug Fixes & Enhancements" || this.settings.version === "5.1.4 - Enhanced Emoji Picker" || this.settings.version === "5.1.4+ - Streak Calculation Fix") {
-                this.settings.version = this.APP_VERSION;
+                this.settings.version = this.versionInfo.version;
                 this.saveSettings();
-                console.log('Management: Updated version to', this.APP_VERSION);
+                console.log('Management: Updated version to', this.versionInfo.version);
             }
         } else {
             // Default settings
@@ -317,9 +335,19 @@ export class Management {
                 <div class="settings-section">
                     <h3>ℹ️ About</h3>
                     <div class="settings-info">
-                        <p><strong>Version:</strong> ${this.settings.version}</p>
+                        <p><strong>Version:</strong> ${this.versionInfo ? this.versionInfo.versionNumber : this.settings.version}</p>
+                        ${this.versionInfo ? `<p><strong>Release:</strong> ${this.versionInfo.description}</p>` : ''}
+                        ${this.versionInfo && this.versionInfo.timestamp ? `<p><strong>Updated:</strong> ${new Date(this.versionInfo.timestamp).toLocaleDateString()}</p>` : ''}
                         <p><strong>Categories:</strong> ${Object.keys(this.getCategories()).length}</p>
                         <p><strong>Total Activities:</strong> ${Object.values(this.getCategories()).reduce((sum, cat) => sum + cat.activities.length, 0)}</p>
+                        ${this.versionInfo && this.versionInfo.features ? `
+                            <details style="margin-top: 1rem;">
+                                <summary style="cursor: pointer; font-weight: 600; color: #4A90E2;">Latest Features</summary>
+                                <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.9em; color: #666;">
+                                    ${this.versionInfo.features.map(feature => `<li>${feature}</li>`).join('')}
+                                </ul>
+                            </details>
+                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -1229,7 +1257,7 @@ export class Management {
             goalsEnabled: true,
             quickStartCount: 6,
             sessionRetentionDays: 60,
-            version: this.APP_VERSION
+            version: this.versionInfo.version
         };
     }
 
@@ -1405,7 +1433,7 @@ export class Management {
 
     // Get app version for use by other modules
     getAppVersion() {
-        return this.APP_VERSION;
+        return this.versionInfo?.version || "5.1.6 - UI/UX Improvements & Comprehensive Help Update";
     }
 
     // Auto-save category field
@@ -1553,5 +1581,10 @@ export class Management {
         this.showToast('Activity created successfully!', 'success');
         this.closeModal();
         this.renderManagementScreen();
+    }
+
+    // Get version info object
+    getVersionInfo() {
+        return this.versionInfo;
     }
 } 

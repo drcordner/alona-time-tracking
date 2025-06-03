@@ -1,5 +1,13 @@
 # Time Tracker Development Rules
 
+## Version Management (CRITICAL)
+- **ALWAYS** update `version.json` when making ANY changes to the app
+- **NEVER** update version numbers in JavaScript files - use version.json only
+- Version format: "X.Y.Z - Brief Description"
+- Include meaningful features list in version.json
+- Update timestamp in ISO format
+- Test auto-update functionality after version changes
+
 ## Data Structure Changes
 - **ALWAYS** update backup/restore functionality when modifying data structures
 - Check `exportData()` and `handleFileImport()` in management.js
@@ -28,8 +36,17 @@
 - Implement consistent autosave patterns across the system
 - Remove unnecessary "Update" and "Cancel" buttons when autosave is available
 
+## Auto-Update System
+- Auto-updates are enabled in production (isDevelopment = true)
+- Test version.json accessibility from app root
+- Verify auto-update triggers on version.json changes
+- Ensure version info displays correctly in Help and Settings
+
 ## Testing Checklist
 After any changes, verify:
+- [ ] `version.json` updated with new version
+- [ ] Auto-update system works (change version.json and refresh)
+- [ ] Version displays correctly in Help and Settings
 - [ ] Backup/restore includes all data structures
 - [ ] Interactive buttons work (edit, delete, custom range)
 - [ ] UI consistency is maintained

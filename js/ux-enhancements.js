@@ -200,7 +200,9 @@ export class UXEnhancements {
         }
 
         // Get current version from management module
-        const currentVersion = window.management ? window.management.getAppVersion() : "5.1.5 - Documentation Organization & Cache Improvements";
+        const versionInfo = window.management ? window.management.getVersionInfo() : null;
+        const currentVersion = versionInfo ? versionInfo.version : "5.1.6 - UI/UX Improvements & Comprehensive Help Update";
+        const versionNumber = versionInfo ? versionInfo.versionNumber : "5.1.6";
 
         const helpContent = `
             <div class="help-modal modal-overlay fade-in" onclick="this.remove()">
@@ -383,8 +385,11 @@ export class UXEnhancements {
                         <div class="help-section version-info">
                             <div class="version-badge">
                                 <span class="version-label">Version</span>
-                                <span class="version-number">${currentVersion}</span>
+                                <span class="version-number">${versionNumber}</span>
                             </div>
+                            <p style="text-align: center; margin-top: 0.5rem; color: #666; font-size: 0.85em;">
+                                ${versionInfo ? versionInfo.description : 'UI/UX Improvements & Comprehensive Help Update'}
+                            </p>
                             <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9em;">
                                 💡 Check Management → Settings for app updates and new features
                             </p>
