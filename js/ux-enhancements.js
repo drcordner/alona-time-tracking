@@ -206,11 +206,80 @@ export class UXEnhancements {
             <div class="help-modal modal-overlay fade-in" onclick="this.remove()">
                 <div class="help-content modal-content" onclick="event.stopPropagation()">
                     <div class="help-header modal-header">
-                        <h2>📖 Time Tracker - Help & Shortcuts</h2>
+                        <h2>📖 Time Tracker - Help & Guide</h2>
                         <button class="modal-close" onclick="this.closest('.help-modal').remove()">✕</button>
                     </div>
                     
                     <div class="help-body">
+                        <!-- Getting Started -->
+                        <div class="help-section">
+                            <h4>🚀 Getting Started</h4>
+                            <div class="help-text">
+                                <ol>
+                                    <li><strong>Start Tracking:</strong> Click any activity from Quick Start or browse categories</li>
+                                    <li><strong>Timer Controls:</strong> Use Pause/Resume and Stop buttons, or press <kbd>Space</kbd> for quick control</li>
+                                    <li><strong>Set Goals:</strong> Go to Management → Edit any category to set time goals</li>
+                                    <li><strong>View Reports:</strong> Check Reports tab for detailed analytics and charts</li>
+                                    <li><strong>Customize:</strong> Add your own categories and activities in Management</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Key Features -->
+                        <div class="help-section">
+                            <h4>🌟 Key Features</h4>
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <div class="feature-icon">⏱️</div>
+                                    <div class="feature-desc">
+                                        <strong>Smart Time Tracking:</strong> One-click start with automatic session management and pause tracking
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">🎯</div>
+                                    <div class="feature-desc">
+                                        <strong>Goals & Streaks:</strong> Set daily/weekly/monthly goals with automatic streak tracking and achievements
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">📊</div>
+                                    <div class="feature-desc">
+                                        <strong>Advanced Reports:</strong> Interactive charts, timeline view, custom date ranges, and CSV/JSON export
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">✏️</div>
+                                    <div class="feature-desc">
+                                        <strong>Timeline Editing:</strong> Edit or delete any session directly from the Activity Timeline in Reports
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">💾</div>
+                                    <div class="feature-desc">
+                                        <strong>Auto-Save Everything:</strong> Changes to categories, activities, and goals save automatically as you type
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">📱</div>
+                                    <div class="feature-desc">
+                                        <strong>PWA Support:</strong> Install as an app on any device for offline use and native experience
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">⚡</div>
+                                    <div class="feature-desc">
+                                        <strong>Quick Start:</strong> AI-powered suggestions based on your usage patterns and time of day
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">🎨</div>
+                                    <div class="feature-desc">
+                                        <strong>Full Customization:</strong> Custom categories, activities, colors, emojis with enhanced emoji picker
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Keyboard Shortcuts -->
                         <div class="help-section">
                             <h4>⌨️ Keyboard Shortcuts</h4>
@@ -259,73 +328,53 @@ export class UXEnhancements {
                             </div>
                         </div>
 
-                        <!-- Features Overview -->
+                        <!-- Advanced Tips & Tricks -->
                         <div class="help-section">
-                            <h4>🌟 Key Features</h4>
-                            <div class="feature-list">
-                                <div class="feature-item">
-                                    <div class="feature-icon">⏱️</div>
-                                    <div class="feature-desc">
-                                        <strong>Time Tracking:</strong> Click any activity to start tracking time immediately
-                                    </div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-icon">🎯</div>
-                                    <div class="feature-desc">
-                                        <strong>Goals System:</strong> Set daily, weekly, or monthly time goals for categories
-                                    </div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-icon">📊</div>
-                                    <div class="feature-desc">
-                                        <strong>Reports:</strong> View detailed analytics with interactive charts
-                                    </div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-icon">⚡</div>
-                                    <div class="feature-desc">
-                                        <strong>Quick Start:</strong> Personalized suggestions based on your usage patterns
-                                    </div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-icon">📱</div>
-                                    <div class="feature-desc">
-                                        <strong>PWA Support:</strong> Install as an app on your device for offline use
-                                    </div>
-                                </div>
-                                <div class="feature-item">
-                                    <div class="feature-icon">🎨</div>
-                                    <div class="feature-desc">
-                                        <strong>Customization:</strong> Add custom categories, activities, and emojis
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Getting Started -->
-                        <div class="help-section">
-                            <h4>🚀 Getting Started</h4>
-                            <div class="help-text">
-                                <ol>
-                                    <li>Start by clicking any activity from Quick Start or category view</li>
-                                    <li>Use the timer controls to pause, resume, or stop tracking</li>
-                                    <li>Set goals in Management → Categories to track your progress</li>
-                                    <li>View your time data in Reports with different time periods</li>
-                                    <li>Customize categories and activities in Management</li>
-                                </ol>
-                            </div>
-                        </div>
-
-                        <!-- Tips & Tricks -->
-                        <div class="help-section">
-                            <h4>💡 Tips & Tricks</h4>
+                            <h4>💡 Pro Tips & Tricks</h4>
                             <div class="help-text">
                                 <ul>
-                                    <li>Use spacebar for quick timer control from anywhere</li>
-                                    <li>Goals auto-calculate weekly/monthly targets from daily values</li>
-                                    <li>Export your data regularly as backup</li>
-                                    <li>The app works offline after initial load</li>
-                                    <li>Install as PWA for a native app experience</li>
+                                    <li><strong>Fix Mistakes:</strong> Go to Reports → Activity Timeline and click ✏️ to edit any session time, category, or activity</li>
+                                    <li><strong>Custom Date Analysis:</strong> In Reports, click "Custom Range" to analyze any specific time period</li>
+                                    <li><strong>Goal Auto-Calculation:</strong> Set a daily goal and weekly/monthly goals will be auto-suggested (daily × 7 and × 30)</li>
+                                    <li><strong>Quick Timer Control:</strong> Press <kbd>Space</kbd> from anywhere to control the timer without navigating</li>
+                                    <li><strong>Data Backup:</strong> Go to Management → Settings → Export Data regularly to backup your time tracking</li>
+                                    <li><strong>Timeline Editing:</strong> Edit session start/end times, duration, or pause time directly in the timeline</li>
+                                    <li><strong>Auto-Save:</strong> No need to click "Save" - all edits save automatically as you type</li>
+                                    <li><strong>Enhanced Emoji Picker:</strong> Click the emoji button for a full emoji picker with search and categories</li>
+                                    <li><strong>Streak Tracking:</strong> Achieve your daily goals to build streaks and unlock achievements 🔥</li>
+                                    <li><strong>Smart Quick Start:</strong> The more you use the app, the better your personalized suggestions become</li>
+                                    <li><strong>Offline Mode:</strong> The app works offline after first load - perfect for productivity anywhere</li>
+                                    <li><strong>PWA Installation:</strong> Install as an app for faster access and notification support</li>
+                                    <li><strong>Data Export:</strong> Export to CSV for spreadsheet analysis or JSON for full data backup</li>
+                                    <li><strong>Session Details:</strong> View pause time, modification history, and session metadata in timeline</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Data Management -->
+                        <div class="help-section">
+                            <h4>💾 Data Management</h4>
+                            <div class="help-text">
+                                <ul>
+                                    <li><strong>Backup:</strong> Management → Settings → Export Data creates a complete backup file</li>
+                                    <li><strong>Restore:</strong> Use Import Data to restore from backup files</li>
+                                    <li><strong>Data Retention:</strong> Configure how long to keep session data (30 days to forever)</li>
+                                    <li><strong>Clear Data:</strong> Reset app to initial state while preserving settings if needed</li>
+                                    <li><strong>Goals Data:</strong> Goals, streaks, and achievements are included in backup/restore</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Troubleshooting -->
+                        <div class="help-section">
+                            <h4>🔧 Troubleshooting</h4>
+                            <div class="help-text">
+                                <ul>
+                                    <li><strong>App Updates:</strong> Go to Management → Settings → Check for Updates to refresh the app</li>
+                                    <li><strong>Broken Sessions:</strong> Edit incorrect sessions in Reports → Activity Timeline</li>
+                                    <li><strong>Missing Data:</strong> Check data retention settings and restore from backup if needed</li>
+                                    <li><strong>Performance:</strong> Clear browser cache or reinstall PWA if app feels slow</li>
+                                    <li><strong>Lost Goals:</strong> Re-import data to restore goals if they disappear after updates</li>
                                 </ul>
                             </div>
                         </div>
@@ -336,6 +385,9 @@ export class UXEnhancements {
                                 <span class="version-label">Version</span>
                                 <span class="version-number">${currentVersion}</span>
                             </div>
+                            <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9em;">
+                                💡 Check Management → Settings for app updates and new features
+                            </p>
                         </div>
                     </div>
                 </div>

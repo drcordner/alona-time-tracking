@@ -13,7 +13,7 @@ export class Management {
         this.goalSaveTimeout = null;
         
         // Version constant for consistency across the app
-        this.APP_VERSION = "5.1.5 - Documentation Organization & Cache Improvements";
+        this.APP_VERSION = "5.1.6 - UI/UX Improvements & Comprehensive Help Update";
         
         // Load settings
         this.loadSettings();
@@ -260,22 +260,6 @@ export class Management {
                                 ${this.settings.goalsEnabled ? 'Goals will appear on the home screen and in reports.' : 'Goal features will be hidden throughout the app.'}
                             </p>
                         </div>
-                        <div class="setting-item">
-                            <div class="setting-toggle">
-                                <label for="enhanced-emoji-picker">Enhanced Emoji Picker</label>
-                                <div class="toggle-switch">
-                                    <input type="checkbox" 
-                                           id="enhanced-emoji-picker" 
-                                           ${(this.settings.enhancedEmojiPicker !== false) ? 'checked' : ''}
-                                           onchange="management.updateSetting('enhancedEmojiPicker', this.checked)">
-                                    <span class="toggle-slider" onclick="document.getElementById('enhanced-emoji-picker').click()"></span>
-                                </div>
-                            </div>
-                            <p class="setting-description">
-                                Use the modern emoji picker with search and categories. 
-                                ${(this.settings.enhancedEmojiPicker !== false) ? 'Enhanced picker provides better emoji selection experience.' : 'Simple preset-based emoji selection will be used.'}
-                            </p>
-                        </div>
                     </div>
                 </div>
 
@@ -344,10 +328,20 @@ export class Management {
 
     // Export data functionality
     exportData() {
+        // Include Goals data in export
+        let goalsData = {};
+        if (!this.storage.sandbox) {
+            const storedGoals = localStorage.getItem('categoryGoals');
+            if (storedGoals) {
+                goalsData = JSON.parse(storedGoals);
+            }
+        }
+
         const data = {
             categories: this.customCategories,
             settings: this.settings,
             timeTracking: this.storage.getAllData(),
+            goals: goalsData, // Add Goals data to export
             exportDate: new Date().toISOString(),
             version: this.settings.version
         };
@@ -411,6 +405,15 @@ export class Management {
                     // Import time tracking data if present
                     if (data.timeTracking) {
                         this.storage.importData(data.timeTracking);
+                    }
+                    
+                    // Import Goals data if present
+                    if (data.goals && !this.storage.sandbox) {
+                        localStorage.setItem('categoryGoals', JSON.stringify(data.goals));
+                        // Reinitialize goals if the goals system is available
+                        if (window.app && window.app.goals) {
+                            window.app.goals.loadGoals();
+                        }
                     }
                     
                     this.updateAppTitle();
@@ -582,7 +585,6 @@ export class Management {
     showActivityModal(mode, categoryName, activityName = '') {
         const isEdit = mode === 'edit';
         const title = isEdit ? 'Edit Activity' : 'Add Activity';
-        const submitText = isEdit ? 'Update Activity' : 'Create Activity';
         const currentEmoji = isEdit ? this.getActivityEmoji(activityName) : '⭐';
         
         const modal = `
@@ -593,50 +595,47 @@ export class Management {
                         <button class="modal-close" onclick="management.closeModal()">✕</button>
                     </div>
                     
-                    <form id="activity-form" onsubmit="management.submitActivityForm(event, '${mode}', '${categoryName}')">
+                    <div class="activity-form-content">
                         <div class="form-group">
                             <label>Activity Name</label>
-                            <input type="text" id="activity-name" value="${isEdit ? activityName : ''}" required maxlength="30">
+                            <input type="text" id="activity-name" 
+                                   value="${isEdit ? activityName : ''}" 
+                                   required maxlength="30"
+                                   ${isEdit ? `oninput="management.autoSaveActivityField('name', this, '${categoryName}')" onchange="management.autoSaveActivityField('name', this, '${categoryName}')"` : ''}>
+                            <span class="field-save-status" id="activity-name-save-status"></span>
                         </div>
                         
                         <div class="form-group">
                             <label>Emoji</label>
                             ${this.createEmojiPicker(currentEmoji, 'activity-emoji', false)}
+                            <span class="field-save-status" id="activity-emoji-save-status"></span>
                         </div>
                         
                         <div class="modal-actions">
-                            <button type="button" class="btn-secondary" onclick="management.closeModal()">Cancel</button>
-                            <button type="submit" class="btn-primary">${submitText}</button>
+                            <button type="button" class="btn-secondary" onclick="management.closeModal()">Close</button>
+                            ${!isEdit ? `<button type="button" class="btn-primary" onclick="management.createNewActivity('${categoryName}')">Create Activity</button>` : ''}
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         `;
         
         document.getElementById('modal-container').innerHTML = modal;
-    }
-
-    // Create emoji picker based on user preference
-    createEmojiPicker(currentEmoji, inputId, isCategory = true) {
-        // Check user preference for enhanced emoji picker
-        if (this.getSetting('enhancedEmojiPicker') !== false) {
-            return this.createEnhancedEmojiPicker(currentEmoji, inputId, isCategory);
-        } else {
-            // Fallback to simple emoji picker
-            return this.createSimpleEmojiPicker(currentEmoji, inputId, isCategory);
+        
+        // Set up emoji picker change handler for autosave
+        if (isEdit) {
+            const emojiInput = document.getElementById('activity-emoji');
+            if (emojiInput) {
+                emojiInput.addEventListener('input', () => {
+                    this.autoSaveActivityField('emoji', emojiInput, categoryName);
+                });
+            }
         }
     }
 
-    // Simple emoji picker (legacy/fallback)
-    createSimpleEmojiPicker(currentEmoji, inputId, isCategory = true) {
-        return `
-            <div class="emoji-picker">
-                <input type="text" id="${inputId}" value="${currentEmoji}" maxlength="2">
-                <div class="emoji-presets">
-                    ${isCategory ? this.renderEmojiPresets() : this.renderActivityEmojiPresets()}
-                </div>
-            </div>
-        `;
+    // Create emoji picker (always use enhanced version)
+    createEmojiPicker(currentEmoji, inputId, isCategory = true) {
+        return this.createEnhancedEmojiPicker(currentEmoji, inputId, isCategory);
     }
 
     // Render activity-specific emoji presets
@@ -688,7 +687,6 @@ export class Management {
     showCategoryModal(mode, categoryData = null) {
         const isEdit = mode === 'edit';
         const title = isEdit ? 'Edit Category' : 'Add Category';
-        const submitText = isEdit ? 'Update Category' : 'Create Category';
         
         // Get current goals for this category (if editing and goals are enabled)
         const categoryName = isEdit ? this.editingCategory : '';
@@ -702,39 +700,58 @@ export class Management {
                         <button class="modal-close" onclick="management.closeModal()">✕</button>
                     </div>
                     
-                    <form id="category-form" onsubmit="management.submitCategoryForm(event, '${mode}')">
+                    <div class="category-form-content">
                         <div class="form-group">
                             <label>Category Name</label>
-                            <input type="text" id="category-name" value="${categoryData?.name || categoryData ? this.editingCategory : ''}" required maxlength="30">
+                            <input type="text" id="category-name" 
+                                   value="${categoryData?.name || categoryData ? this.editingCategory : ''}" 
+                                   required maxlength="30"
+                                   oninput="management.autoSaveCategoryField('name', this)"
+                                   onchange="management.autoSaveCategoryField('name', this)">
+                            <span class="field-save-status" id="name-save-status"></span>
                         </div>
                         
                         <div class="form-group">
                             <label>Color</label>
                             <div class="color-picker">
-                                <input type="color" id="category-color" value="${categoryData?.color || '#4A90E2'}">
+                                <input type="color" id="category-color" 
+                                       value="${categoryData?.color || '#4A90E2'}"
+                                       onchange="management.autoSaveCategoryField('color', this)">
                                 <div class="color-presets">
                                     ${this.renderColorPresets()}
                                 </div>
                             </div>
+                            <span class="field-save-status" id="color-save-status"></span>
                         </div>
                         
                         <div class="form-group">
                             <label>Emoji</label>
                             ${this.createEmojiPicker(categoryData?.emoji || '📁', 'category-emoji', true)}
+                            <span class="field-save-status" id="emoji-save-status"></span>
                         </div>
                         
                         ${isEdit && this.getSetting('goalsEnabled') ? this.renderGoalsSection(categoryName, currentGoals) : ''}
                         
                         <div class="modal-actions">
-                            <button type="button" class="btn-secondary" onclick="management.closeModal()">Cancel</button>
-                            <button type="submit" class="btn-primary">${submitText}</button>
+                            <button type="button" class="btn-secondary" onclick="management.closeModal()">Close</button>
+                            ${!isEdit ? `<button type="button" class="btn-primary" onclick="management.createNewCategory()">Create Category</button>` : ''}
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         `;
         
         document.getElementById('modal-container').innerHTML = modal;
+        
+        // Set up emoji picker change handler for autosave
+        if (isEdit) {
+            const emojiInput = document.getElementById('category-emoji');
+            if (emojiInput) {
+                emojiInput.addEventListener('input', () => {
+                    this.autoSaveCategoryField('emoji', emojiInput);
+                });
+            }
+        }
     }
 
     // Render color presets
@@ -831,13 +848,29 @@ export class Management {
 
     // Select color preset
     selectColor(color) {
-        document.getElementById('category-color').value = color;
+        const colorInput = document.getElementById('category-color');
+        if (colorInput) {
+            colorInput.value = color;
+            // Trigger autosave if in edit mode
+            if (this.editingCategory) {
+                this.autoSaveCategoryField('color', colorInput);
+            }
+        }
     }
 
     // Select emoji preset
     selectEmoji(emoji, type = 'category') {
         const inputId = type === 'category' ? 'category-emoji' : 'activity-emoji';
-        document.getElementById(inputId).value = emoji;
+        const emojiInput = document.getElementById(inputId);
+        if (emojiInput) {
+            emojiInput.value = emoji;
+            // Trigger autosave if in edit mode
+            if (type === 'category' && this.editingCategory) {
+                this.autoSaveCategoryField('emoji', emojiInput);
+            } else if (type === 'activity' && this.editingActivity) {
+                this.autoSaveActivityField('emoji', emojiInput, this.editingActivity.category);
+            }
+        }
     }
 
     // Submit category form
@@ -1196,7 +1229,6 @@ export class Management {
             goalsEnabled: true,
             quickStartCount: 6,
             sessionRetentionDays: 60,
-            enhancedEmojiPicker: true,
             version: this.APP_VERSION
         };
     }
@@ -1320,9 +1352,19 @@ export class Management {
             const picker = document.createElement('emoji-picker');
             picker.addEventListener('emoji-click', (event) => {
                 const emoji = event.detail.emoji.unicode;
-                document.getElementById(inputId).value = emoji;
-                container.classList.remove('show');
-                document.getElementById(inputId).dispatchEvent(new Event('change', { bubbles: true }));
+                const emojiInput = document.getElementById(inputId);
+                if (emojiInput) {
+                    emojiInput.value = emoji;
+                    container.classList.remove('show');
+                    emojiInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    
+                    // Trigger autosave if in edit mode
+                    if (inputId === 'category-emoji' && this.editingCategory) {
+                        this.autoSaveCategoryField('emoji', emojiInput);
+                    } else if (inputId === 'activity-emoji' && this.editingActivity) {
+                        this.autoSaveActivityField('emoji', emojiInput, this.editingActivity.category);
+                    }
+                }
             });
             
             // Clear loading and add picker
@@ -1364,5 +1406,152 @@ export class Management {
     // Get app version for use by other modules
     getAppVersion() {
         return this.APP_VERSION;
+    }
+
+    // Auto-save category field
+    autoSaveCategoryField(field, inputElement) {
+        // Only autosave for edit mode
+        if (!this.editingCategory) return;
+        
+        const value = inputElement.value.trim();
+        const statusElement = document.getElementById(`${field}-save-status`);
+        
+        // Show saving indicator
+        if (statusElement) {
+            statusElement.innerHTML = `<span class="field-saving">💾</span>`;
+            statusElement.className = 'field-save-status saving';
+        }
+        
+        // Debounce save to prevent too many calls
+        clearTimeout(this.categorySaveTimeout);
+        this.categorySaveTimeout = setTimeout(() => {
+            try {
+                if (field === 'name') {
+                    // For name changes, we need to handle category renaming
+                    if (value && value !== this.editingCategory) {
+                        this.updateCategory(this.editingCategory, value, 
+                            document.getElementById('category-color').value,
+                            document.getElementById('category-emoji').value);
+                        this.editingCategory = value; // Update the editing reference
+                    }
+                } else if (field === 'color') {
+                    this.updateCategory(this.editingCategory, this.editingCategory, value,
+                        document.getElementById('category-emoji').value);
+                } else if (field === 'emoji') {
+                    this.updateCategory(this.editingCategory, this.editingCategory,
+                        document.getElementById('category-color').value, value);
+                }
+                
+                // Show success indicator
+                if (statusElement) {
+                    statusElement.innerHTML = `<span class="field-saved">✓</span>`;
+                    statusElement.className = 'field-save-status saved';
+                    
+                    // Hide success indicator after 2 seconds
+                    setTimeout(() => {
+                        statusElement.innerHTML = '';
+                        statusElement.className = 'field-save-status';
+                    }, 2000);
+                }
+                
+                // Refresh the management screen to show changes
+                this.renderManagementScreen();
+                
+            } catch (error) {
+                console.error('Error auto-saving category field:', error);
+                if (statusElement) {
+                    statusElement.innerHTML = `<span class="field-error">⚠️</span>`;
+                    statusElement.className = 'field-save-status error';
+                }
+            }
+        }, 500); // 500ms debounce
+    }
+
+    // Create new category
+    createNewCategory() {
+        const name = document.getElementById('category-name').value.trim();
+        const color = document.getElementById('category-color').value;
+        const emoji = document.getElementById('category-emoji').value.trim();
+        
+        if (!name || !color || !emoji) {
+            alert('Please fill in all fields');
+            return;
+        }
+        
+        this.addCategory(name, color, emoji);
+        this.showToast('Category created successfully!', 'success');
+        this.closeModal();
+        this.renderManagementScreen();
+    }
+
+    // Auto-save activity field
+    autoSaveActivityField(field, inputElement, categoryName) {
+        // Only autosave for edit mode
+        if (!this.editingActivity) return;
+        
+        const value = inputElement.value.trim();
+        const statusElement = document.getElementById(`activity-${field}-save-status`);
+        
+        // Show saving indicator
+        if (statusElement) {
+            statusElement.innerHTML = `<span class="field-saving">💾</span>`;
+            statusElement.className = 'field-save-status saving';
+        }
+        
+        // Debounce save to prevent too many calls
+        clearTimeout(this.activitySaveTimeout);
+        this.activitySaveTimeout = setTimeout(() => {
+            try {
+                if (field === 'name') {
+                    // For name changes, we need to handle activity renaming
+                    if (value && value !== this.editingActivity.activity) {
+                        this.updateActivity(this.editingActivity.category, this.editingActivity.activity, value,
+                            this.getActivityEmoji(value));
+                        this.editingActivity.activity = value; // Update the editing reference
+                    }
+                } else if (field === 'emoji') {
+                    this.updateActivity(this.editingActivity.category, this.editingActivity.activity, this.editingActivity.activity,
+                        value);
+                }
+                
+                // Show success indicator
+                if (statusElement) {
+                    statusElement.innerHTML = `<span class="field-saved">✓</span>`;
+                    statusElement.className = 'field-save-status saved';
+                    
+                    // Hide success indicator after 2 seconds
+                    setTimeout(() => {
+                        statusElement.innerHTML = '';
+                        statusElement.className = 'field-save-status';
+                    }, 2000);
+                }
+                
+                // Refresh the management screen to show changes
+                this.renderManagementScreen();
+                
+            } catch (error) {
+                console.error('Error auto-saving activity field:', error);
+                if (statusElement) {
+                    statusElement.innerHTML = `<span class="field-error">⚠️</span>`;
+                    statusElement.className = 'field-save-status error';
+                }
+            }
+        }, 500); // 500ms debounce
+    }
+
+    // Create new activity
+    createNewActivity(categoryName) {
+        const name = document.getElementById('activity-name').value.trim();
+        const emoji = document.getElementById('activity-emoji').value.trim();
+        
+        if (!name || !emoji) {
+            alert('Please fill in all fields');
+            return;
+        }
+        
+        this.addActivity(categoryName, name, emoji);
+        this.showToast('Activity created successfully!', 'success');
+        this.closeModal();
+        this.renderManagementScreen();
     }
 } 

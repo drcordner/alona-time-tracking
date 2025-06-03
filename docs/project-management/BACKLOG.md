@@ -147,6 +147,35 @@
 
 ## 🌟 **MEDIUM PRIORITY** (Phase 4+)
 
+### 🕐 **Advanced Time Management** (New Feature Category)
+- [ ] **Stacking Activities**
+  - [ ] Parallel activity tracking (multiple activities simultaneously)
+  - [ ] UI design for overlapping time periods in timeline reports
+  - [ ] Smart timeline visualization showing concurrent activities
+  - [ ] Activity combination templates (e.g., "Cooking + Learning")
+  - [ ] Time allocation split between stacked activities
+  - [ ] Export functionality for multi-activity sessions
+  - [ ] Analytics for activity combination patterns
+  
+- [ ] **Juggling Activities** (Needs detailed analysis)
+  - [ ] Quick activity switching within sessions
+  - [ ] Background activity continuation (e.g., audio learning while doing other tasks)
+  - [ ] Activity pause/resume state management
+  - [ ] Session history tracking for complex workflows
+  - [ ] Smart activity suggestions based on context
+  - [ ] UI for managing multiple active timers
+  - [ ] Workflow templates for common activity sequences
+  - [ ] **Priority**: Requires detailed UX research and technical design
+  - [ ] **Examples**: 
+    - Kitchen workflow: Cook → Clean → Eat → Clean (with continuous Learning audio)
+    - Gym workflow: Strength → Stretching → Pelvic Floor → Strength
+  
+- [ ] **Multi-Activity Session Management**
+  - [ ] Session templates for recurring workflows
+  - [ ] Activity dependency tracking
+  - [ ] Time allocation optimization suggestions
+  - [ ] Complex session analytics and reporting
+
 ### 🎓 **Onboarding System** (New Feature)
 - [ ] **First-Time User Experience**
   - [ ] Welcome screen with app overview

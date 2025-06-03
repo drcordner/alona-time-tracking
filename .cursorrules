@@ -1,0 +1,42 @@
+# Time Tracker Development Rules
+
+## Data Structure Changes
+- **ALWAYS** update backup/restore functionality when modifying data structures
+- Check `exportData()` and `handleFileImport()` in management.js
+- Test backup/restore after any data model changes
+- Include new data in both export and import processes
+
+## UI Consistency
+- **ALWAYS** use consistent UI patterns across the system
+- Icons vs text links should follow established patterns
+- Settings should be approved before adding - don't add unnecessary toggles
+- Maintain consistent button styles and interactions
+
+## Event Handling
+- **ALWAYS** test interactive elements after changes
+- Verify event listeners are properly attached
+- Check that onclick handlers and addEventListener work correctly
+- Test edit/delete buttons in reports after any changes
+
+## Settings Management
+- **ASK** before adding new settings - avoid feature bloat
+- Remove unnecessary settings that add complexity without value
+- Default to the best user experience rather than adding toggles
+
+## Autosave Consistency
+- **PREFER** autosave over manual save buttons where possible
+- Implement consistent autosave patterns across the system
+- Remove unnecessary "Update" and "Cancel" buttons when autosave is available
+
+## Testing Checklist
+After any changes, verify:
+- [ ] Backup/restore includes all data structures
+- [ ] Interactive buttons work (edit, delete, custom range)
+- [ ] UI consistency is maintained
+- [ ] No unnecessary settings were added
+- [ ] Autosave works consistently
+
+## Code Quality
+- Use semantic search and proper error handling
+- Test functionality immediately after implementation
+- Document any breaking changes or new patterns 
