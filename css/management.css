@@ -275,24 +275,30 @@ input:checked + .toggle-slider:before {
 
 .category-management-item {
     background: white;
-    border-radius: var(--radius-lg);
-    padding: var(--space-xl);
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s ease;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+    position: relative;
 }
 
 .category-management-item:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
 }
 
 .category-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--space-lg);
-    padding-bottom: var(--space-lg);
-    border-bottom: 2px solid #f8f9fa;
+    padding: var(--space-lg);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.category-header:hover {
+    background: #f8f9fa;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .category-info {
@@ -364,19 +370,22 @@ input:checked + .toggle-slider:before {
 }
 
 .activity-management-item {
-    background: #f8f9fa;
-    border: 2px solid transparent;
-    border-radius: var(--radius-md);
-    padding: var(--space-md) var(--space-lg);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid #f1f3f4;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .activity-management-item:hover {
-    background: #e9ecef;
-    border-color: #dee2e6;
+    background: #f8f9fa;
+}
+
+.activity-management-item:last-child {
+    border-bottom: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
 .activity-info {
@@ -449,19 +458,21 @@ input:checked + .toggle-slider:before {
 }
 
 .btn-danger {
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: var(--radius-md);
-    padding: var(--space-md) var(--space-xl);
-    font-size: var(--font-md);
-    font-weight: 500;
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.2s ease;
+    font-size: var(--font-sm);
 }
 
 .btn-danger:hover {
-    background: #c82333;
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+    transform: translateY(-1px);
 }
 
 /* Modal Styles */

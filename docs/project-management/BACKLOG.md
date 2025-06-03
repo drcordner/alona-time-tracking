@@ -14,7 +14,7 @@
 - ✅ **Phase 5**: Quick Wins & UX Polish (Performance, accessibility, keyboard shortcuts)
 - ✅ **Phase 6**: Bug Fixes & Enhancements (v5.1.3 - v5.1.4)
 
-**🚧 CURRENT PHASE:** Ready for Phase 7
+**🚧 CURRENT PHASE:** Phase 7 - Enhanced Category & Activity Management
 
 ---
 
@@ -402,3 +402,37 @@ For each major feature:
 *Next Review: Phase 7 Planning*
 
 **Note**: This backlog is a living document. Items may be reprioritized based on user feedback, technical constraints, and business value assessment. 
+
+## 🚀 **PHASE 7: Enhanced Category & Activity Management** *(In Progress)*
+
+**🎯 Goal:** Improve everyday workflow for category and activity management
+
+**✅ COMPLETED:**
+- ✅ **Mobile UX Improvements (v5.1.8)**
+  - ✅ Improved mobile font and emoji sizes for better readability
+  - ✅ Enhanced touch targets (56px+ activities, 64px+ categories)
+  - ✅ Better spacing and visual hierarchy for mobile users
+  - ✅ Improved emoji and text layout with proper flex positioning
+  
+- ✅ **Click-to-Edit Functionality (v5.1.8)**
+  - ✅ Click categories/activities to edit in management section
+  - ✅ Added edit cogs on home page categories
+  - ✅ Added edit cogs on activity listings
+  - ✅ Softened harsh red delete buttons (gray default, red hover)
+  - ✅ Removed redundant edit pencil icons
+
+**🔄 IN PROGRESS:**
+- [ ] **Drag-and-Drop Reordering**
+  - [ ] Home page category reordering (primary location)
+  - [ ] Activity listing reordering when viewing category activities
+  - [ ] Management section drag-and-drop (secondary location for power users)
+  - [ ] Visual feedback during drag operations
+  - [ ] Touch-friendly drag handles for mobile
+  - [ ] Persistent order saving to localStorage
+  - [ ] Smooth animations during reorder operations
+
+**🎯 PRIORITY ORDER:**
+1. **Mobile UX & Click-to-Edit** ✅ **COMPLETED**
+2. **Home Page Category Reordering** (High Impact)
+3. **Activity Listing Reordering** (Medium Impact)
+4. **Management Section Reordering** (Power User Feature) 

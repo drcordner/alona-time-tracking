@@ -1,15 +1,16 @@
 {
-    "version": "5.1.7 - Auto-Update System & Centralized Version Management",
-    "versionNumber": "5.1.7",
-    "description": "Auto-Update System & Centralized Version Management",
-    "timestamp": "2024-12-19T16:30:00Z",
+    "version": "5.1.9 - Auto-Update Bug Fix & Enhanced Mobile UX",
+    "versionNumber": "5.1.9",
+    "description": "Auto-Update Bug Fix & Enhanced Mobile UX",
+    "timestamp": "2024-12-19T17:00:00Z",
     "features": [
-        "Added automatic update detection and refresh system",
-        "Centralized version management in version.json",
-        "Version info now displays consistently in Help and Settings",
-        "Enhanced About section with latest features display",
-        "Updated Cursor Rules for version management consistency",
-        "Auto-updates enabled for production testing phase",
-        "Improved version information display with release details"
+        "Fixed auto-update bug causing false 'New version available' messages",
+        "Disabled auto-updates in production for better user experience",
+        "Updated fallback version handling to prevent version mismatches",
+        "Improved mobile font and emoji sizes for better readability",
+        "Enhanced touch targets with minimum 56px height for activities, 64px for categories",
+        "Click-to-edit functionality for categories and activities in management",
+        "Added edit cogs on home page categories and activity listings",
+        "Softened harsh red delete buttons with gray default and red hover"
     ]
 } 

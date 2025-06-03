@@ -30,9 +30,9 @@ export class Management {
             console.error('Management: Failed to load version info:', error);
             // Fallback to hardcoded version
             this.versionInfo = {
-                version: "5.1.6 - UI/UX Improvements & Comprehensive Help Update",
-                versionNumber: "5.1.6",
-                description: "UI/UX Improvements & Comprehensive Help Update"
+                version: "5.1.9 - Auto-Update Bug Fix & Enhanced Mobile UX",
+                versionNumber: "5.1.9",
+                description: "Auto-Update Bug Fix & Enhanced Mobile UX"
             };
         }
     }
@@ -540,9 +540,9 @@ export class Management {
             const isCollapsed = this.collapsedCategories.has(categoryName);
             return `
                 <div class="category-management-item" data-category="${categoryName}">
-                    <div class="category-header">
+                    <div class="category-header" onclick="management.editCategory('${categoryName}')" title="Click to edit category">
                         <div class="category-info">
-                            <button class="collapse-button" onclick="management.toggleCategoryCollapse('${categoryName}')" title="${isCollapsed ? 'Expand' : 'Collapse'} activities">
+                            <button class="collapse-button" onclick="event.stopPropagation(); management.toggleCategoryCollapse('${categoryName}')" title="${isCollapsed ? 'Expand' : 'Collapse'} activities">
                                 ${isCollapsed ? '▶️' : '▼️'}
                             </button>
                             <div class="category-color-preview" style="background-color: ${categoryData.color}"></div>
@@ -550,10 +550,7 @@ export class Management {
                             <h3 class="category-title">${categoryName}</h3>
                             <span class="activity-count">${categoryData.activities.length} activities</span>
                         </div>
-                        <div class="category-actions">
-                            <button class="btn-icon" onclick="management.editCategory('${categoryName}')" title="Edit Category">
-                                ✏️
-                            </button>
+                        <div class="category-actions" onclick="event.stopPropagation()">
                             <button class="btn-icon" onclick="management.showAddActivityModal('${categoryName}')" title="Add Activity">
                                 ➕
                             </button>
@@ -580,15 +577,12 @@ export class Management {
         return sortedActivities.map(activity => {
             const emoji = this.getActivityEmoji(activity);
             return `
-                <div class="activity-management-item" data-activity="${activity}">
+                <div class="activity-management-item" onclick="management.editActivity('${categoryName}', '${activity}')" data-activity="${activity}" title="Click to edit activity">
                     <div class="activity-info">
                         <span class="activity-emoji">${emoji}</span>
                         <span class="activity-name">${activity}</span>
                     </div>
-                    <div class="activity-actions">
-                        <button class="btn-icon" onclick="management.editActivity('${categoryName}', '${activity}')" title="Edit Activity">
-                            ✏️
-                        </button>
+                    <div class="activity-actions" onclick="event.stopPropagation()">
                         <button class="btn-icon btn-danger" onclick="management.deleteActivity('${categoryName}', '${activity}')" title="Delete Activity">
                             🗑️
                         </button>
@@ -1433,7 +1427,7 @@ export class Management {
 
     // Get app version for use by other modules
     getAppVersion() {
-        return this.versionInfo?.version || "5.1.6 - UI/UX Improvements & Comprehensive Help Update";
+        return this.versionInfo?.version || "5.1.9 - Auto-Update Bug Fix & Enhanced Mobile UX";
     }
 
     // Auto-save category field

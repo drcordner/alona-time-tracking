@@ -92,8 +92,9 @@ class TimeTrackerApp {
 
     // Auto-update check functionality
     async checkForAutoUpdate() {
-        // Enable auto-updates for now (you're the only user)
-        const isDevelopment = true;
+        // Disable auto-updates in production to prevent false positives
+        // User can manually check for updates via Settings → Check for Updates
+        const isDevelopment = false; // Changed from true to false
         
         if (!isDevelopment) return; // Skip when disabled
         
@@ -246,22 +247,32 @@ class TimeTrackerApp {
         // Categories are already sorted alphabetically from getCategories()
         Object.entries(categories).forEach(([categoryName, categoryData]) => {
             const todayTime = this.storage.getTodayTime(categoryName);
-            const button = document.createElement('button');
-            button.className = 'category-button';
-            button.style.setProperty('--category-color', categoryData.color);
+            const button = document.createElement('div');
+            button.className = 'category-button-container';
+            
+            const categoryButton = document.createElement('button');
+            categoryButton.className = 'category-button';
+            categoryButton.style.setProperty('--category-color', categoryData.color);
             
             // If category has only one activity, go directly to timer
             if (categoryData.activities.length === 1) {
-                button.onclick = () => this.timer.startActivity(categoryName, categoryData.activities[0]);
+                categoryButton.onclick = () => this.timer.startActivity(categoryName, categoryData.activities[0]);
             } else {
-                button.onclick = () => this.showActivities(categoryName);
+                categoryButton.onclick = () => this.showActivities(categoryName);
             }
 
-            button.innerHTML = `
-                <div class="category-name">${categoryName} ${categoryData.emoji}</div>
+            categoryButton.innerHTML = `
+                <div class="category-name">
+                    <span class="category-emoji">${categoryData.emoji}</span>
+                    <span class="category-text">${categoryName}</span>
+                </div>
                 <div class="category-time">${formatTime(todayTime)}</div>
+                <button class="category-edit-cog" onclick="event.stopPropagation(); management.editCategory('${categoryName}')" title="Edit category">
+                    ⚙️
+                </button>
             `;
 
+            button.appendChild(categoryButton);
             container.appendChild(button);
         });
     }
@@ -277,15 +288,25 @@ class TimeTrackerApp {
         
         activities.forEach(activity => {
             const todayTime = this.storage.getTodayTime(categoryName, activity);
-            const button = document.createElement('button');
-            button.className = 'activity-button';
-            button.onclick = () => this.timer.startActivity(categoryName, activity);
+            const button = document.createElement('div');
+            button.className = 'activity-button-container';
+            
+            const activityButton = document.createElement('button');
+            activityButton.className = 'activity-button';
+            activityButton.onclick = () => this.timer.startActivity(categoryName, activity);
 
-            button.innerHTML = `
-                <div class="activity-name">${activity} ${activityEmojis[activity] || '⭐'}</div>
+            activityButton.innerHTML = `
+                <div class="activity-name">
+                    <span class="activity-emoji">${activityEmojis[activity] || '⭐'}</span>
+                    <span class="activity-text">${activity}</span>
+                </div>
                 <div class="activity-time">${formatTime(todayTime)}</div>
+                <button class="activity-edit-cog" onclick="event.stopPropagation(); management.editActivity('${categoryName}', '${activity}')" title="Edit activity">
+                    ⚙️
+                </button>
             `;
 
+            button.appendChild(activityButton);
             container.appendChild(button);
         });
 
