@@ -1057,7 +1057,7 @@ export class Management {
     }
 
     // Update existing category
-    updateCategory(oldName, newName, color, emoji) {
+    updateCategory(oldName, newName, color, emoji, isAutoSave = false) {
         const categories = this.getCategories();
         const categoryData = categories[oldName];
         
@@ -1083,7 +1083,11 @@ export class Management {
         };
         
         this.saveCustomCategories();
-        this.editingCategory = null;
+        
+        // Only clear editing state if this is not an auto-save
+        if (!isAutoSave) {
+            this.editingCategory = null;
+        }
     }
 
     // Delete category (soft delete)
@@ -1126,7 +1130,7 @@ export class Management {
     }
 
     // Update activity
-    updateActivity(categoryName, oldActivityName, newActivityName, emoji) {
+    updateActivity(categoryName, oldActivityName, newActivityName, emoji, isAutoSave = false) {
         const category = this.customCategories[categoryName];
         
         if (oldActivityName !== newActivityName) {
@@ -1161,7 +1165,11 @@ export class Management {
         category.activities.sort(); // Keep alphabetically sorted
         
         this.saveCustomCategories();
-        this.editingActivity = null;
+        
+        // Only clear editing state if this is not an auto-save
+        if (!isAutoSave) {
+            this.editingActivity = null;
+        }
     }
 
     // Save custom activity emoji
@@ -1457,15 +1465,15 @@ export class Management {
                     if (value && value !== this.editingCategory) {
                         this.updateCategory(this.editingCategory, value, 
                             document.getElementById('category-color').value,
-                            document.getElementById('category-emoji').value);
+                            document.getElementById('category-emoji').value, true); // Pass true for isAutoSave
                         this.editingCategory = value; // Update the editing reference
                     }
                 } else if (field === 'color') {
                     this.updateCategory(this.editingCategory, this.editingCategory, value,
-                        document.getElementById('category-emoji').value);
+                        document.getElementById('category-emoji').value, true); // Pass true for isAutoSave
                 } else if (field === 'emoji') {
                     this.updateCategory(this.editingCategory, this.editingCategory,
-                        document.getElementById('category-color').value, value);
+                        document.getElementById('category-color').value, value, true); // Pass true for isAutoSave
                 }
                 
                 // Show success indicator
@@ -1480,8 +1488,8 @@ export class Management {
                     }, 2000);
                 }
                 
-                // Refresh the management screen to show changes
-                this.renderManagementScreen();
+                // Update all displays that might show this category data
+                this.updateAllDisplays();
                 
             } catch (error) {
                 console.error('Error auto-saving category field:', error);
@@ -1532,12 +1540,12 @@ export class Management {
                     // For name changes, we need to handle activity renaming
                     if (value && value !== this.editingActivity.activity) {
                         this.updateActivity(this.editingActivity.category, this.editingActivity.activity, value,
-                            this.getActivityEmoji(value));
+                            this.getActivityEmoji(value), true); // Pass true for isAutoSave
                         this.editingActivity.activity = value; // Update the editing reference
                     }
                 } else if (field === 'emoji') {
                     this.updateActivity(this.editingActivity.category, this.editingActivity.activity, this.editingActivity.activity,
-                        value);
+                        value, true); // Pass true for isAutoSave
                 }
                 
                 // Show success indicator
@@ -1552,8 +1560,8 @@ export class Management {
                     }, 2000);
                 }
                 
-                // Refresh the management screen to show changes
-                this.renderManagementScreen();
+                // Update all displays that might show this activity data
+                this.updateAllDisplays();
                 
             } catch (error) {
                 console.error('Error auto-saving activity field:', error);
@@ -1584,5 +1592,41 @@ export class Management {
     // Get version info object
     getVersionInfo() {
         return this.versionInfo;
+    }
+
+    // Update only the categories display without affecting modals
+    updateCategoriesDisplay() {
+        const categoriesContainer = document.querySelector('.categories-management');
+        if (categoriesContainer) {
+            categoriesContainer.innerHTML = this.renderCategoriesManagement();
+        }
+    }
+
+    // Update all displays that might show category/activity data
+    updateAllDisplays() {
+        // Update management screen if it's showing
+        this.updateCategoriesDisplay();
+        
+        // Update activity emojis in case they changed
+        if (window.app) {
+            window.app.loadCustomActivityEmojis();
+        }
+        
+        // Refresh current screen displays if we're on home or activity screens
+        if (window.app && window.app.currentScreen) {
+            switch (window.app.currentScreen) {
+                case 'home':
+                    // Refresh the category list on home screen
+                    window.app.renderCategories();
+                    break;
+                case 'activity':
+                    // Refresh the activity list if we're showing activities
+                    if (window.app.currentCategory) {
+                        window.app.showActivities(window.app.currentCategory);
+                    }
+                    break;
+                // Other screens don't typically show editable category/activity data
+            }
+        }
     }
 } 
