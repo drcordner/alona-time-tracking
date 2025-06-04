@@ -1,0 +1,63 @@
+# Time Tracker Development Rules
+
+## Version Management (CRITICAL)
+- **ALWAYS** update `version.json` when making ANY changes to the app
+- **NEVER** update version numbers in JavaScript files - use version.json only
+- Version format: "X.Y.Z - Brief Description"
+- Include meaningful features list in version.json
+- Update timestamp in ISO format
+- Test auto-update functionality after version changes
+
+## Netlify Deployment (CRITICAL)
+- **Staging:** https://alonastimetracking.netlify.app/ (main branch)
+- **Production:** Connected to production branch
+- **ALWAYS** test on staging before pushing to production
+- **NEVER** push directly to production without staging verification
+- Check Netlify build logs if deployment issues occur
+- Clear browser cache and test on multiple devices before confirming deployment
+
+## Release Notes Management (CRITICAL)
+- **ALWAYS** update `docs/project-management/RELEASE_NOTES.md` when bumping version
+- **NEVER** release to production without updating release notes
+- Include comprehensive documentation of all changes, fixes, and new features
+- Use consistent format: Version header, features, improvements, bug fixes, files modified, impact
+
+## Code Quality Standards
+- Use consistent CSS variables from components.css design tokens
+- Consolidate CSS - avoid duplicates
+- Mobile-first responsive design (min 320px width)
+- Touch targets minimum 44px for accessibility
+- Test on mobile devices for all UI changes
+- Maintain visual consistency between components
+
+## UI/UX Guidelines
+- Follow existing design patterns and color schemes
+- Maintain consistency between home page and management interfaces
+- Use proper loading states and user feedback
+- Implement proper error handling with user-friendly messages
+- Test click-to-edit functionality thoroughly
+- Ensure proper autosave behavior
+
+## Mobile Optimization
+- Test all changes on mobile devices
+- Ensure touch targets are adequate (44px minimum)
+- Verify text readability and emoji sizes
+- Check button spacing and layout on small screens
+- Test gesture interactions and responsiveness
+
+## Emergency Procedures
+- If production breaks, immediately roll back using: `git reset --hard [last-good-commit]`
+- Force push to both main and production branches
+- Monitor Netlify deployment status
+- Test rollback on staging before production
+- Document any emergency procedures taken
+
+## Pre-Deployment Checklist
+1. ✅ Version updated in version.json
+2. ✅ Release notes updated
+3. ✅ Tested locally
+4. ✅ Tested on mobile
+5. ✅ No console errors
+6. ✅ Staging deployment successful
+7. ✅ Cross-browser testing completed
+8. ✅ Ready for production deployment 
