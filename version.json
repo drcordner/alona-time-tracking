@@ -1,0 +1,18 @@
+{
+    "version": "5.2.0 - Enhanced Management Interface & UX Improvements",
+    "versionNumber": "5.2.0",
+    "description": "Enhanced Management Interface & UX Improvements",
+    "timestamp": "2024-12-19T20:00:00Z",
+    "features": [
+        "Redesigned management interface with improved mobile layout",
+        "Larger tab fonts with no-wrap behavior for better readability",
+        "Compact action buttons with reduced spacing and better alignment",
+        "Category layout redesigned to match home page style with color bars",
+        "Activity count display and hover-revealed delete buttons",
+        "New 'Add Activity' functionality with category selection",
+        "Consolidated CSS and improved mobile responsiveness",
+        "Enhanced touch targets and improved click interactions",
+        "Fixed auto-update bug causing false notifications",
+        "Disabled auto-updates in production for stability"
+    ]
+} 
