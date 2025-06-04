@@ -45,7 +45,7 @@ class TimeTrackerApp {
         }
         
         // Initialize management system first (loads settings)
-        this.management.init();
+        await this.management.init();
         console.log('TimeTrackerApp: Management initialized');
         
         // Initialize goals system (depends on settings)

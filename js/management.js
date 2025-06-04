@@ -38,7 +38,10 @@ export class Management {
     }
 
     // Initialize management with custom or default categories and settings
-    init() {
+    async init() {
+        // Load version info first
+        await this.loadVersionInfo();
+        
         this.loadCustomCategories();
         this.loadSettings();
     }
@@ -52,9 +55,9 @@ export class Management {
             this.settings = stored;
             // Check for version updates and migrate if needed
             if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes" || this.settings.version === "5.1.3 - Bug Fixes & Enhancements" || this.settings.version === "5.1.4 - Enhanced Emoji Picker" || this.settings.version === "5.1.4+ - Streak Calculation Fix") {
-                this.settings.version = this.versionInfo.version;
+                this.settings.version = this.versionInfo?.version || "5.2.0 - Enhanced Management Interface & UX Improvements";
                 this.saveSettings();
-                console.log('Management: Updated version to', this.versionInfo.version);
+                console.log('Management: Updated version to', this.settings.version);
             }
         } else {
             // Default settings
@@ -1245,13 +1248,14 @@ export class Management {
         this.editingActivity = null;
     }
 
+    // Get default settings
     getDefaultSettings() {
         return {
             appTitle: "Alona's Activity Tracker",
             goalsEnabled: true,
             quickStartCount: 6,
             sessionRetentionDays: 60,
-            version: this.versionInfo.version
+            version: this.versionInfo?.version || "5.2.0 - Enhanced Management Interface & UX Improvements"
         };
     }
 
