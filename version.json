@@ -1,16 +1,18 @@
 {
-    "version": "5.1.9 - Auto-Update Bug Fix & Enhanced Mobile UX",
-    "versionNumber": "5.1.9",
-    "description": "Auto-Update Bug Fix & Enhanced Mobile UX",
-    "timestamp": "2024-12-19T17:00:00Z",
+    "version": "5.2.0 - Enhanced Management Interface & UX Improvements",
+    "versionNumber": "5.2.0",
+    "description": "Enhanced Management Interface & UX Improvements",
+    "timestamp": "2024-12-19T19:00:00Z",
     "features": [
-        "Fixed auto-update bug causing false 'New version available' messages",
-        "Disabled auto-updates in production for better user experience",
-        "Updated fallback version handling to prevent version mismatches",
-        "Improved mobile font and emoji sizes for better readability",
-        "Enhanced touch targets with minimum 56px height for activities, 64px for categories",
-        "Click-to-edit functionality for categories and activities in management",
-        "Added edit cogs on home page categories and activity listings",
-        "Softened harsh red delete buttons with gray default and red hover"
+        "Redesigned management interface with improved mobile layout",
+        "Larger tab fonts with no-wrap behavior for better readability",
+        "Compact action buttons with reduced spacing and better alignment",
+        "Category layout redesigned to match home page style with color bars",
+        "Activity count display and hover-revealed delete buttons",
+        "New 'Add Activity' functionality with category selection",
+        "Consolidated CSS and improved mobile responsiveness",
+        "Enhanced touch targets and improved click interactions",
+        "Fixed auto-update bug causing false notifications",
+        "Disabled auto-updates in production for stability"
     ]
 } 
