@@ -30,141 +30,212 @@
     <link rel="apple-touch-icon" sizes="72x72" href="images/icon-72x72.png">
     <link rel="apple-touch-icon" sizes="60x60" href="images/icon-60x60.png">
     <link rel="apple-touch-icon" sizes="57x57" href="images/icon-57x57.png">
-    
-    <!-- Preload Critical Resources -->
-    <link rel="preload" href="css/main.css?v=5.2.0" as="style">
-    <link rel="preload" href="js/app.js?v=5.2.0" as="script">
-    
-    <!-- CSS Imports -->
-    <link rel="stylesheet" href="css/main.css?v=5.2.0">
-    <link rel="stylesheet" href="css/components.css?v=5.2.0">
-    <link rel="stylesheet" href="css/timer.css?v=5.2.0">
-    <link rel="stylesheet" href="css/management.css?v=5.2.0">
-    <link rel="stylesheet" href="css/goals.css?v=5.2.0">
+
+    <!-- Loading Styles - Minimal inline CSS for loading state -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+        }
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            color: #4a90e2;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #e3f2fd;
+            border-top: 3px solid #4a90e2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .loading-subtext {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        /* Hide main content until app is loaded */
+        .main-content {
+            display: none;
+        }
+        .main-content.loaded {
+            display: block;
+        }
+    </style>
+
+    <!-- Only load the cache buster - it handles everything else -->
+    <script src="js/cache-buster.js"></script>
     
     <!-- Emoji Picker Element -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Alona's Activity Tracker <span style="font-size: 0.7em; color: #888; font-weight: normal;">• Staging Test</span></h1>
-        </div>
-
-        <!-- Home Screen -->
-        <div id="home-screen" class="screen active">
-            <div class="quick-start-section">
-                <div class="quick-start-header">Quick Start</div>
-                <div class="quick-start-grid">
-                    <!-- Quick start buttons will be populated by JavaScript -->
-                </div>
-            </div>
-            
-            <!-- Goals Section will be inserted here by JavaScript -->
-            <div id="goals-container"></div>
-            
-            <div class="category-grid" id="category-list">
-                <!-- Categories will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Activity Screen -->
-        <div id="activity-screen" class="screen">
-            <div class="activity-list" id="activity-list">
-                <!-- Activities will be populated by JavaScript -->
-            </div>
-            <div id="timer-section" style="display: none;">
-                <div class="timer-container">
-                    <div class="current-activity" id="current-activity-name"></div>
-                    <div class="timer-display" id="timer-display">00:00:00</div>
-                    <div style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.9em;">
-                        <div>Current Session</div>
-                    </div>
-                    <div style="margin-bottom: 20px; color: #2c3e50; font-size: 1.1em;">
-                        <div>Today Total: <span id="today-total-time">00:00:00</span></div>
-                    </div>
-                    <div id="timer-status" style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.9em; height: 20px;">
-                        <!-- Timer status (running/paused) will show here -->
-                    </div>
-                    <div style="text-align: center;">
-                        <button class="pause-button" id="pause-button" onclick="togglePause()">Pause</button>
-                    <button class="stop-button" onclick="stopTimer()">Stop</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Reports Screen -->
-        <div id="reports-screen" class="screen">
-            <div class="view-toggles">
-                <button class="toggle-button active" onclick="setReportView('day')">Day</button>
-                <button class="toggle-button" onclick="setReportView('week')">Week</button>
-                <button class="toggle-button" onclick="setReportView('month')">Month</button>
-            </div>
-            
-            <div class="reports-header">
-                    <div class="date-nav">
-                        <button onclick="navigateDate(-1)">‹‹ Prev</button>
-                        <span class="current-date" id="current-report-date"></span>
-                        <button onclick="navigateDate(1)">Next ››</button>
-                    </div>
-                </div>
-            
-            <!-- Goals Summary will be inserted here by JavaScript -->
-            <div id="goals-summary-container"></div>
-            
-            <!-- Enhanced Reports Content -->
-            <div id="reports-content">
-                <!-- Enhanced reports will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Management Screen -->
-        <div id="management-screen" class="screen">
-            <div id="management-content">
-                <!-- Management content will be populated by JavaScript -->
-            </div>
-        </div>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Time Tracker...</div>
+        <div class="loading-subtext">Initializing resources with cache busting</div>
     </div>
 
-    <!-- Navigation -->
-    <div class="navigation">
-        <button class="nav-button" onclick="goBack()">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
-            </svg>
-            <span class="nav-text">Back</span>
-        </button>
-        <button class="nav-button active" onclick="showScreen('home')">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-            </svg>
-            <span class="nav-text">Home</span>
-        </button>
-        <button class="nav-button" onclick="showScreen('reports')">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-            </svg>
-            <span class="nav-text">Reports</span>
-        </button>
-        <button class="nav-button" onclick="showScreen('management')">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-            </svg>
-            <span class="nav-text">Manage</span>
-        </button>
-        <button class="nav-button" onclick="showHelp()">
-            <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
-            </svg>
-            <span class="nav-text">Help</span>
-        </button>
+    <!-- Main Application Content -->
+    <div id="main-content" class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>Alona's Activity Tracker</h1>
+            </div>
+
+            <!-- Home Screen -->
+            <div id="home-screen" class="screen active">
+                <div class="quick-start-section">
+                    <div class="quick-start-header">Quick Start</div>
+                    <div class="quick-start-grid">
+                        <!-- Quick start buttons will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Goals Section will be inserted here by JavaScript -->
+                <div id="goals-container"></div>
+                
+                <div class="category-grid" id="category-list">
+                    <!-- Categories will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Activity Screen -->
+            <div id="activity-screen" class="screen">
+                <div class="activity-list" id="activity-list">
+                    <!-- Activities will be populated by JavaScript -->
+                </div>
+                <div id="timer-section" style="display: none;">
+                    <div class="timer-container">
+                        <div class="current-activity" id="current-activity-name"></div>
+                        <div class="timer-display" id="timer-display">00:00:00</div>
+                        <div style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.9em;">
+                            <div>Current Session</div>
+                        </div>
+                        <div style="margin-bottom: 20px; color: #2c3e50; font-size: 1.1em;">
+                            <div>Today Total: <span id="today-total-time">00:00:00</span></div>
+                        </div>
+                        <div id="timer-status" style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.9em; height: 20px;">
+                            <!-- Timer status (running/paused) will show here -->
+                        </div>
+                        <div style="text-align: center;">
+                            <button class="pause-button" id="pause-button" onclick="togglePause()">Pause</button>
+                        <button class="stop-button" onclick="stopTimer()">Stop</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Screen -->
+            <div id="reports-screen" class="screen">
+                <div class="view-toggles">
+                    <button class="toggle-button active" onclick="setReportView('day')">Day</button>
+                    <button class="toggle-button" onclick="setReportView('week')">Week</button>
+                    <button class="toggle-button" onclick="setReportView('month')">Month</button>
+                </div>
+                
+                <div class="reports-header">
+                        <div class="date-nav">
+                            <button onclick="navigateDate(-1)">‹‹ Prev</button>
+                            <span class="current-date" id="current-report-date"></span>
+                            <button onclick="navigateDate(1)">Next ››</button>
+                        </div>
+                    </div>
+                
+                <!-- Goals Summary will be inserted here by JavaScript -->
+                <div id="goals-summary-container"></div>
+                
+                <!-- Enhanced Reports Content -->
+                <div id="reports-content">
+                    <!-- Enhanced reports will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Management Screen -->
+            <div id="management-screen" class="screen">
+                <div id="management-content">
+                    <!-- Management content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-button" onclick="goBack()">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.42-1.41L7.83 13H20v-2z"/>
+                </svg>
+                <span class="nav-text">Back</span>
+            </button>
+            <button class="nav-button active" onclick="showScreen('home')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                <span class="nav-text">Home</span>
+            </button>
+            <button class="nav-button" onclick="showScreen('reports')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+                <span class="nav-text">Reports</span>
+            </button>
+            <button class="nav-button" onclick="showScreen('management')">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <span class="nav-text">Manage</span>
+            </button>
+            <button class="nav-button" onclick="showHelp()">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+                </svg>
+                <span class="nav-text">Help</span>
+            </button>
+        </div>
+
+        <!-- Modal Container for Goals Management -->
+        <div id="modal-container"></div>
     </div>
 
-    <!-- Modal Container for Goals Management -->
-    <div id="modal-container"></div>
+    <script>
+        // Handle app loading completion
+        window.addEventListener('appResourcesLoaded', function(event) {
+            console.log('🎉 App resources loaded:', event.detail);
+            
+            // Hide loading screen and show main content
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('main-content').classList.add('loaded');
+            
+            // Optional: Show version info in console
+            if (event.detail.version) {
+                console.log(`📱 Time Tracker v${event.detail.version} - ${event.detail.isLocal ? 'Local Development' : 'Production'}`);
+            }
+        });
 
-    <!-- JavaScript Imports -->
-    <script type="module" src="js/app.js?v=5.2.0"></script>
+        // Fallback: Show main content after 10 seconds if resources fail to load
+        setTimeout(function() {
+            if (!document.getElementById('main-content').classList.contains('loaded')) {
+                console.warn('⚠️ App loading timeout - showing content anyway');
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('main-content').classList.add('loaded');
+            }
+        }, 10000);
+    </script>
 </body>
 </html>

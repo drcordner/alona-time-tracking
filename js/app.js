@@ -1,4 +1,7 @@
 // Main app coordinator
+console.log('🚀 NEW APP.JS LOADED - TIMESTAMP:', Date.now(), 'Version: 5.2.6-dev-fix');
+console.log('🔧 Global assignments should happen AFTER initialization');
+
 import { categories as defaultCategories, activityEmojis } from './data.js';
 import { Storage } from './storage.js';
 import { Timer } from './timer.js';
@@ -67,6 +70,11 @@ class TimeTrackerApp {
 
         this.registerServiceWorker();
 
+        // Initialize UX enhancements after everything else is set up
+        this.ux = new UXEnhancements(this);
+        console.log('TimeTrackerApp: UX enhancements initialized');
+
+        // 🚨 FIX: Move global assignments HERE after all modules are initialized
         // Expose modules globally for onclick handlers
         window.app = this;
         window.reports = this.reports;
@@ -74,9 +82,22 @@ class TimeTrackerApp {
         window.goals = this.goals;
         window.timer = this.timer;
         
-        // Initialize UX enhancements after everything else is set up
-        this.ux = new UXEnhancements(this);
-        console.log('TimeTrackerApp: UX enhancements initialized');
+        // Global functions that the HTML needs
+        window.goBack = () => this.goBack();
+        window.showScreen = (screen) => this.showScreen(screen);
+        window.stopTimer = () => this.timer.stopTimer();
+        window.togglePause = () => this.timer.togglePause();
+        window.setReportView = (view) => this.reports.setReportView(view);
+        window.navigateDate = (direction) => this.reports.navigateDate(direction);
+        
+        // Global help function - now app.ux is properly initialized
+        window.showHelp = () => {
+            if (this.ux) {
+                this.ux.showHelp();
+            } else {
+                console.error('UX module not initialized');
+            }
+        };
 
         console.log('TimeTrackerApp: Initialization complete');
 
@@ -255,7 +276,7 @@ class TimeTrackerApp {
             categoryButton.style.setProperty('--category-color', categoryData.color);
             
             // If category has only one activity, go directly to timer
-            if (categoryData.activities.length === 1) {
+            if (categoryData && categoryData.activities && categoryData.activities.length === 1) {
                 categoryButton.onclick = () => this.timer.startActivity(categoryName, categoryData.activities[0]);
             } else {
                 categoryButton.onclick = () => this.showActivities(categoryName);
@@ -280,36 +301,71 @@ class TimeTrackerApp {
     showActivities(categoryName) {
         this.currentCategory = categoryName;
         const container = document.getElementById('activity-list');
-        container.innerHTML = '';
-
-        const categories = this.getCategories();
-        // Sort activities alphabetically for consistency
-        const activities = [...categories[categoryName].activities].sort();
         
-        activities.forEach(activity => {
-            const todayTime = this.storage.getTodayTime(categoryName, activity);
-            const button = document.createElement('div');
-            button.className = 'activity-button-container';
-            
-            const activityButton = document.createElement('button');
-            activityButton.className = 'activity-button';
-            activityButton.onclick = () => this.timer.startActivity(categoryName, activity);
-
-            activityButton.innerHTML = `
-                <div class="activity-name">
-                    <span class="activity-emoji">${activityEmojis[activity] || '⭐'}</span>
-                    <span class="activity-text">${activity}</span>
+        const categories = this.getCategories();
+        const categoryData = categories[categoryName];
+        
+        // 🛡️ DEFENSIVE: Check for corrupted category data
+        if (!categoryData || !categoryData.activities) {
+            console.error('❌ Corrupted category data for:', categoryName, categoryData);
+            container.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: #e74c3c;">
+                    <h3>⚠️ Data Corruption Detected</h3>
+                    <p>Category "${categoryName}" has corrupted data.</p>
+                    <button onclick="localStorage.clear(); location.reload();" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px;">
+                        Clear Data & Reload
+                    </button>
                 </div>
-                <div class="activity-time">${formatTime(todayTime)}</div>
-                <button class="activity-edit-cog" onclick="event.stopPropagation(); management.editActivity('${categoryName}', '${activity}')" title="Edit activity">
-                    ⚙️
-                </button>
             `;
+            return;
+        }
 
-            button.appendChild(activityButton);
-            container.appendChild(button);
-        });
+        // Create category header with context
+        const categoryHeader = `
+            <div class="activity-screen-header">
+                <div class="category-context" style="--category-color: ${categoryData.color}">
+                    <div class="category-context-info">
+                        <span class="category-context-emoji">${categoryData.emoji}</span>
+                        <div class="category-context-text">
+                            <h2 class="category-context-name">${categoryName}</h2>
+                            <p class="category-context-subtitle">Select an activity to start tracking</p>
+                        </div>
+                    </div>
+                    <div class="category-context-actions">
+                        <button class="btn-icon category-quick-edit" onclick="management.showAddActivityModal('${categoryName}')" title="Add new activity" style="background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.5);">
+                            ➕
+                        </button>
+                        <button class="btn-icon category-quick-edit" onclick="management.editCategory('${categoryName}')" title="Edit category">
+                            ⚙️
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
 
+        // Sort activities alphabetically for consistency
+        const activities = [...categoryData.activities].sort();
+        
+        const activitiesHtml = activities.map(activity => {
+            const todayTime = this.storage.getTodayTime(categoryName, activity);
+            const activityEmoji = this.management.getActivityEmoji(activity);
+            return `
+                <div class="activity-button-container">
+                    <button class="activity-button" onclick="app.timer.startActivity('${categoryName}', '${activity}')">
+                        <div class="activity-name">
+                            <span class="activity-emoji">${activityEmoji}</span>
+                            <span class="activity-text">${activity}</span>
+                        </div>
+                        <div class="activity-time">${formatTime(todayTime)}</div>
+                        <button class="activity-edit-cog" onclick="event.stopPropagation(); management.editActivity('${categoryName}', '${activity}')" title="Edit activity">
+                            ⚙️
+                        </button>
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = categoryHeader + activitiesHtml;
         this.showScreen('activity');
     }
 
@@ -380,37 +436,8 @@ class TimeTrackerApp {
     }
 }
 
-// Global functions for HTML onclick handlers
-window.app = new TimeTrackerApp();
+// Export the class for ES6 modules and make it globally available
+window.TimeTrackerApp = TimeTrackerApp;
 
-// Global functions that the HTML needs
-window.goBack = () => app.goBack();
-window.showScreen = (screen) => app.showScreen(screen);
-window.stopTimer = () => app.timer.stopTimer();
-window.togglePause = () => app.timer.togglePause();
-window.setReportView = (view) => app.reports.setReportView(view);
-window.navigateDate = (direction) => app.reports.navigateDate(direction);
-
-// Global management functions
-window.management = app.management;
-
-// Global goals functions
-window.goals = app.goals;
-
-// Global reports functions
-window.reports = app.reports;
-
-// Global data access
-window.activityEmojis = activityEmojis;
-
-// Global help function
-window.showHelp = () => {
-    if (app.ux) {
-        app.ux.showHelp();
-    }
-};
-
-// Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    app.init();
-}); 
+// Don't auto-initialize here since cache-buster will handle it
+// The cache-buster will create the instance after all modules are loaded 

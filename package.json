@@ -1,0 +1,19 @@
+{
+  "name": "alona-time-tracker",
+  "version": "5.3.0",
+  "description": "A beautiful time tracking app with goals and analytics",
+  "type": "module",
+  "scripts": {
+    "test": "node test-runner.js",
+    "test:verbose": "node test-runner.js --verbose",
+    "validate": "npm run test",
+    "version-check": "node -e \"const v=require('./version.json'); console.log('Current version:', v.versionNumber)\""
+  },
+  "keywords": ["time-tracking", "productivity", "goals"],
+  "author": "Time Tracker Development Team",
+  "license": "MIT",
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 

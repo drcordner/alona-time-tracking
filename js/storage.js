@@ -258,15 +258,40 @@ export class Storage {
 
     // Get aggregated time data (backward compatible)
     getTodayTime(category, activity = null) {
-        const today = new Date().toDateString();
+        const todayKey = new Date().toDateString();
+        const todayData = this.timeTrackingData[todayKey]?._aggregates || {};
         
-        if (!this.timeTrackingData[today] || !this.timeTrackingData[today]._aggregates || !this.timeTrackingData[today]._aggregates[category]) return 0;
-        
-        if (activity) {
-            return this.timeTrackingData[today]._aggregates[category][activity] || 0;
-        } else {
-            return Object.values(this.timeTrackingData[today]._aggregates[category]).reduce((sum, time) => sum + time, 0);
+        if (!category) {
+            // Return total for all categories
+            return Object.values(todayData).reduce((total, categoryData) => {
+                return total + Object.values(categoryData).reduce((sum, time) => sum + time, 0);
+            }, 0);
         }
+        
+        if (!activity) {
+            // Return total for category
+            return Object.values(todayData[category] || {}).reduce((sum, time) => sum + time, 0);
+        }
+        
+        // Return specific activity time
+        return todayData[category]?.[activity] || 0;
+    }
+
+    // Get all-time total across all activities and dates
+    getAllTimeTotal() {
+        let totalTime = 0;
+        
+        Object.values(this.timeTrackingData).forEach(dayData => {
+            if (dayData._aggregates) {
+                Object.values(dayData._aggregates).forEach(categoryData => {
+                    Object.values(categoryData).forEach(activityTime => {
+                        totalTime += activityTime;
+                    });
+                });
+            }
+        });
+        
+        return totalTime;
     }
 
     // Get aggregated date data (backward compatible)
@@ -378,8 +403,10 @@ export class Storage {
             };
             
             // Remove from active activities list
-            this.customCategories[categoryName].activities = 
-                this.customCategories[categoryName].activities.filter(activity => activity !== activityName);
+            if (this.customCategories[categoryName].activities) {
+                this.customCategories[categoryName].activities = 
+                    this.customCategories[categoryName].activities.filter(activity => activity !== activityName);
+            }
         }
         this.saveCustomCategories(this.customCategories);
     }

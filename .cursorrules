@@ -1,26 +1,127 @@
 # Time Tracker Development Rules
 
-## Version Management (CRITICAL)
-- **ALWAYS** update `version.json` when making ANY changes to the app
+## CRITICAL: Always Review Lessons Learned (NEW RULE)
+- **BEFORE making ANY changes**, read `docs/development/LESSONS_LEARNED.md`
+- **ALWAYS** consider patterns and mistakes from previous development
+- **IMPLEMENT** established best practices for validation, error handling, and data integrity
+- **ADD NEW LESSONS** to the file when discovering issues or implementing fixes
+- **USE ESTABLISHED** UI/UX patterns and validation rules from lessons learned
+- **FOLLOW** testing checklists and development guidelines in lessons learned
+
+## Vibe Coding Philosophy & Simplicity First (NEW RULE)
+- **SIMPLICITY OVER SOPHISTICATION**: Choose the simple, predictable solution over complex auto-magic
+- **EXPLICIT USER ACTIONS**: Prefer clear user-triggered actions (buttons) over auto-save complexity
+- **FAIL FAST WITH CLEAR FEEDBACK**: When things go wrong, show clear messages and recovery options
+- **SINGLE RESPONSIBILITY**: Each function should do one thing well
+- **READABLE CODE PATHS**: Code should be easy to follow - prefer explicit over implicit behavior
+- **VIBE CODING REALITY**: We're building this collaboratively with AI - optimize for understanding and maintainability
+- **WHEN IN DOUBT, SIMPLIFY**: If a feature seems complex to implement or debug, consider a simpler approach
+- **TEST THE HAPPY PATH FIRST**: Get basic functionality rock-solid before adding sophistication
+- **AVOID PREMATURE OPTIMIZATION**: Don't add complexity until there's a proven need
+
+## Development Workflow & Version Management (CRITICAL NEW RULE)
+### During Development (Local Testing)
+- **NEVER** increment version numbers during local development/testing
+- **TRACK ALL CHANGES** in `docs/development/DEVELOPMENT_CHANGELOG.md`
+- **USE CURRENT VERSION** (5.2.6) for all local testing
+- **DOCUMENT** issues being worked on and investigation findings
+- **ADD** all modifications to "Current Development Cycle" section
+
+### Ready for Deployment (Version Increment Time)
+- **REVIEW** all accumulated changes in development changelog
+- **CHOOSE** appropriate version increment (patch/minor/major)
+- **UPDATE** `version.json` with new version and ALL accumulated changes
+- **UPDATE** `docs/project-management/RELEASE_NOTES.md` with comprehensive changelog
+- **UPDATE** `docs/development/LESSONS_LEARNED.md` if fixing bugs or issues
+- **CLEAR** "Current Development Cycle" and start new section in development changelog
+- **RUN** `npm test` to verify version consistency
+- **DEPLOY** to staging then production
+
+### Version Format Rules
+- **Development**: Keep version.json at current release version (5.2.6)
+- **Deployment**: Increment to next version (5.2.7, 5.3.0, 6.0.0)
 - **NEVER** update version numbers in JavaScript files - use version.json only
 - Version format: "X.Y.Z - Brief Description"
-- Include meaningful features list in version.json
+- Include comprehensive features list from development changelog
 - Update timestamp in ISO format
-- Test auto-update functionality after version changes
 
 ## Netlify Deployment (CRITICAL)
-- **Staging:** https://alonastimetracking.netlify.app/ (main branch)
-- **Production:** Connected to production branch
+- **Staging:** https://staging-alona-time-tracking.netlify.app/ (main branch)
+- **Production:** https://alonastimetracking.netlify.app/ (production branch)
 - **ALWAYS** test on staging before pushing to production
 - **NEVER** push directly to production without staging verification
 - Check Netlify build logs if deployment issues occur
 - Clear browser cache and test on multiple devices before confirming deployment
 
-## Release Notes Management (CRITICAL)
-- **ALWAYS** update `docs/project-management/RELEASE_NOTES.md` when bumping version
-- **NEVER** release to production without updating release notes
-- Include comprehensive documentation of all changes, fixes, and new features
-- Use consistent format: Version header, features, improvements, bug fixes, files modified, impact
+## Documentation Requirements (CRITICAL)
+### During Development
+- **ALWAYS** update `docs/development/DEVELOPMENT_CHANGELOG.md` for any changes
+- **TRACK** all issues, investigation notes, and modifications
+- **DOCUMENT** debugging findings and solution attempts
+
+### Ready for Deployment
+- **CONSOLIDATE** all development changelog items into version.json
+- **UPDATE** `docs/project-management/RELEASE_NOTES.md` with comprehensive details
+- **UPDATE** `docs/development/LESSONS_LEARNED.md` for any bug fixes or learnings
+- **CLEAR** development changelog and prepare for next cycle
+
+## Data Integrity & Validation Rules (FROM LESSONS LEARNED)
+- **ALWAYS** validate input at multiple levels: Client-side, function-level, and storage-level
+- **NEVER** allow empty required fields to be saved, even in auto-save scenarios
+- **VALIDATE** data existence before operations: Check if categories/activities still exist
+- **IMPLEMENT** graceful degradation: Handle corrupted data without crashing the UI
+- **USE** try-catch blocks for data operations with user-friendly error messages
+- **PROVIDE** recovery mechanisms: Always offer a way to fix or restore corrupted data
+
+## Auto-Save Best Practices (FROM LESSONS LEARNED)
+- **DEBOUNCE** auto-save operations to prevent excessive calls during user input
+- **VALIDATE** before auto-saving: Don't save invalid data automatically
+- **PROVIDE** clear feedback: Show saving/saved/error states to users
+- **HANDLE** auto-save failures gracefully: Reset form to last known good state
+- **NEVER** clear editing state during auto-save operations
+- **DISTINGUISH** between intermediate operations and final submissions
+
+## UI Consistency Requirements (FROM LESSONS LEARNED)
+- **ALWAYS** refresh displays after data changes: Don't assume users will navigate away
+- **PROVIDE** immediate feedback: Users should see their changes instantly
+- **HANDLE** modal cleanup properly: Clear state and refresh displays on close
+- **TEST** edit flows thoroughly: Especially auto-save and validation scenarios
+- **USE** established field-level save status indicators (saving/saved/error)
+
+## Complete Publication Workflow (MANDATORY)
+When user requests "publish to staging and production":
+1. **Consolidate Development Changes:**
+   - Review all items in `DEVELOPMENT_CHANGELOG.md`
+   - Choose appropriate version increment
+   - Update `version.json` with new version and all accumulated features/fixes
+
+2. **Update Documentation:**
+   - Add comprehensive entry to `RELEASE_NOTES.md`
+   - Add entry to `LESSONS_LEARNED.md` if fixing bugs or issues
+   - Clear development changelog and start new cycle
+
+3. **Deploy:**
+   - Run `npm test` to verify version consistency
+   - Commit changes with descriptive message: "vX.Y.Z - Brief description"
+   - Push to main branch (auto-deploys to staging)
+   - Test staging thoroughly
+   - Push to production branch (auto-deploys to production)
+   - Verify production deployment
+
+## Pre-Deployment Testing (MANDATORY)
+- **RUN** `npm test` to verify version consistency and file structure
+- **TEST** in incognito/private browser to avoid cache issues
+- **CHECK** console for errors before deployment
+- **TEST** all major functionality before pushing
+- **TEST** on mobile devices
+- **CLEAR** browser cache and retest
+- **FOLLOW** testing checklists from lessons learned
+
+## Automated Testing (REQUIREMENT)
+- **RUN** `npm test` before any deployment (not required for local development)
+- **FIX** any failing tests before proceeding with deployment
+- **UPDATE** test-runner.js if adding new critical files or patterns
+- **USE** tests to catch version inconsistencies automatically
 
 ## Code Quality Standards
 - Use consistent CSS variables from components.css design tokens
@@ -45,19 +146,59 @@
 - Check button spacing and layout on small screens
 - Test gesture interactions and responsiveness
 
-## Emergency Procedures
-- If production breaks, immediately roll back using: `git reset --hard [last-good-commit]`
-- Force push to both main and production branches
-- Monitor Netlify deployment status
-- Test rollback on staging before production
-- Document any emergency procedures taken
+## Git/PowerShell Best Practices
+- Use simple, single commands instead of compound commands
+- Avoid interactive git commands that can hang
+- Never use git reset/checkout commands that delete directories
+- Use force push only in emergencies with extreme caution
+- Test git commands in small steps
 
-## Pre-Deployment Checklist
-1. ✅ Version updated in version.json
-2. ✅ Release notes updated
-3. ✅ Tested locally
-4. ✅ Tested on mobile
-5. ✅ No console errors
-6. ✅ Staging deployment successful
-7. ✅ Cross-browser testing completed
-8. ✅ Ready for production deployment 
+## Emergency Procedures
+- If production breaks: **immediately test locally first**
+- If console errors: **fix JavaScript before deployment attempts**
+- If deployment issues: **use simple git commands only**
+- Document all emergency actions taken in LESSONS_LEARNED.md
+
+## Development Cycle Checklist (FOR LOCAL DEVELOPMENT)
+1. ✅ **Reviewed lessons learned for relevant patterns and best practices**
+2. ✅ **Updated DEVELOPMENT_CHANGELOG.md with current issues/changes**
+3. ✅ Tested locally (version numbers unchanged)
+4. ✅ Console shows no errors
+5. ✅ Major functionality works as expected
+6. ✅ Added debugging findings to development changelog
+
+## Pre-Deployment Checklist (FOR STAGING/PRODUCTION)
+1. ✅ **Consolidated all development changelog items**
+2. ✅ **Version incremented appropriately in version.json**
+3. ✅ Release notes updated in RELEASE_NOTES.md
+4. ✅ Lessons learned updated (if applicable)
+5. ✅ **Development changelog cleared and reset**
+6. ✅ `npm test` passes (version consistency verified)
+7. ✅ Tested locally in incognito browser
+8. ✅ Console shows no errors
+9. ✅ All major features work (Home, Reports, Management, Timer)
+10. ✅ Tested category/activity editing thoroughly (if applicable)
+11. ✅ Tested on mobile
+12. ✅ Cross-browser testing completed
+13. ✅ Staging deployment successful
+14. ✅ Ready for production deployment
+
+## Publication Command Pattern
+When user says "publish to staging and production":
+```bash
+# 1. Commit changes (with new version)
+git add .
+git commit -m "vX.Y.Z - Description with key fixes/features from development cycle"
+
+# 2. Push to staging (main branch)
+git push origin main
+
+# 3. Test staging thoroughly
+# Visit: https://staging-alona-time-tracking.netlify.app/
+
+# 4. Push to production 
+git push origin main:production
+
+# 5. Verify production
+# Visit: https://alonastimetracking.netlify.app/
+``` 

@@ -225,15 +225,16 @@ export class Reports {
         })).sort((a, b) => b.time - a.time);
 
         const topCategory = categoryTotals[0];
-        const averagePerDay = this.reportView === 'month' ? Math.floor(this.totalTime / new Date(this.reportDate.getFullYear(), this.reportDate.getMonth() + 1, 0).getDate()) :
-                             this.reportView === 'week' ? Math.floor(this.totalTime / 7) : this.totalTime;
+        
+        // Calculate all-time total from storage
+        const allTimeTotal = this.storage.getAllTimeTotal();
 
         return `
             <div class="stat-card primary">
                 <div class="stat-icon">⏱️</div>
                 <div class="stat-content">
                     <h3>${formatTime(this.totalTime)}</h3>
-                    <p>Total Time</p>
+                    <p>${this.reportView === 'day' ? 'Today' : this.reportView === 'week' ? 'This Week' : 'This Month'}</p>
                 </div>
             </div>
             
@@ -246,684 +247,10 @@ export class Reports {
             </div>
             
             <div class="stat-card info">
-                <div class="stat-icon">📅</div>
+                <div class="stat-icon">🌟</div>
                 <div class="stat-content">
-                    <h3>${formatTime(averagePerDay)}</h3>
-                    <p>Average per ${this.reportView === 'day' ? 'day' : 'day'}</p>
-                </div>
-            </div>
-            
-            <div class="stat-card warning">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-content">
-                    <h3>${categoryTotals.length}</h3>
-                    <p>Active Categories</p>
-                </div>
-            </div>
-        `;
-    }
-
-    // Render interactive pie chart
-    renderPieChart() {
-        if (this.totalTime === 0) {
-            return `<div class="no-data">No data to display</div>`;
-        }
-
-        const categories = this.getCategories();
-        const categoryTotals = Object.entries(this.reportData).map(([name, activities]) => ({
-            name,
-            time: Object.values(activities).reduce((sum, time) => sum + time, 0),
-            color: categories[name]?.color || '#bdc3c7',
-            emoji: categories[name]?.emoji || '📁'
-        })).sort((a, b) => b.time - a.time);
-
-        const centerX = 120;
-        const centerY = 120;
-        const radius = 100;
-        let currentAngle = 0;
-
-        const segments = categoryTotals.map((category, index) => {
-            const percentage = (category.time / this.totalTime) * 100;
-            const angle = (category.time / this.totalTime) * 360;
-            const startAngle = currentAngle;
-            const endAngle = currentAngle + angle;
-            
-            const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
-            const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
-            const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
-            const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
-            
-            const largeArcFlag = angle > 180 ? 1 : 0;
-            
-            const pathData = [
-                `M ${centerX} ${centerY}`,
-                `L ${x1} ${y1}`,
-                `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                'Z'
-            ].join(' ');
-            
-            currentAngle += angle;
-            
-            return `
-                <path d="${pathData}" 
-                      fill="${category.color}" 
-                      stroke="white" 
-                      stroke-width="2"
-                      class="pie-segment"
-                      data-category="${category.name}"
-                      onclick="reports.selectCategory('${category.name}')"
-                      style="cursor: pointer; transition: opacity 0.2s;">
-                    <title>${category.name}: ${formatTime(category.time)} (${percentage.toFixed(1)}%)</title>
-                </path>
-            `;
-        });
-
-        const legend = categoryTotals.map((category, index) => {
-            const percentage = (category.time / this.totalTime) * 100;
-            return `
-                <div class="legend-item" onclick="reports.selectCategory('${category.name}')" style="cursor: pointer;">
-                    <div class="legend-color" style="background-color: ${category.color}"></div>
-                    <span class="legend-label">${category.emoji} ${category.name}</span>
-                    <span class="legend-value">${formatTime(category.time)} (${percentage.toFixed(1)}%)</span>
-                </div>
-            `;
-        }).join('');
-
-        return `
-            <div class="chart-with-legend">
-                <div class="pie-chart-container">
-                    <svg width="240" height="240" viewBox="0 0 240 240">
-                        ${segments.join('')}
-                    </svg>
-                </div>
-                <div class="chart-legend">
-                    ${legend}
-                </div>
-            </div>
-        `;
-    }
-
-    // Render interactive bar chart
-    renderBarChart() {
-        if (this.totalTime === 0) {
-            return `<div class="no-data">No data to display</div>`;
-        }
-
-        const categories = this.getCategories();
-        const categoryTotals = Object.entries(this.reportData).map(([name, activities]) => ({
-            name,
-            time: Object.values(activities).reduce((sum, time) => sum + time, 0),
-            color: categories[name]?.color || '#bdc3c7',
-            emoji: categories[name]?.emoji || '📁'
-        })).sort((a, b) => b.time - a.time);
-
-        const maxTime = categoryTotals[0]?.time || 1;
-
-        const bars = categoryTotals.map((category, index) => {
-            const percentage = (category.time / this.totalTime) * 100;
-            const barWidth = (category.time / maxTime) * 100;
-            
-            return `
-                <div class="bar-item" onclick="reports.selectCategory('${category.name}')" style="cursor: pointer;">
-                    <div class="bar-label">
-                        <span class="bar-emoji">${category.emoji}</span>
-                        <span class="bar-name">${category.name}</span>
-                        <span class="bar-value">${formatTime(category.time)} (${percentage.toFixed(1)}%)</span>
-                    </div>
-                    <div class="bar-container">
-                        <div class="bar-fill" 
-                             style="width: ${barWidth}%; background-color: ${category.color}; transition: width 0.5s ease;">
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        return `
-            <div class="bar-chart">
-                ${bars}
-            </div>
-        `;
-    }
-
-    // Select category for detailed breakdown
-    selectCategory(categoryName) {
-        this.selectedCategory = categoryName;
-        const detailsPanel = document.getElementById('chart-details-panel');
-        if (detailsPanel) {
-            detailsPanel.innerHTML = this.renderCategoryDetails(categoryName);
-        }
-    }
-
-    // Render details for selected category
-    renderCategoryDetails(categoryName) {
-        if (!this.reportData[categoryName]) {
-            return `<div class="no-data">No data for ${categoryName}</div>`;
-        }
-
-        const categories = this.getCategories();
-        const categoryData = this.reportData[categoryName];
-        const categoryTotal = Object.values(categoryData).reduce((sum, time) => sum + time, 0);
-        const categoryColor = categories[categoryName]?.color || '#bdc3c7';
-        const categoryEmoji = categories[categoryName]?.emoji || '📁';
-
-        const activities = Object.entries(categoryData)
-            .map(([name, time]) => ({ name, time }))
-            .sort((a, b) => b.time - a.time);
-
-        const maxActivityTime = activities[0]?.time || 1;
-
-        return `
-            <div class="category-details">
-                <div class="category-details-header">
-                    <h4>${categoryEmoji} ${categoryName} Details</h4>
-                    <div class="details-actions">
-                        <span class="category-total">${formatTime(categoryTotal)} total</span>
-                        <button class="btn-link" onclick="reports.showAllDetails()">View All</button>
-                    </div>
-                </div>
-                
-                <div class="activity-breakdown">
-                    ${activities.map(activity => {
-                        const percentage = (activity.time / categoryTotal) * 100;
-                        const barWidth = (activity.time / maxActivityTime) * 100;
-                        
-                        return `
-                            <div class="activity-detail-item">
-                                <div class="activity-detail-label">
-                                    <span class="activity-name">${activity.name}</span>
-                                    <span class="activity-time">${formatTime(activity.time)} (${percentage.toFixed(1)}%)</span>
-                                </div>
-                                <div class="activity-detail-bar">
-                                    <div class="activity-bar-fill" 
-                                         style="width: ${barWidth}%; background-color: ${categoryColor};">
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
-        `;
-    }
-
-    // Show all details (original detailed breakdown)
-    showAllDetails() {
-        const detailsPanel = document.getElementById('chart-details-panel');
-        if (detailsPanel) {
-            detailsPanel.innerHTML = this.renderDetailedBreakdown();
-        }
-        this.selectedCategory = null;
-    }
-
-    // Render chart details based on selection
-    renderChartDetails() {
-        if (this.totalTime === 0) {
-            return `<div class="no-data">No data to display</div>`;
-        }
-
-        if (this.selectedCategory) {
-            return this.renderCategoryDetails(this.selectedCategory);
-        }
-
-        // Show summary of all categories
-        return `
-            <div class="chart-summary">
-                <div class="summary-header">
-                    <h4>📋 Categories Overview</h4>
-                    <p>Click on a chart segment or bar to see detailed breakdown</p>
-                </div>
-                ${this.renderDetailedBreakdown()}
-            </div>
-        `;
-    }
-
-    // Render detailed breakdown by activity
-    renderDetailedBreakdown() {
-        if (this.totalTime === 0) {
-            return `<div class="no-data">No activities recorded for this ${this.reportView}.</div>`;
-        }
-
-        const categories = this.getCategories();
-        
-        return Object.entries(this.reportData).map(([categoryName, activities]) => {
-            const categoryData = categories[categoryName];
-            const categoryTotal = Object.values(activities).reduce((sum, time) => sum + time, 0);
-            
-            return `
-                <div class="category-breakdown">
-                    <div class="category-breakdown-header">
-                        <span class="category-info">
-                            <span class="category-color" style="background-color: ${categoryData?.color || '#bdc3c7'}"></span>
-                            ${categoryData?.emoji || '📁'} ${categoryName}
-                        </span>
-                        <span class="category-total">${formatTime(categoryTotal)}</span>
-                    </div>
-                    
-                    <div class="activities-breakdown">
-                        ${Object.entries(activities).sort((a, b) => b[1] - a[1]).map(([activity, time]) => `
-                            <div class="activity-breakdown-item">
-                                <span class="activity-name">${activity}</span>
-                                <span class="activity-time">${formatTime(time)}</span>
-                                <div class="activity-bar">
-                                    <div class="activity-bar-fill" 
-                                         style="width: ${(time / categoryTotal) * 100}%; background-color: ${categoryData?.color || '#bdc3c7'}">
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // Render activity rankings across all categories
-    renderActivityRankings() {
-        if (this.totalTime === 0) {
-            return `<div class="no-data">No activities to rank for this ${this.reportView}.</div>`;
-        }
-
-        const categories = this.getCategories();
-        const allActivities = [];
-
-        // Collect all activities with their times
-        Object.entries(this.reportData).forEach(([categoryName, activities]) => {
-            Object.entries(activities).forEach(([activityName, time]) => {
-                allActivities.push({
-                    activity: activityName,
-                    category: categoryName,
-                    time: time,
-                    color: categories[categoryName]?.color || '#bdc3c7',
-                    categoryEmoji: categories[categoryName]?.emoji || '📁'
-                });
-            });
-        });
-
-        // Sort by time and take top 10
-        const topActivities = allActivities.sort((a, b) => b.time - a.time).slice(0, 10);
-        const maxTime = topActivities[0]?.time || 1;
-
-        return `
-            <div class="activity-rankings">
-                ${topActivities.map((activity, index) => `
-                    <div class="ranking-item">
-                        <div class="rank-number">${index + 1}</div>
-                        <div class="rank-info">
-                            <div class="rank-activity">
-                                ${activity.categoryEmoji} ${activity.activity}
-                            </div>
-                            <div class="rank-category">${activity.category}</div>
-                        </div>
-                        <div class="rank-time">${formatTime(activity.time)}</div>
-                        <div class="rank-bar">
-                            <div class="rank-bar-fill" 
-                                 style="width: ${(activity.time / maxTime) * 100}%; background-color: ${activity.color}">
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    // Export reports functionality
-    exportReport() {
-        const reportData = {
-            type: this.reportView,
-            date: this.reportDate.toISOString(),
-            dateRange: this.getDateRangeText(),
-            totalTime: this.totalTime,
-            categories: this.reportData,
-            summary: this.generateReportSummary(),
-            exportedAt: new Date().toISOString(),
-            version: "1.3.0"
-        };
-
-        // Generate filename
-        const dateStr = this.reportDate.toISOString().split('T')[0];
-        const filename = `time-tracker-${this.reportView}-report-${dateStr}.json`;
-
-        // Create and download file
-        const blob = new Blob([JSON.stringify(reportData, null, 2)], { 
-            type: 'application/json' 
-        });
-        
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        
-        URL.revokeObjectURL(url);
-
-        // Show success message
-        this.showToast(`📊 ${this.reportView.charAt(0).toUpperCase() + this.reportView.slice(1)} report exported successfully!`, 'success');
-    }
-
-    // Export as CSV functionality
-    exportReportCSV() {
-        const categories = this.getCategories();
-        let csvContent = `Date Range,${this.getDateRangeText()}\n`;
-        csvContent += `Report Type,${this.reportView.charAt(0).toUpperCase() + this.reportView.slice(1)}\n`;
-        csvContent += `Total Time,${formatTime(this.totalTime)}\n\n`;
-        csvContent += `Category,Activity,Time (seconds),Time (formatted),Percentage\n`;
-
-        Object.entries(this.reportData).forEach(([categoryName, activities]) => {
-            Object.entries(activities).forEach(([activityName, time]) => {
-                const percentage = ((time / this.totalTime) * 100).toFixed(1);
-                csvContent += `"${categoryName}","${activityName}",${time},"${formatTime(time)}",${percentage}%\n`;
-            });
-        });
-
-        // Generate filename
-        const dateStr = this.reportDate.toISOString().split('T')[0];
-        const filename = `time-tracker-${this.reportView}-report-${dateStr}.csv`;
-
-        // Create and download file
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
-        
-        URL.revokeObjectURL(url);
-
-        this.showToast(`📊 CSV report exported successfully!`, 'success');
-    }
-
-    // Generate report summary for export
-    generateReportSummary() {
-        const categories = this.getCategories();
-        const categoryTotals = Object.entries(this.reportData).map(([name, activities]) => ({
-            name,
-            time: Object.values(activities).reduce((sum, time) => sum + time, 0),
-            color: categories[name]?.color || '#bdc3c7',
-            emoji: categories[name]?.emoji || '📁'
-        })).sort((a, b) => b.time - a.time);
-
-        return {
-            topCategory: categoryTotals[0] || null,
-            categoryCount: categoryTotals.length,
-            activityCount: Object.values(this.reportData).reduce((sum, activities) => 
-                sum + Object.keys(activities).length, 0),
-            averageTimePerCategory: categoryTotals.length > 0 ? 
-                this.totalTime / categoryTotals.length : 0,
-            categoryBreakdown: categoryTotals
-        };
-    }
-
-    // Get date range text for display and export
-    getDateRangeText() {
-        if (this.reportView === 'day') {
-            return this.reportDate.toLocaleDateString();
-        } else if (this.reportView === 'week') {
-            const startOfWeek = new Date(this.reportDate);
-            startOfWeek.setDate(this.reportDate.getDate() - this.reportDate.getDay());
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-            return `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
-        } else if (this.reportView === 'month') {
-            return this.reportDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-        } else if (this.reportView === 'custom' && this.customStartDate && this.customEndDate) {
-            if (this.customStartDate.toDateString() === this.customEndDate.toDateString()) {
-                return this.customStartDate.toLocaleDateString();
-            } else {
-                return `${this.customStartDate.toLocaleDateString()} - ${this.customEndDate.toLocaleDateString()}`;
-            }
-        }
-        return 'Unknown range';
-    }
-
-    // Custom date range selection
-    showDateRangePicker() {
-        // Create modal container if it doesn't exist
-        let modalContainer = document.getElementById('modal-container');
-        if (!modalContainer) {
-            modalContainer = document.createElement('div');
-            modalContainer.id = 'modal-container';
-            document.body.appendChild(modalContainer);
-        }
-
-        const today = new Date();
-        const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const oneMonthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-        const modal = `
-            <div class="modal-overlay" onclick="reports.closeDatePicker()">
-                <div class="modal-content date-picker-modal" onclick="event.stopPropagation()">
-                    <div class="modal-header">
-                        <h3>📅 Custom Date Range</h3>
-                        <button class="modal-close" onclick="reports.closeDatePicker()">✕</button>
-                    </div>
-                    
-                    <div class="date-picker-content">
-                        <div class="quick-ranges">
-                            <h4>Quick Ranges</h4>
-                            <div class="quick-range-buttons">
-                                <button class="btn-secondary" onclick="reports.applyQuickRange('today')">
-                                    📅 Today
-                                </button>
-                                <button class="btn-secondary" onclick="reports.applyQuickRange('yesterday')">
-                                    📅 Yesterday
-                                </button>
-                                <button class="btn-secondary" onclick="reports.applyQuickRange('thisWeek')">
-                                    📅 This Week
-                                </button>
-                                <button class="btn-secondary" onclick="reports.applyQuickRange('lastWeek')">
-                                    📅 Last Week
-                                </button>
-                                <button class="btn-secondary" onclick="reports.applyQuickRange('thisMonth')">
-                                    📅 This Month
-                                </button>
-                                <button class="btn-secondary" onclick="reports.applyQuickRange('lastMonth')">
-                                    📅 Last Month
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="custom-range">
-                            <h4>Custom Range</h4>
-                            <div class="date-inputs">
-                                <div class="date-input-group">
-                                    <label for="start-date">Start Date</label>
-                                    <input type="date" id="start-date" value="${oneWeekAgo.toISOString().split('T')[0]}">
-                                </div>
-                                <div class="date-input-group">
-                                    <label for="end-date">End Date</label>
-                                    <input type="date" id="end-date" value="${today.toISOString().split('T')[0]}">
-                                </div>
-                            </div>
-                            <button class="btn-primary" onclick="reports.applyCustomRange()">
-                                Apply Custom Range
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        modalContainer.innerHTML = modal;
-    }
-
-    // Apply quick date ranges
-    applyQuickRange(range) {
-        const today = new Date();
-        let startDate, endDate;
-
-        switch(range) {
-            case 'today':
-                startDate = endDate = new Date(today);
-                break;
-            case 'yesterday':
-                startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-                break;
-            case 'thisWeek':
-                startDate = new Date(today);
-                startDate.setDate(today.getDate() - today.getDay());
-                endDate = new Date(startDate);
-                endDate.setDate(startDate.getDate() + 6);
-                break;
-            case 'lastWeek':
-                endDate = new Date(today);
-                endDate.setDate(today.getDate() - today.getDay() - 1);
-                startDate = new Date(endDate);
-                startDate.setDate(endDate.getDate() - 6);
-                break;
-            case 'thisMonth':
-                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                break;
-            case 'lastMonth':
-                startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                endDate = new Date(today.getFullYear(), today.getMonth(), 0);
-                break;
-        }
-
-        this.applyDateRange(startDate, endDate);
-    }
-
-    // Apply custom date range
-    applyCustomRange() {
-        const startDateInput = document.getElementById('start-date');
-        const endDateInput = document.getElementById('end-date');
-        
-        if (!startDateInput.value || !endDateInput.value) {
-            this.showToast('Please select both start and end dates', 'error');
-            return;
-        }
-
-        const startDate = new Date(startDateInput.value);
-        const endDate = new Date(endDateInput.value);
-
-        if (startDate > endDate) {
-            this.showToast('Start date must be before end date', 'error');
-            return;
-        }
-
-        this.applyDateRange(startDate, endDate);
-    }
-
-    // Apply date range and update reports
-    applyDateRange(startDate, endDate) {
-        // Store custom range
-        this.customStartDate = startDate;
-        this.customEndDate = endDate;
-        this.reportView = 'custom';
-        this.reportDate = startDate; // Use start date as reference
-
-        // Update UI
-        document.querySelectorAll('.toggle-button').forEach(btn => btn.classList.remove('active'));
-        
-        // Update date display
-        const dateEl = document.getElementById('current-report-date');
-        if (dateEl) {
-            if (startDate.toDateString() === endDate.toDateString()) {
-                dateEl.textContent = startDate.toLocaleDateString();
-            } else {
-                dateEl.textContent = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
-            }
-        }
-
-        // Close modal and refresh reports
-        this.closeDatePicker();
-        this.renderReports();
-        
-        const dayCount = Math.ceil((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1;
-        this.showToast(`📊 Custom range applied: ${dayCount} day${dayCount !== 1 ? 's' : ''}`, 'success');
-    }
-
-    // Close date picker modal
-    closeDatePicker() {
-        const modalContainer = document.getElementById('modal-container');
-        if (modalContainer) {
-            modalContainer.innerHTML = '';
-        }
-    }
-
-    // Show toast notification
-    showToast(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `toast-notification ${type}`;
-        toast.textContent = message;
-        
-        document.body.appendChild(toast);
-        
-        setTimeout(() => toast.classList.add('show'), 100);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    // Render compact statistics cards
-    renderCompactStatsCards() {
-        if (this.totalTime === 0) {
-            return `
-                <div class="stats-section-ultra-compact">
-                    <div class="stat-card-mini empty">
-                        <div class="stat-mini-content">
-                            <span class="stat-mini-icon">📊</span>
-                            <span class="stat-mini-text">No activity recorded</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        const categories = this.getCategories();
-        const categoryTotals = Object.entries(this.reportData).map(([name, activities]) => ({
-            name,
-            time: Object.values(activities).reduce((sum, time) => sum + time, 0),
-            color: categories[name]?.color || '#bdc3c7',
-            emoji: categories[name]?.emoji || '📁'
-        })).sort((a, b) => b.time - a.time);
-
-        const topCategory = categoryTotals[0];
-        const averagePerDay = this.reportView === 'month' ? Math.floor(this.totalTime / new Date(this.reportDate.getFullYear(), this.reportDate.getMonth() + 1, 0).getDate()) :
-                             this.reportView === 'week' ? Math.floor(this.totalTime / 7) : this.totalTime;
-
-        return `
-            <div class="stats-section-ultra-compact">
-                <div class="stat-card-mini primary">
-                    <div class="stat-mini-content">
-                        <span class="stat-mini-icon">⏱️</span>
-                        <div class="stat-mini-info">
-                            <div class="stat-mini-value">${formatTime(this.totalTime)}</div>
-                            <div class="stat-mini-label">Total</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stat-card-mini success">
-                    <div class="stat-mini-content">
-                        <span class="stat-mini-icon">${topCategory.emoji}</span>
-                        <div class="stat-mini-info">
-                            <div class="stat-mini-value">${topCategory.name.length > 8 ? topCategory.name.substring(0, 8) + '...' : topCategory.name}</div>
-                            <div class="stat-mini-label">Top</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stat-card-mini info">
-                    <div class="stat-mini-content">
-                        <span class="stat-mini-icon">📅</span>
-                        <div class="stat-mini-info">
-                            <div class="stat-mini-value">${formatTime(averagePerDay)}</div>
-                            <div class="stat-mini-label">Avg/Day</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="stat-card-mini warning">
-                    <div class="stat-mini-content">
-                        <span class="stat-mini-icon">🎯</span>
-                        <div class="stat-mini-info">
-                            <div class="stat-mini-value">${categoryTotals.length}</div>
-                            <div class="stat-mini-label">Categories</div>
-                        </div>
-                    </div>
+                    <h3>${formatTime(allTimeTotal)}</h3>
+                    <p>All Time Total</p>
                 </div>
             </div>
         `;
@@ -1286,9 +613,12 @@ export class Reports {
                             <div class="form-group">
                                 <label for="session-activity">Activity</label>
                                 <select id="session-activity" class="input-base" required>
-                                    ${categories[session.category].activities.map(activity => 
-                                        `<option value="${activity}" ${activity === session.activity ? 'selected' : ''}>${activity}</option>`
-                                    ).join('')}
+                                    ${categories[session.category] && categories[session.category].activities ? 
+                                        categories[session.category].activities.map(activity => 
+                                            `<option value="${activity}" ${activity === session.activity ? 'selected' : ''}>${activity}</option>`
+                                        ).join('') : 
+                                        `<option value="${session.activity}" selected>⚠️ ${session.activity} (corrupted data)</option>`
+                                    }
                                 </select>
                             </div>
                         </div>
@@ -1385,9 +715,13 @@ export class Reports {
         const categories = this.getCategories();
 
         if (categories[selectedCategory]) {
-            activitySelect.innerHTML = categories[selectedCategory].activities.map(activity => 
-                `<option value="${activity}">${activity}</option>`
-            ).join('');
+            if (categories[selectedCategory].activities) {
+                activitySelect.innerHTML = categories[selectedCategory].activities.map(activity => 
+                    `<option value="${activity}">${activity}</option>`
+                ).join('');
+            } else {
+                activitySelect.innerHTML = '<option value="">⚠️ Corrupted category data</option>';
+            }
         }
     }
 
@@ -1469,4 +803,624 @@ export class Reports {
             });
         });
     }
-} 
+
+    // Render interactive pie chart
+    renderPieChart() {
+        if (this.totalTime === 0) {
+            return `<div class="no-data">No data to display</div>`;
+        }
+
+        const categories = this.getCategories();
+        const categoryTotals = Object.entries(this.reportData).map(([name, activities]) => ({
+            name,
+            time: Object.values(activities).reduce((sum, time) => sum + time, 0),
+            color: categories[name]?.color || '#bdc3c7',
+            emoji: categories[name]?.emoji || '📁'
+        })).sort((a, b) => b.time - a.time);
+
+        const centerX = 120;
+        const centerY = 120;
+        const radius = 100;
+        let currentAngle = 0;
+
+        const segments = categoryTotals.map((category, index) => {
+            const percentage = (category.time / this.totalTime) * 100;
+            const angle = (category.time / this.totalTime) * 360;
+            const startAngle = currentAngle;
+            const endAngle = currentAngle + angle;
+            
+            // Ensure all values are valid numbers
+            if (!isFinite(angle) || !isFinite(startAngle) || !isFinite(endAngle) || angle <= 0) {
+                currentAngle += angle || 0;
+                return ''; // Skip invalid segments
+            }
+            
+            const x1 = centerX + radius * Math.cos((startAngle * Math.PI) / 180);
+            const y1 = centerY + radius * Math.sin((startAngle * Math.PI) / 180);
+            const x2 = centerX + radius * Math.cos((endAngle * Math.PI) / 180);
+            const y2 = centerY + radius * Math.sin((endAngle * Math.PI) / 180);
+            
+            // Ensure coordinates are valid numbers
+            if (!isFinite(x1) || !isFinite(y1) || !isFinite(x2) || !isFinite(y2)) {
+                currentAngle += angle;
+                return ''; // Skip invalid segments
+            }
+            
+            const largeArcFlag = angle > 180 ? 1 : 0;
+            
+            const pathData = [
+                `M ${centerX} ${centerY}`,
+                `L ${x1.toFixed(2)} ${y1.toFixed(2)}`,
+                `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`,
+                'Z'
+            ].join(' ');
+            
+            currentAngle += angle;
+            
+            return `
+                <path d="${pathData}" 
+                      fill="${category.color}" 
+                      stroke="white" 
+                      stroke-width="2"
+                      class="pie-segment"
+                      data-category="${category.name}"
+                      onclick="reports.selectCategory('${category.name}')"
+                      style="cursor: pointer; transition: opacity 0.2s;">
+                    <title>${category.name}: ${formatTime(category.time)} (${percentage.toFixed(1)}%)</title>
+                </path>
+            `;
+        });
+
+        const legend = categoryTotals.map((category, index) => {
+            const percentage = (category.time / this.totalTime) * 100;
+            return `
+                <div class="legend-item" onclick="reports.selectCategory('${category.name}')" style="cursor: pointer;">
+                    <div class="legend-color" style="background-color: ${category.color}"></div>
+                    <span class="legend-label">${category.emoji} ${category.name}</span>
+                    <span class="legend-value">${formatTime(category.time)} (${percentage.toFixed(1)}%)</span>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="chart-with-legend">
+                <div class="pie-chart-container">
+                    <svg width="240" height="240" viewBox="0 0 240 240">
+                        ${segments.filter(segment => segment.trim()).join('')}
+                    </svg>
+                </div>
+                <div class="chart-legend">
+                    ${legend}
+                </div>
+            </div>
+        `;
+    }
+
+    // Render interactive bar chart
+    renderBarChart() {
+        if (this.totalTime === 0) {
+            return `<div class="no-data">No data to display</div>`;
+        }
+
+        const categories = this.getCategories();
+        const categoryTotals = Object.entries(this.reportData).map(([name, activities]) => ({
+            name,
+            time: Object.values(activities).reduce((sum, time) => sum + time, 0),
+            color: categories[name]?.color || '#bdc3c7',
+            emoji: categories[name]?.emoji || '📁'
+        })).sort((a, b) => b.time - a.time);
+
+        const maxTime = categoryTotals[0]?.time || 1;
+
+        const bars = categoryTotals.map((category, index) => {
+            const percentage = (category.time / this.totalTime) * 100;
+            const barWidth = (category.time / maxTime) * 100;
+            
+            return `
+                <div class="bar-item" onclick="reports.selectCategory('${category.name}')" style="cursor: pointer;">
+                    <div class="bar-label">
+                        <span class="bar-emoji">${category.emoji}</span>
+                        <span class="bar-name">${category.name}</span>
+                        <span class="bar-value">${formatTime(category.time)} (${percentage.toFixed(1)}%)</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" 
+                             style="width: ${barWidth}%; background-color: ${category.color}; transition: width 0.5s ease;">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="bar-chart">
+                ${bars}
+            </div>
+        `;
+    }
+
+    // Select category for detailed breakdown
+    selectCategory(categoryName) {
+        this.selectedCategory = categoryName;
+        const detailsPanel = document.getElementById('chart-details-panel');
+        if (detailsPanel) {
+            detailsPanel.innerHTML = this.renderCategoryDetails(categoryName);
+        }
+    }
+
+    // Render details for selected category
+    renderCategoryDetails(categoryName) {
+        if (!this.reportData[categoryName]) {
+            return `<div class="no-data">No data for ${categoryName}</div>`;
+        }
+
+        const categories = this.getCategories();
+        const categoryData = this.reportData[categoryName];
+        const categoryTotal = Object.values(categoryData).reduce((sum, time) => sum + time, 0);
+        const categoryColor = categories[categoryName]?.color || '#bdc3c7';
+        const categoryEmoji = categories[categoryName]?.emoji || '📁';
+
+        const activities = Object.entries(categoryData)
+            .map(([name, time]) => ({ name, time }))
+            .sort((a, b) => b.time - a.time);
+
+        const maxActivityTime = activities[0]?.time || 1;
+
+        return `
+            <div class="category-details">
+                <div class="category-details-header">
+                    <h4>${categoryEmoji} ${categoryName} Details</h4>
+                    <div class="details-actions">
+                        <span class="category-total">${formatTime(categoryTotal)} total</span>
+                        <button class="btn-link" onclick="reports.showAllDetails()">View All</button>
+                    </div>
+                </div>
+                
+                <div class="activity-breakdown">
+                    ${activities.map(activity => {
+                        const percentage = (activity.time / categoryTotal) * 100;
+                        const barWidth = (activity.time / maxActivityTime) * 100;
+                        
+                        return `
+                            <div class="activity-detail-item">
+                                <div class="activity-detail-label">
+                                    <span class="activity-name">${activity.name}</span>
+                                    <span class="activity-time">${formatTime(activity.time)} (${percentage.toFixed(1)}%)</span>
+                                </div>
+                                <div class="activity-detail-bar">
+                                    <div class="activity-bar-fill" 
+                                         style="width: ${barWidth}%; background-color: ${categoryColor};">
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Show all details (original detailed breakdown)
+    showAllDetails() {
+        const detailsPanel = document.getElementById('chart-details-panel');
+        if (detailsPanel) {
+            detailsPanel.innerHTML = this.renderDetailedBreakdown();
+        }
+        this.selectedCategory = null;
+    }
+
+    // Render chart details based on selection
+    renderChartDetails() {
+        if (this.totalTime === 0) {
+            return `<div class="no-data">No data to display</div>`;
+        }
+
+        if (this.selectedCategory) {
+            return this.renderCategoryDetails(this.selectedCategory);
+        }
+
+        // Show summary of all categories
+        return `
+            <div class="chart-summary">
+                <div class="summary-header">
+                    <h4>📋 Categories Overview</h4>
+                    <p>Click on a chart segment or bar to see detailed breakdown</p>
+                </div>
+                ${this.renderDetailedBreakdown()}
+            </div>
+        `;
+    }
+
+    // Render detailed breakdown by activity
+    renderDetailedBreakdown() {
+        if (this.totalTime === 0) {
+            return `<div class="no-data">No activities recorded for this ${this.reportView}.</div>`;
+        }
+
+        const categories = this.getCategories();
+        
+        return Object.entries(this.reportData).map(([categoryName, activities]) => {
+            const categoryData = categories[categoryName];
+            const categoryTotal = Object.values(activities).reduce((sum, time) => sum + time, 0);
+            
+            return `
+                <div class="category-breakdown">
+                    <div class="category-breakdown-header">
+                        <span class="category-info">
+                            <span class="category-color" style="background-color: ${categoryData?.color || '#bdc3c7'}"></span>
+                            ${categoryData?.emoji || '📁'} ${categoryName}
+                        </span>
+                        <span class="category-total">${formatTime(categoryTotal)}</span>
+                    </div>
+                    
+                    <div class="activities-breakdown">
+                        ${Object.entries(activities).sort((a, b) => b[1] - a[1]).map(([activity, time]) => `
+                            <div class="activity-breakdown-item">
+                                <span class="activity-name">${activity}</span>
+                                <span class="activity-time">${formatTime(time)}</span>
+                                <div class="activity-bar">
+                                    <div class="activity-bar-fill" 
+                                         style="width: ${(time / categoryTotal) * 100}%; background-color: ${categoryData?.color || '#bdc3c7'}">
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Export reports functionality
+    exportReport() {
+        const reportData = {
+            type: this.reportView,
+            date: this.reportDate.toISOString(),
+            dateRange: this.getDateRangeText(),
+            totalTime: this.totalTime,
+            categories: this.reportData,
+            summary: this.generateReportSummary(),
+            exportedAt: new Date().toISOString(),
+            version: "1.3.0"
+        };
+
+        // Generate filename
+        const dateStr = this.reportDate.toISOString().split('T')[0];
+        const filename = `time-tracker-${this.reportView}-report-${dateStr}.json`;
+
+        // Create and download file
+        const blob = new Blob([JSON.stringify(reportData, null, 2)], { 
+            type: 'application/json' 
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+
+        // Show success message
+        this.showToast(`📊 ${this.reportView.charAt(0).toUpperCase() + this.reportView.slice(1)} report exported successfully!`, 'success');
+    }
+
+    // Export as CSV functionality
+    exportReportCSV() {
+        const categories = this.getCategories();
+        let csvContent = `Date Range,${this.getDateRangeText()}\n`;
+        csvContent += `Report Type,${this.reportView.charAt(0).toUpperCase() + this.reportView.slice(1)}\n`;
+        csvContent += `Total Time,${formatTime(this.totalTime)}\n\n`;
+        csvContent += `Category,Activity,Time (seconds),Time (formatted),Percentage\n`;
+
+        Object.entries(this.reportData).forEach(([categoryName, activities]) => {
+            Object.entries(activities).forEach(([activityName, time]) => {
+                const percentage = ((time / this.totalTime) * 100).toFixed(1);
+                csvContent += `"${categoryName}","${activityName}",${time},"${formatTime(time)}",${percentage}%\n`;
+            });
+        });
+
+        // Generate filename
+        const dateStr = this.reportDate.toISOString().split('T')[0];
+        const filename = `time-tracker-${this.reportView}-report-${dateStr}.csv`;
+
+        // Create and download file
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+
+        this.showToast(`📊 CSV report exported successfully!`, 'success');
+    }
+
+    // Generate report summary for export
+    generateReportSummary() {
+        const categories = this.getCategories();
+        const categoryTotals = Object.entries(this.reportData).map(([name, activities]) => ({
+            name,
+            time: Object.values(activities).reduce((sum, time) => sum + time, 0),
+            color: categories[name]?.color || '#bdc3c7',
+            emoji: categories[name]?.emoji || '📁'
+        })).sort((a, b) => b.time - a.time);
+
+        return {
+            topCategory: categoryTotals[0] || null,
+            categoryCount: categoryTotals.length,
+            activityCount: Object.values(this.reportData).reduce((sum, activities) => 
+                sum + Object.keys(activities).length, 0),
+            averageTimePerCategory: categoryTotals.length > 0 ? 
+                this.totalTime / categoryTotals.length : 0,
+            categoryBreakdown: categoryTotals
+        };
+    }
+
+    // Get date range text for display and export
+    getDateRangeText() {
+        if (this.reportView === 'day') {
+            return this.reportDate.toLocaleDateString();
+        } else if (this.reportView === 'week') {
+            const startOfWeek = new Date(this.reportDate);
+            startOfWeek.setDate(this.reportDate.getDate() - this.reportDate.getDay());
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            return `${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
+        } else if (this.reportView === 'month') {
+            return this.reportDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+        } else if (this.reportView === 'custom' && this.customStartDate && this.customEndDate) {
+            if (this.customStartDate.toDateString() === this.customEndDate.toDateString()) {
+                return this.customStartDate.toLocaleDateString();
+            } else {
+                return `${this.customStartDate.toLocaleDateString()} - ${this.customEndDate.toLocaleDateString()}`;
+            }
+        }
+        return 'Unknown range';
+    }
+
+    // Custom date range selection
+    showDateRangePicker() {
+        // Create modal container if it doesn't exist
+        let modalContainer = document.getElementById('modal-container');
+        if (!modalContainer) {
+            modalContainer = document.createElement('div');
+            modalContainer.id = 'modal-container';
+            document.body.appendChild(modalContainer);
+        }
+
+        const today = new Date();
+        const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const oneMonthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        const modal = `
+            <div class="modal-overlay" onclick="reports.closeDatePicker()">
+                <div class="modal-content date-picker-modal" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3>📅 Custom Date Range</h3>
+                        <button class="modal-close" onclick="reports.closeDatePicker()">✕</button>
+                    </div>
+                    
+                    <div class="date-picker-content">
+                        <div class="quick-ranges">
+                            <h4>Quick Ranges</h4>
+                            <div class="quick-range-buttons">
+                                <button class="btn-secondary" onclick="reports.applyQuickRange('today')">
+                                    📅 Today
+                                </button>
+                                <button class="btn-secondary" onclick="reports.applyQuickRange('yesterday')">
+                                    📅 Yesterday
+                                </button>
+                                <button class="btn-secondary" onclick="reports.applyQuickRange('thisWeek')">
+                                    📅 This Week
+                                </button>
+                                <button class="btn-secondary" onclick="reports.applyQuickRange('lastWeek')">
+                                    📅 Last Week
+                                </button>
+                                <button class="btn-secondary" onclick="reports.applyQuickRange('thisMonth')">
+                                    📅 This Month
+                                </button>
+                                <button class="btn-secondary" onclick="reports.applyQuickRange('lastMonth')">
+                                    📅 Last Month
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="custom-range">
+                            <h4>Custom Range</h4>
+                            <div class="date-inputs">
+                                <div class="date-input-group">
+                                    <label for="start-date">Start Date</label>
+                                    <input type="date" id="start-date" value="${oneWeekAgo.toISOString().split('T')[0]}">
+                                </div>
+                                <div class="date-input-group">
+                                    <label for="end-date">End Date</label>
+                                    <input type="date" id="end-date" value="${today.toISOString().split('T')[0]}">
+                                </div>
+                            </div>
+                            <button class="btn-primary" onclick="reports.applyCustomRange()">
+                                Apply Custom Range
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        modalContainer.innerHTML = modal;
+    }
+
+    // Apply quick date ranges
+    applyQuickRange(range) {
+        const today = new Date();
+        let startDate, endDate;
+
+        switch(range) {
+            case 'today':
+                startDate = endDate = new Date(today);
+                break;
+            case 'yesterday':
+                startDate = endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+                break;
+            case 'thisWeek':
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() - today.getDay());
+                endDate = new Date(startDate);
+                endDate.setDate(startDate.getDate() + 6);
+                break;
+            case 'lastWeek':
+                endDate = new Date(today);
+                endDate.setDate(today.getDate() - today.getDay() - 1);
+                startDate = new Date(endDate);
+                startDate.setDate(endDate.getDate() - 6);
+                break;
+            case 'thisMonth':
+                startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                break;
+            case 'lastMonth':
+                startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                break;
+        }
+
+        this.applyDateRange(startDate, endDate);
+    }
+
+    // Apply custom date range
+    applyCustomRange() {
+        const startDateInput = document.getElementById('start-date');
+        const endDateInput = document.getElementById('end-date');
+        
+        if (!startDateInput.value || !endDateInput.value) {
+            this.showToast('Please select both start and end dates', 'error');
+            return;
+        }
+
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+
+        if (startDate > endDate) {
+            this.showToast('Start date must be before end date', 'error');
+            return;
+        }
+
+        this.applyDateRange(startDate, endDate);
+    }
+
+    // Apply date range and update reports
+    applyDateRange(startDate, endDate) {
+        // Store custom range
+        this.customStartDate = startDate;
+        this.customEndDate = endDate;
+        this.reportView = 'custom';
+        this.reportDate = startDate; // Use start date as reference
+
+        // Update UI
+        document.querySelectorAll('.toggle-button').forEach(btn => btn.classList.remove('active'));
+        
+        // Update date display
+        const dateEl = document.getElementById('current-report-date');
+        if (dateEl) {
+            if (startDate.toDateString() === endDate.toDateString()) {
+                dateEl.textContent = startDate.toLocaleDateString();
+            } else {
+                dateEl.textContent = `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+            }
+        }
+
+        // Close modal and refresh reports
+        this.closeDatePicker();
+        this.renderReports();
+        
+        const dayCount = Math.ceil((endDate - startDate) / (24 * 60 * 60 * 1000)) + 1;
+        this.showToast(`📊 Custom range applied: ${dayCount} day${dayCount !== 1 ? 's' : ''}`, 'success');
+    }
+
+    // Close date picker modal
+    closeDatePicker() {
+        const modalContainer = document.getElementById('modal-container');
+        if (modalContainer) {
+            modalContainer.innerHTML = '';
+        }
+    }
+
+    // Show toast notification
+    showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.textContent = message;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 100);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Render compact statistics cards
+    renderCompactStatsCards() {
+        if (this.totalTime === 0) {
+            return `
+                <div class="stats-section-ultra-compact">
+                    <div class="stat-card-mini empty">
+                        <div class="stat-mini-content">
+                            <span class="stat-mini-icon">📊</span>
+                            <span class="stat-mini-text">No activity recorded</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        const categories = this.getCategories();
+        const categoryTotals = Object.entries(this.reportData).map(([name, activities]) => ({
+            name,
+            time: Object.values(activities).reduce((sum, time) => sum + time, 0),
+            color: categories[name]?.color || '#bdc3c7',
+            emoji: categories[name]?.emoji || '📁'
+        })).sort((a, b) => b.time - a.time);
+
+        const topCategory = categoryTotals[0];
+        
+        // Calculate all-time total from storage
+        const allTimeTotal = this.storage.getAllTimeTotal();
+
+        return `
+            <div class="stats-section-ultra-compact">
+                <div class="stat-card-mini primary">
+                    <div class="stat-mini-content">
+                        <span class="stat-mini-icon">⏱️</span>
+                        <div class="stat-mini-info">
+                            <div class="stat-mini-value">${formatTime(this.totalTime)}</div>
+                            <div class="stat-mini-label">${this.reportView === 'day' ? 'Today' : this.reportView === 'week' ? 'This Week' : 'This Month'}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card-mini success">
+                    <div class="stat-mini-content">
+                        <span class="stat-mini-icon">${topCategory.emoji}</span>
+                        <div class="stat-mini-info">
+                            <div class="stat-mini-value">${topCategory.name.length > 8 ? topCategory.name.substring(0, 8) + '...' : topCategory.name}</div>
+                            <div class="stat-mini-label">Top Category</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card-mini info">
+                    <div class="stat-mini-content">
+                        <span class="stat-mini-icon">🌟</span>
+                        <div class="stat-mini-info">
+                            <div class="stat-mini-value">${formatTime(allTimeTotal)}</div>
+                            <div class="stat-mini-label">All Time</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+}

@@ -176,6 +176,9 @@
     transition: all 0.2s ease;
     opacity: 0;
     backdrop-filter: blur(4px);
+    /* Better touch target for mobile */
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .category-button:hover .category-edit-cog {
@@ -186,6 +189,24 @@
     background: #f8f9fa;
     border-color: #4A90E2;
     transform: translateY(-50%) scale(1.1);
+}
+
+/* Mobile-friendly edit cogs - always visible on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    .category-edit-cog,
+    .activity-edit-cog {
+        opacity: 0.7;
+        background: rgba(255, 255, 255, 0.95);
+        border: 2px solid #dee2e6;
+    }
+    
+    .category-edit-cog:active,
+    .activity-edit-cog:active {
+        opacity: 1;
+        background: #e9ecef;
+        border-color: #4A90E2;
+        transform: translateY(-50%) scale(0.95);
+    }
 }
 
 /* Quick Start Section */
@@ -324,6 +345,9 @@
     transition: all 0.2s ease;
     opacity: 0;
     backdrop-filter: blur(4px);
+    /* Better touch target for mobile */
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .activity-button:hover .activity-edit-cog {
@@ -2958,4 +2982,232 @@ emoji-picker {
     emoji-picker {
         height: 300px;
     }
+}
+
+/* Prevent body scroll when emoji picker is open on mobile */
+body.emoji-picker-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* Ensure emoji picker modal overlay for mobile */
+@media (max-width: 768px) {
+    .emoji-picker-container.show::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+    }
+}
+
+/* Activity Screen Header */
+.activity-screen-header {
+    margin-bottom: var(--space-xl);
+}
+
+.category-context {
+    background: linear-gradient(135deg, var(--category-color, #4A90E2) 0%, var(--category-color, #357abd) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+}
+
+.category-context::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.category-context:hover::before {
+    opacity: 1;
+}
+
+.category-context-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    flex: 1;
+}
+
+.category-context-emoji {
+    font-size: 2.5em;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.category-context-text {
+    flex: 1;
+}
+
+.category-context-name {
+    font-size: var(--font-xxl);
+    font-weight: 600;
+    margin: 0 0 var(--space-xs) 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.category-context-subtitle {
+    font-size: var(--font-md);
+    margin: 0;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.category-context-actions {
+    display: flex;
+    gap: var(--space-md);
+    align-items: center;
+}
+
+.category-quick-edit {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+
+.category-quick-edit:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.category-quick-edit:active {
+    transform: scale(0.95);
+}
+
+/* Mobile responsive for activity screen header */
+@media (max-width: 768px) {
+    .category-context {
+        padding: var(--space-lg);
+    }
+    
+    .category-context-emoji {
+        font-size: 2em;
+    }
+    
+    .category-context-name {
+        font-size: var(--font-xl);
+    }
+    
+    .category-context-subtitle {
+        font-size: var(--font-sm);
+    }
+    
+    .category-context-info {
+        gap: var(--space-md);
+    }
+}
+
+@media (max-width: 480px) {
+    .category-context {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-md);
+    }
+    
+    .category-context-actions {
+        align-self: flex-end;
+        margin-top: var(--space-sm);
+    }
+}
+
+/* No categories error state */
+.no-categories-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    margin: 20px 0;
+}
+
+.no-categories-icon {
+    font-size: 4em;
+    margin-bottom: 20px;
+    opacity: 0.6;
+}
+
+.no-categories-state h3 {
+    margin: 0 0 12px 0;
+    color: #2c3e50;
+    font-size: 1.4em;
+    font-weight: 600;
+}
+
+.no-categories-state p {
+    margin: 0 0 30px 0;
+    color: #7f8c8d;
+    font-size: 1em;
+    line-height: 1.5;
+}
+
+/* Field save status indicators */
+.field-save-status {
+    margin-left: 8px;
+    font-size: 0.9em;
+    display: inline-flex;
+    align-items: center;
+    min-width: 20px;
+    min-height: 20px;
+}
+
+.field-save-status.saving .field-saving {
+    color: #f39c12;
+    animation: pulse 1.5s infinite;
+}
+
+.field-save-status.saved .field-saved {
+    color: #27ae60;
+    animation: checkmark-bounce 0.3s ease;
+}
+
+.field-save-status.error .field-error {
+    color: #e74c3c;
+    animation: shake 0.5s ease;
+    font-size: 0.8em;
+}
+
+@keyframes checkmark-bounce {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+/* Improved category button styling for corrupted states */
+.category-button-container {
+    position: relative;
 } 

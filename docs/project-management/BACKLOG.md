@@ -4,6 +4,105 @@
 
 ---
 
+## 🚨 **HIGH PRIORITY BUG FIXES** *(Target: v5.2.2 - NEXT RELEASE)*
+
+**🎯 RELEASE GOAL:** Fix all mobile UX and navigation issues for seamless user experience
+
+### 📱 **Mobile UX Critical Issues (RELEASE BLOCKERS)**
+- [ ] **🔄 Emoji Selector Scroll Issue** ⭐ **v5.2.2 TARGET**
+  - **Problem**: When using emoji selector on mobile, page scrolls behind popup instead of scrolling through emojis
+  - **Impact**: Cannot browse emoji options on touch devices - BREAKS editing on mobile
+  - **Platform**: Mobile touch devices specifically  
+  - **Priority**: CRITICAL - Core functionality broken on primary platform
+  - **Files Affected**: `js/management.js` (emoji picker implementation), `css/components.css`
+  - **Solution**: Implement proper touch event handling, prevent body scroll, use scroll-lock
+  - **Effort**: Small (1-2 days)
+
+- [ ] **⚙️ Mobile Edit Button Visibility** ⭐ **v5.2.2 TARGET**
+  - **Problem**: Hover-based edit cogs are difficult to trigger on mobile - requires tap and hold
+  - **Impact**: Poor editing UX on mobile devices (primary platform)
+  - **Locations**: Home page category edit, activity list edit buttons
+  - **Priority**: CRITICAL - Core functionality accessibility issue
+  - **Solution Strategy**: 
+    - Make edit cogs always visible on mobile devices
+    - Add dedicated "Edit" button to category/activity cards
+    - Implement long-press gesture with visual feedback
+  - **Files Affected**: `css/components.css` (lines 175-340), `js/app.js`
+  - **Effort**: Medium (2-3 days)
+
+### 🏠 **Navigation & Context Issues** ⭐ **v5.2.2 TARGET**
+- [ ] **📂 Activity Screen Missing Context** ⭐ **v5.2.2 TARGET**
+  - **Problem**: When activities are listed, category name is not displayed
+  - **Impact**: Users lose context of which category they're in
+  - **Priority**: HIGH - Navigation confusion affects usability
+  - **Solution**: Add category header with name, emoji, and color
+  - **Files Affected**: `js/app.js` (showActivities method, lines 280-300)
+  - **Effort**: Small (1 day)
+
+- [ ] **⚡ Activity Screen Missing Quick Actions** ⭐ **v5.2.2 TARGET**
+  - **Problem**: No way to "quick edit" category or "quick add" activity from activity list
+  - **Impact**: Requires navigation to Management screen for simple edits
+  - **Priority**: HIGH - Workflow efficiency improvement
+  - **Solution Strategy**:
+    - Add category edit button to activity screen header  
+    - Add floating "+" button for quick activity addition
+    - Add context menu for quick actions
+  - **Files Affected**: `js/app.js`, `css/components.css`
+  - **Effort**: Medium (2-3 days)
+
+### 📊 **Layout & Visual Issues** ⭐ **v5.2.2 TARGET**
+- [ ] **📏 Reports Summary Stats Layout** ⭐ **v5.2.2 TARGET**
+  - **Problem**: 4+ summary items don't fit on one line, breaking mobile layout
+  - **Impact**: Layout breaks, poor mobile experience
+  - **Priority**: HIGH - Visual consistency issue on primary platform
+  - **Current Stats**: Today, This Week, This Month, Categories Count, Average  
+  - **Solution**: 
+    - Remove "Categories Count" (low value metric)
+    - Remove "Average" (confusing/meaningless to users)
+    - Keep: Today, This Week, This Month
+    - Add: All Time (more valuable than count)
+  - **Files Affected**: `js/reports.js` (lines 900-930), `css/components.css`
+  - **Effort**: Small (1 day)
+
+### 🔧 **Version & Configuration Issues** ⭐ **v5.2.2 TARGET**  
+- [ ] **📦 Version Mismatch in HTML** ⭐ **v5.2.2 TARGET**
+  - **Problem**: HTML still references `v=5.2.0` but version.json is `5.2.1`
+  - **Impact**: Browser caching issues, inconsistent versioning
+  - **Priority**: HIGH - Deployment and caching reliability
+  - **Files Affected**: `index.html` (lines 34-42, 167)
+  - **Solution**: Update all CSS/JS version references to `v=5.2.1`
+  - **Effort**: Small (15 minutes)
+
+- [ ] **🏷️ Hardcoded Staging Header** ⭐ **v5.2.2 TARGET**
+  - **Problem**: "Staging Test" is hardcoded in HTML title, shows on production too
+  - **Impact**: Confuses users on production site
+  - **Priority**: HIGH - User experience and branding
+  - **Files Affected**: `index.html` (line 50)
+  - **Solution**: Remove hardcoded staging text, make it environment-dependent
+  - **Effort**: Small (30 minutes)
+
+### 🎨 **CSS & Mobile Performance Issues** ⭐ **v5.2.2 TARGET**
+- [ ] **📱 Touch Target Size Inconsistencies** ⭐ **v5.2.2 TARGET**
+  - **Problem**: Some buttons don't meet 44px minimum touch target standard
+  - **Impact**: Poor mobile usability and accessibility compliance
+  - **Priority**: MEDIUM - Accessibility and usability issue
+  - **Files Affected**: `css/components.css` (various button classes)
+  - **Solution**: Ensure all interactive elements meet minimum touch target sizes
+  - **Effort**: Small (1 day)
+
+- [ ] **🔄 Emoji Picker Body Scroll Lock Missing** ⭐ **v5.2.2 TARGET**
+  - **Problem**: No body scroll prevention when emoji picker is open on mobile
+  - **Impact**: Cannot scroll through emojis properly on touch devices
+  - **Priority**: HIGH - Related to emoji selector scroll issue
+  - **Files Affected**: `css/components.css` (lines 2940+), `js/management.js`
+  - **Solution**: Add CSS classes to lock body scroll when emoji picker is active
+  - **Effort**: Small (1 day)
+
+**🎯 v5.2.2 SPRINT ESTIMATE:** 8-12 days total effort
+**📱 MOBILE-FIRST FOCUS:** All issues prioritize mobile experience improvements
+
+---
+
 ## 📊 **CURRENT STATUS**
 
 **✅ COMPLETED PHASES:**

@@ -1,5 +1,99 @@
 # Deployment Lessons Learned
 
+## Issue Summary: Edit Dialog Bug Fixes (Dec 19, 2024 - Evening)
+
+### What Happened
+- User reported edit dialogs closing automatically after changing fields
+- Close/Exit buttons became non-functional after making edits  
+- Display changes weren't reflected across all screens after edits
+- Multiple field editing was impossible due to modal closures
+
+### Root Causes
+
+#### 1. **Auto-Save Clearing Edit State**
+- `updateCategory()` and `updateActivity()` methods called `this.editingCategory = null` and `this.editingActivity = null` 
+- This happened even when called from auto-save operations
+- Made modal lose "edit mode" state, breaking button functionality
+
+#### 2. **Limited Display Updates**
+- Only updated management screen categories list
+- Didn't refresh activity screens or home screen displays
+- Custom emoji changes not propagated globally
+
+#### 3. **Missing Context Awareness**
+- Auto-save functions didn't distinguish between form submission and field changes
+- No parameter to indicate whether update was final or intermediate
+
+## Solutions Implemented
+
+### ✅ **State Preservation During Auto-Save**
+- Added `isAutoSave` parameter to `updateCategory()` and `updateActivity()` methods
+- Only clear editing state when `isAutoSave = false` (final submission)
+- Auto-save operations preserve modal state by passing `isAutoSave = true`
+
+### ✅ **Comprehensive Display Updates**
+- Created `updateAllDisplays()` method to replace limited `updateCategoriesDisplay()`
+- Updates management screen, activity emojis, and current screen displays
+- Handles Home, Activity, and Management screens appropriately
+
+### ✅ **Cross-Screen Compatibility**
+- Edit dialogs now work consistently from any screen (Home, Activity selection, Management)
+- Real-time updates reflected everywhere immediately
+- Global emoji registry properly updated
+
+## Code Changes Made
+
+```javascript
+// Before: Broken auto-save clearing state
+updateCategory(oldName, newName, color, emoji) {
+    // ... update logic ...
+    this.editingCategory = null; // ❌ Always cleared state
+}
+
+// After: Context-aware state management  
+updateCategory(oldName, newName, color, emoji, isAutoSave = false) {
+    // ... update logic ...
+    if (!isAutoSave) {
+        this.editingCategory = null; // ✅ Only clear on final submission
+    }
+}
+
+// Before: Limited updates
+this.updateCategoriesDisplay(); // ❌ Only management screen
+
+// After: Comprehensive updates
+this.updateAllDisplays(); // ✅ All relevant screens
+```
+
+## Prevention Measures
+
+### 🛡️ **Parameter Design Pattern**
+- Always include context parameters for methods used in multiple scenarios
+- Distinguish between intermediate operations and final submissions
+- Use boolean flags to control side effects
+
+### 🔍 **Cross-Screen Testing**
+- Test edit functionality from all possible entry points
+- Verify display updates work on all screens where data appears
+- Check modal state preservation during auto-operations
+
+### 📋 **State Management Rules**
+- Never clear editing state during auto-save operations
+- Only clear state on explicit user actions (Close, Submit)
+- Preserve modal functionality throughout editing sessions
+
+## Time Analysis
+- **Issue identification**: 5 minutes
+- **Root cause analysis**: 10 minutes  
+- **Solution implementation**: 25 minutes
+- **Testing and verification**: 10 minutes
+- **Total time**: 50 minutes
+
+## Key Takeaway
+**Always distinguish between intermediate operations (auto-save) and final operations (submit) when managing UI state.**
+
+---
+
 ## Issue Summary: Version Mismatch Causing App Breakage (Dec 19, 2024)
 
 ### What Happened
