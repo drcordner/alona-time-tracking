@@ -1,21 +1,21 @@
 {
-    "version": "5.3.2 - Cache Fix & Data Recovery",
-    "versionNumber": "5.3.2", 
-    "description": "Cache Fix & Data Recovery",
-    "timestamp": "2025-01-27T15:30:00Z",
+    "version": "5.3.3 - Service Worker Fix & Enhanced Cache Management",
+    "versionNumber": "5.3.3", 
+    "description": "Service Worker Fix & Enhanced Cache Management",
+    "timestamp": "2025-01-27T16:00:00Z",
     "features": [
-        "🚨 CRITICAL: Fixed service worker cache version mismatch causing partial deployments",
-        "⚡ ENHANCED: Improved data recovery with intelligent error handling",
-        "🔄 IMPROVED: Better category rename error handling with user guidance",
-        "🛠️ FIXED: Cache busting now works consistently across all app files",
-        "🎯 STABILITY: Eliminated 'Data Corruption Detected' false positives"
+        "🔧 CRITICAL: Re-enabled service worker registration to fix cache version updates", 
+        "⚡ ENHANCED: Check for Updates now shows actual update availability and confirms actions",
+        "💥 NEW: Nuclear Cache Reset option for extreme cache issues",
+        "🛡️ SAFETY: Enhanced cache clearing preserves all user data while fixing cache issues",
+        "📱 PWA: Better support for PWA installations with aggressive cache management"
     ],
     "fixes": [
-        "Service worker cache version updated from v5.1.5 to v5.3.2 fixing partial deployment issues",
-        "Data recovery now attempts intelligent restoration before showing error messages",
-        "Category renaming with duplicates now provides clear user guidance instead of corruption errors",
-        "Cache consistency ensures all files update together during deployments",
-        "Eliminated false positive 'Data Corruption Detected' messages during normal operations"
+        "Service worker registration was disabled causing cache version updates to have no effect",
+        "Check for Updates button now actually works for PWA installations with proper cache clearing",
+        "Nuclear Cache Reset provides solution for stubborn cache issues that regular updates can't fix",
+        "Cache clearing now preserves user data while removing problematic cached app files",
+        "PWA installations now properly receive app updates through enhanced cache management"
     ],
     "testing": {
         "framework": "Custom Node.js test runner",
@@ -30,9 +30,10 @@
         "coverage": "Basic structure and version validation"
     },
     "filesModified": [
-        "sw.js - CRITICAL: Updated CACHE_VERSION from v5.1.5-docs-org to v5.3.2-cache-fix for proper cache busting",
-        "docs/development/DEVELOPMENT_CHANGELOG.md - UPDATED: Documented cache issue investigation and fix",
-        "docs/development/LESSONS_LEARNED.md - ADDED: Service worker cache management best practices"
+        "js/app.js - CRITICAL: Re-enabled service worker registration (registerServiceWorker method)",
+        "js/management.js - ENHANCED: Upgraded checkForUpdates with version checking and aggressive cache clearing",
+        "js/management.js - NEW: Added nuclearCacheReset method and UI button for extreme cache issues",
+        "docs/development/DEVELOPMENT_CHANGELOG.md - UPDATED: Documented service worker and cache management fixes"
     ],
-    "impact": "Eliminates cache inconsistency issues that caused partial deployments and mixed app states. Ensures reliable deployments where all files update consistently. Improves data integrity and user experience with better error handling and recovery mechanisms."
+    "impact": "Fixes fundamental issue where service worker wasn't registering, preventing cache updates from working. Provides users with effective tools to resolve cache issues including enhanced Check for Updates and Nuclear Cache Reset options. Ensures PWA installations can properly receive and apply app updates."
 } 

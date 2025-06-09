@@ -382,6 +382,13 @@ export class Management {
                             <p class="setting-description">Manually check for app updates and refresh if needed</p>
                         </div>
                         <div class="setting-item">
+                            <label>Nuclear Cache Reset</label>
+                            <button class="btn btn-danger" onclick="management.nuclearCacheReset()">
+                                💥 Nuclear Reset
+                            </button>
+                            <p class="setting-description">⚠️ For stubborn cache issues: Completely wipe all caches and force fresh reload</p>
+                        </div>
+                        <div class="setting-item">
                             <label for="session-retention">Data Retention</label>
                             <select id="session-retention" 
                                     class="input-base input-medium"
@@ -1315,51 +1322,199 @@ export class Management {
         };
     }
 
-    // Check for app updates - Simplified approach
+    // Check for app updates - Enhanced with aggressive cache clearing
     async checkForUpdates() {
         const updateBtn = document.getElementById('update-btn-text');
         const originalText = updateBtn.textContent;
         
-        updateBtn.textContent = 'Refreshing...';
+        updateBtn.textContent = 'Checking...';
         
         try {
-            // Clear all caches
+            // First, check if there's actually an update
+            const currentVersion = this.getAppVersion();
+            const response = await fetch('version.json?' + Date.now());
+            const versionData = await response.json();
+            const latestVersion = versionData.version;
+            
+            if (currentVersion === latestVersion) {
+                // No update needed, but user wants to refresh anyway
+                updateBtn.textContent = 'Force Refresh?';
+                
+                const shouldRefresh = await new Promise(resolve => {
+                    setTimeout(() => {
+                        const userWants = confirm(
+                            `You already have the latest version (${versionData.versionNumber}).\n\n` +
+                            `Do you want to force refresh anyway?\n\n` +
+                            `This will clear all caches and reload the app completely.`
+                        );
+                        resolve(userWants);
+                    }, 500);
+                });
+                
+                if (!shouldRefresh) {
+                    updateBtn.textContent = originalText;
+                    this.showToast('App is already up to date!', 'success');
+                    return;
+                }
+            } else {
+                // Update available
+                this.showToast(`Update found: ${versionData.versionNumber}`, 'info');
+            }
+            
+            updateBtn.textContent = 'Clearing Caches...';
+            
+            // AGGRESSIVE CACHE CLEARING
+            
+            // 1. Clear Service Worker caches
             if ('caches' in window) {
                 const cacheNames = await caches.keys();
-                console.log('Management: Clearing all caches:', cacheNames);
+                console.log('🗑️ Clearing all caches:', cacheNames);
                 await Promise.all(
                     cacheNames.map(cacheName => {
-                        console.log('Management: Deleting cache:', cacheName);
+                        console.log('🗑️ Deleting cache:', cacheName);
                         return caches.delete(cacheName);
                     })
                 );
             }
 
-            // Clear service worker and force update
+            // 2. Clear service worker registration and force update
             if ('serviceWorker' in navigator) {
                 const registration = await navigator.serviceWorker.getRegistration();
                 if (registration) {
-                    console.log('Management: Unregistering service worker for fresh start');
+                    console.log('🔄 Unregistering service worker for fresh start');
+                    
+                    // Send skip waiting message first
+                    if (registration.waiting) {
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                    
                     await registration.unregister();
                 }
             }
             
+            // 3. Clear localStorage app data (but preserve user data)
+            const preserveKeys = ['categories', 'activities', 'timeEntries', 'settings', 'usageStats'];
+            const allKeys = Object.keys(localStorage);
+            allKeys.forEach(key => {
+                if (!preserveKeys.some(preserve => key.includes(preserve))) {
+                    console.log('🗑️ Removing localStorage key:', key);
+                    localStorage.removeItem(key);
+                }
+            });
+            
             updateBtn.textContent = 'Reloading...';
             
-            // Short delay then hard reload
+            // 4. Force complete reload with cache busting
             await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Force complete reload with cache busting
-            window.location.href = window.location.href.split('?')[0] + '?refresh=' + Date.now();
+            // Multiple cache busting strategies
+            const now = Date.now();
+            const url = new URL(window.location);
+            url.searchParams.set('refresh', now);
+            url.searchParams.set('v', now);
+            url.searchParams.set('cache', 'false');
+            
+            // Nuclear option: completely replace current page
+            window.location.replace(url.toString());
             
         } catch (error) {
-            console.error('Management: Update failed:', error);
+            console.error('❌ Update check/refresh failed:', error);
             updateBtn.textContent = 'Refresh Failed';
             setTimeout(() => {
                 updateBtn.textContent = originalText;
             }, 3000);
             
-            this.showToast('Refresh failed. Try reloading the page manually.', 'error');
+            this.showToast('Refresh failed. Try closing and reopening the app, or reinstalling if it\'s a PWA.', 'error');
+        }
+    }
+
+    // Nuclear cache reset - for extreme cases
+    async nuclearCacheReset() {
+        const confirmed = confirm(
+            '💥 NUCLEAR CACHE RESET\n\n' +
+            'This will:\n' +
+            '• Clear ALL browser caches\n' +
+            '• Unregister service worker\n' +
+            '• Clear ALL localStorage (except your time tracking data)\n' +
+            '• Force complete app reload\n\n' +
+            'Your time tracking data will be PRESERVED.\n\n' +
+            'This is only for severe cache issues.\n\n' +
+            'Continue?'
+        );
+        
+        if (!confirmed) return;
+        
+        try {
+            console.log('💥 STARTING NUCLEAR CACHE RESET');
+            
+            // Show progress to user
+            this.showToast('💥 Nuclear reset in progress... DO NOT CLOSE THE APP!', 'warning', 10000);
+            
+            // 1. Clear ALL browser caches
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                console.log('💥 Nuking all caches:', cacheNames);
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+            }
+            
+            // 2. Unregister ALL service workers
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                console.log('💥 Nuking service workers:', registrations.length);
+                await Promise.all(registrations.map(reg => reg.unregister()));
+            }
+            
+            // 3. Clear ALL localStorage except essential user data
+            const preserve = [
+                'categories', 'activities', 'timeEntries', 'settings', 
+                'usageStats', 'categoryGoals', 'customActivityEmojis'
+            ];
+            
+            const allKeys = Object.keys(localStorage);
+            allKeys.forEach(key => {
+                if (!preserve.some(p => key.includes(p))) {
+                    console.log('💥 Nuking localStorage key:', key);
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            // 4. Clear sessionStorage completely
+            sessionStorage.clear();
+            console.log('💥 SessionStorage nuked');
+            
+            // 5. Clear IndexedDB if it exists
+            if ('indexedDB' in window) {
+                try {
+                    // This is more complex but we'll do a basic attempt
+                    const databases = await indexedDB.databases();
+                    for (const db of databases) {
+                        if (db.name && !db.name.includes('time-tracker')) { // Don't delete our own DB
+                            indexedDB.deleteDatabase(db.name);
+                            console.log('💥 Nuked IndexedDB:', db.name);
+                        }
+                    }
+                } catch (e) {
+                    console.log('💥 IndexedDB clearing skipped:', e.message);
+                }
+            }
+            
+            // 6. Force immediate page replacement with maximum cache busting
+            console.log('💥 Final nuclear reload...');
+            
+            const now = Date.now();
+            const url = new URL(window.location);
+            url.searchParams.set('nuclear', now);
+            url.searchParams.set('refresh', now)
+            url.searchParams.set('v', now);
+            url.searchParams.set('cache', 'false');
+            url.searchParams.set('timestamp', now);
+            
+            // Replace history and force complete reload
+            window.location.replace(url.toString());
+            
+        } catch (error) {
+            console.error('💥 Nuclear reset failed:', error);
+            alert('Nuclear reset failed: ' + error.message + '\n\nTry manually clearing your browser cache or reinstalling the PWA.');
         }
     }
 

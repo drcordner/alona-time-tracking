@@ -464,13 +464,30 @@ class TimeTrackerApp {
 
     // Service Worker registration
     registerServiceWorker() {
-        // Temporarily disabled due to browser compatibility issues
-        // if (!this.sandbox && 'serviceWorker' in navigator) {
-        //     navigator.serviceWorker.register('data:application/javascript;base64,Y29uc3QgQ0FDSEVfTkFNRSA9ICd0aW1lLXRyYWNrZXItdjEnOwpjb25zdCB1cmxzVG9DYWNoZSA9IFsKICAnLycsICAgCiAgJy9tYW5pZmVzdC5qc29uJwpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZXZlbnQgPT4gewogIGV2ZW50LndhaXRVbnRpbCgKICAgIGNhY2hlcy5vcGVuKENBQ0hFX05BTUUpCiAgICAgIC50aGVuKGNhY2hlID0+IGNhY2hlLmFkZEFsbCh1cmxzVG9DYWNoZSkpCiAgKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZXZlbnQgPT4gewogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKGV2ZW50LnJlcXVlc3QpCiAgICAgIC50aGVuKHJlc3BvbnNlID0+IHsKICAgICAgICByZXR1cm4gcmVzcG9uc2UgfHwgZmV0Y2goZXZlbnQucmVxdWVzdCk7CiAgICAgIH0pCiAgKTsKfSk7')
-        //         .then(() => console.log('Service Worker registered'))
-        //         .catch(err => console.log('Service Worker registration failed:', err));
-        // }
-        console.log('Service Worker registration disabled for compatibility');
+        if (!this.sandbox && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => {
+                    console.log('✅ Service Worker registered successfully:', registration);
+                    
+                    // Listen for updates
+                    registration.addEventListener('updatefound', () => {
+                        console.log('🔄 Service Worker update found');
+                        const newWorker = registration.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('🆕 New Service Worker installed, ready to activate');
+                                }
+                            });
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.error('❌ Service Worker registration failed:', err);
+                });
+        } else {
+            console.log('Service Worker not available or in sandbox mode');
+        }
     }
 
     // Load custom activity emojis
