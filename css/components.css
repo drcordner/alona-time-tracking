@@ -188,7 +188,8 @@
 .category-edit-cog:hover {
     background: #f8f9fa;
     border-color: #4A90E2;
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%);
+    opacity: 1;
 }
 
 /* Mobile-friendly edit cogs - always visible on touch devices */
@@ -323,7 +324,7 @@
 .activity-time {
     color: #7f8c8d;
     font-size: var(--font-sm);
-    margin-right: 40px; /* Space for edit cog */
+    margin-right: 60px; /* Increased space for edit cog - was 40px */
 }
 
 /* Edit cog for activities */
@@ -343,7 +344,7 @@
     font-size: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
-    opacity: 0;
+    opacity: 0.8; /* Always visible instead of 0 */
     backdrop-filter: blur(4px);
     /* Better touch target for mobile */
     min-width: 44px;
@@ -357,7 +358,8 @@
 .activity-edit-cog:hover {
     background: #f8f9fa;
     border-color: #4A90E2;
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-50%);
+    opacity: 1;
 }
 
 /* Reports components */
@@ -1042,9 +1044,12 @@
     z-index: 10000;
     opacity: 0;
     transition: all 0.3s ease;
-    white-space: nowrap;
-    max-width: 90vw;
+    /* Fixed width and text wrapping for better readability */
+    min-width: 200px;
+    max-width: min(320px, 90vw);
     text-align: center;
+    word-wrap: break-word;
+    hyphens: auto;
 }
 
 .toast-notification.show {
@@ -3021,7 +3026,7 @@ body.emoji-picker-open {
     align-items: center;
     box-shadow: var(--shadow-md);
     position: relative;
-    overflow: hidden;
+    overflow: visible; /* Changed from hidden to prevent menu truncation */
 }
 
 .category-context::before {
@@ -3075,6 +3080,7 @@ body.emoji-picker-open {
     display: flex;
     gap: var(--space-md);
     align-items: center;
+    position: relative;
 }
 
 .category-quick-edit {
@@ -3101,6 +3107,100 @@ body.emoji-picker-open {
 
 .category-quick-edit:active {
     transform: scale(0.95);
+}
+
+/* Category header three-dots menu (consistent with management interface) */
+.category-header-menu-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.category-header-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.category-header-menu-btn:active {
+    transform: scale(0.95);
+}
+
+.category-header-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10000; /* Higher z-index to prevent truncation */
+    min-width: 180px;
+    overflow: hidden;
+    margin-top: 8px;
+    /* Prevent truncation on mobile */
+    max-width: calc(100vw - 32px);
+    transform: translateX(0);
+}
+
+.category-header-menu .menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    width: 100%;
+    padding: var(--space-md) var(--space-lg);
+    background: white;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: var(--font-md);
+    color: #2c3e50;
+}
+
+.category-header-menu .menu-item:hover {
+    background: #f8f9fa;
+}
+
+.category-header-menu .menu-item:not(:last-child) {
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.category-header-menu .menu-icon {
+    font-size: 1.1em;
+    width: 20px;
+    text-align: center;
+}
+
+.category-header-menu .menu-text {
+    flex: 1;
+    font-weight: 500;
+}
+
+.category-header-menu .menu-item.danger {
+    color: #dc3545;
+}
+
+.category-header-menu .menu-item.danger:hover {
+    background: #f8d7da;
+}
+
+/* Elevate category context when menu is open (prevent truncation) */
+.category-context.menu-open {
+    z-index: 10001;
+    position: relative;
 }
 
 /* Mobile responsive for activity screen header */
@@ -3211,3 +3311,93 @@ body.emoji-picker-open {
 .category-button-container {
     position: relative;
 } 
+
+/* Version Information Styling */
+.version-info {
+    padding: 20px;
+    background: var(--surface);
+    border-radius: 12px;
+    border: 1px solid var(--surface-variant);
+    margin: 16px 0;
+}
+
+.version-info h3 {
+    margin: 0 0 16px 0;
+    color: var(--primary);
+    font-size: 1.2em;
+    font-weight: 600;
+}
+
+.version-details {
+    margin-bottom: 20px;
+}
+
+.version-number {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.version-description {
+    font-size: 1.1em;
+    color: var(--on-surface);
+    margin-bottom: 8px;
+}
+
+.version-timestamp {
+    font-size: 0.9em;
+    color: var(--on-surface-variant);
+    font-style: italic;
+}
+
+.features-details, .fixes-details {
+    margin: 16px 0;
+    border: 1px solid var(--surface-variant);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.features-details summary, .fixes-details summary {
+    padding: 12px 16px;
+    background: var(--surface-variant);
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--on-surface);
+    border: none;
+    outline: none;
+    transition: background-color 0.2s ease;
+}
+
+.features-details summary:hover, .fixes-details summary:hover {
+    background: var(--primary-container);
+    color: var(--on-primary-container);
+}
+
+.features-list, .fixes-list {
+    margin: 0;
+    padding: 16px;
+    list-style: none;
+    background: var(--surface);
+}
+
+.features-list li, .fixes-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--surface-variant);
+    color: var(--on-surface);
+    line-height: 1.5;
+}
+
+.features-list li:last-child, .fixes-list li:last-child {
+    border-bottom: none;
+}
+
+.features-list li::before {
+    content: "✨ ";
+    margin-right: 8px;
+}
+
+.fixes-list li::before {
+    content: "🔧 ";
+    margin-right: 8px;
+}

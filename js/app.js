@@ -20,7 +20,7 @@ class TimeTrackerApp {
         // Initialize modules
         this.storage = new Storage(this.sandbox);
         this.management = new Management(this.storage);
-        this.goals = new Goals(this.storage, () => this.management.getCategories());
+        this.goals = new Goals(this.storage, () => this.management.getCategories(), (key) => this.management.getSetting(key));
         this.quickStart = new QuickStart(
             this.storage, 
             () => this.management.getCategories(),
@@ -190,11 +190,51 @@ class TimeTrackerApp {
         }
     }
 
+    // Toggle category header menu (consistent with management.js implementation)
+    toggleCategoryHeaderMenu(categoryName) {
+        const safeId = categoryName.replace(/\s+/g, '-');
+        const menu = document.getElementById(`category-header-menu-${safeId}`);
+        const categoryContext = document.querySelector('.category-context');
+        const isOpen = menu.style.display === 'block';
+        
+        // Close all other menus first
+        this.closeCategoryHeaderMenus();
+        
+        if (!isOpen) {
+            menu.style.display = 'block';
+            // Elevate parent category z-index when menu is open
+            if (categoryContext) {
+                categoryContext.classList.add('menu-open');
+            }
+            // Close menu when clicking elsewhere
+            setTimeout(() => {
+                document.addEventListener('click', this.closeCategoryHeaderMenus.bind(this), { once: true });
+            }, 0);
+        }
+    }
+
+    // Close all category header menus
+    closeCategoryHeaderMenus() {
+        document.querySelectorAll('.category-header-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+        // Remove menu-open class from category context
+        document.querySelectorAll('.category-context.menu-open').forEach(context => {
+            context.classList.remove('menu-open');
+        });
+    }
+
     // Goals rendering
     renderGoalsSection() {
         const container = document.getElementById('goals-container');
         if (!container) {
             return; // Container might not exist if goals are disabled
+        }
+        
+        // Check if goals are enabled in settings
+        if (!this.management.getSetting('goalsEnabled')) {
+            container.innerHTML = ''; // Clear goals section if disabled
+            return;
         }
         
         const goalsHtml = this.goals.renderGoalsSection();
@@ -332,12 +372,19 @@ class TimeTrackerApp {
                         </div>
                     </div>
                     <div class="category-context-actions">
-                        <button class="btn-icon category-quick-edit" onclick="management.showAddActivityModal('${categoryName}')" title="Add new activity" style="background: rgba(34, 197, 94, 0.2); border-color: rgba(34, 197, 94, 0.5);">
-                            ➕
+                        <button class="category-header-menu-btn" onclick="app.toggleCategoryHeaderMenu('${categoryName}')" title="Category options">
+                            ⋯
                         </button>
-                        <button class="btn-icon category-quick-edit" onclick="management.editCategory('${categoryName}')" title="Edit category">
-                            ⚙️
-                        </button>
+                        <div class="category-header-menu" id="category-header-menu-${categoryName.replace(/\s+/g, '-')}" style="display: none;">
+                            <button class="menu-item" onclick="app.closeCategoryHeaderMenus(); management.editCategory('${categoryName}')">
+                                <span class="menu-icon">⚙️</span>
+                                <span class="menu-text">Edit Category</span>
+                            </button>
+                            <button class="menu-item" onclick="app.closeCategoryHeaderMenus(); management.showAddActivityModal('${categoryName}')">
+                                <span class="menu-icon">➕</span>
+                                <span class="menu-text">Add Activity</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -7,7 +7,7 @@ export class Management {
         this.customCategories = null;
         this.editingCategory = null;
         this.editingActivity = null;
-        this.collapsedCategories = new Set(); // Track collapsed categories
+        this.collapsedCategories = new Set(); // Track collapsed categories - will be populated on init
         this.currentTab = 'categories'; // Track active tab
         this.settings = null; // App settings
         this.goalSaveTimeout = null;
@@ -23,27 +23,29 @@ export class Management {
     // Load version information from version.json
     async loadVersionInfo() {
         try {
-            const response = await fetch('version.json?' + Date.now());
-            this.versionInfo = await response.json();
-            console.log('Management: Version info loaded:', this.versionInfo);
+            const response = await fetch('version.json');
+            const versionData = await response.json();
+            console.log('Management: Version info loaded:', versionData);
+            return versionData;
         } catch (error) {
-            console.error('Management: Failed to load version info:', error);
-            // Fallback to hardcoded version
-            this.versionInfo = {
-                version: "5.3.0 - Elegant Cache Busting Solution",
-                versionNumber: "5.2.6",
-                description: "Automated Testing & Version Consistency Fixed"
-            };
+            console.log('Management: Version info loading failed, using fallback');
+            return { versionNumber: '5.3.0', description: 'Elegant Cache Busting Solution' };
         }
     }
 
     // Initialize management with custom or default categories and settings
     async init() {
         // Load version info first
-        await this.loadVersionInfo();
+        this.versionInfo = await this.loadVersionInfo();
         
         this.loadCustomCategories();
         this.loadSettings();
+        
+        // Default all categories to collapsed for cleaner initial view
+        const categories = this.getCategories();
+        Object.keys(categories).forEach(categoryName => {
+            this.collapsedCategories.add(categoryName);
+        });
     }
 
     // Load settings from storage or set defaults
@@ -181,50 +183,135 @@ export class Management {
         this.renderManagementScreen();
     }
 
+    // Close all category menus and clean up z-index classes
+    closeAllMenus() {
+        document.querySelectorAll('.category-menu').forEach(menu => {
+            menu.style.display = 'none';
+            // Remove menu-open class from parent category item
+            const parentItem = menu.closest('.category-management-item');
+            if (parentItem) {
+                parentItem.classList.remove('menu-open');
+            }
+        });
+    }
+
+    // Toggle category menu dropdown
+    toggleCategoryMenu(categoryName) {
+        // Close all other menus first and remove menu-open class
+        this.closeAllMenus();
+        
+        // Toggle the clicked menu
+        const menuId = `category-menu-${categoryName.replace(/\s+/g, '-')}`;
+        const menu = document.getElementById(menuId);
+        if (menu) {
+            const isVisible = menu.style.display === 'block';
+            menu.style.display = isVisible ? 'none' : 'block';
+            
+            // Add/remove menu-open class for z-index elevation
+            const parentItem = menu.closest('.category-management-item');
+            if (parentItem) {
+                if (isVisible) {
+                    parentItem.classList.remove('menu-open');
+                } else {
+                    parentItem.classList.add('menu-open');
+                }
+            }
+            
+            // Adjust position if menu would be truncated
+            if (!isVisible) {
+                setTimeout(() => {
+                    const rect = menu.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    
+                    // Reset positioning first
+                    menu.style.top = '';
+                    menu.style.bottom = '';
+                    menu.style.right = '';
+                    menu.style.left = '';
+                    menu.style.transform = '';
+                    
+                    // Check horizontal positioning
+                    if (rect.right > viewportWidth - 16) {
+                        menu.style.right = '0';
+                        menu.style.left = 'auto';
+                    } else if (rect.left < 16) {
+                        menu.style.right = 'auto';
+                        menu.style.left = '0';
+                    }
+                    
+                    // Check vertical positioning
+                    if (rect.bottom > viewportHeight - 16) {
+                        // Show menu above the button instead of below
+                        menu.style.top = 'auto';
+                        menu.style.bottom = '100%';
+                        menu.style.marginTop = '0';
+                        menu.style.marginBottom = '4px';
+                    } else {
+                        // Default position below button
+                        menu.style.top = '100%';
+                        menu.style.bottom = 'auto';
+                        menu.style.marginTop = '4px';
+                        menu.style.marginBottom = '0';
+                    }
+                }, 10);
+            }
+        }
+    }
+
     // Render the management screen with tabs
     renderManagementScreen() {
         const container = document.getElementById('management-content');
         container.innerHTML = `
-            <div class="management-header">
-                <h2>⚙️ Manage</h2>
-                <div class="management-tabs">
-                    <button class="tab-button ${this.currentTab === 'categories' ? 'active' : ''}" 
-                            onclick="management.switchTab('categories')">
-                        📁 Categories & Activities
-                    </button>
-                    <button class="tab-button ${this.currentTab === 'settings' ? 'active' : ''}" 
-                            onclick="management.switchTab('settings')">
-                        ⚙️ Settings
-                    </button>
-                </div>
+            <div class="management-tabs">
+                <button class="tab-button ${this.currentTab === 'categories' ? 'active' : ''}" 
+                        onclick="management.switchTab('categories')">
+                    Categories & Activities
+                </button>
+                <button class="tab-button ${this.currentTab === 'settings' ? 'active' : ''}" 
+                        onclick="management.switchTab('settings')">
+                    Settings
+                </button>
             </div>
             
             <div class="tab-content">
                 ${this.currentTab === 'categories' ? this.renderCategoriesTab() : this.renderSettingsTab()}
             </div>
-            
-            <!-- Modals will be added here -->
-            <div id="modal-container"></div>
         `;
+
+        // Add click outside listener to close menus
+        setTimeout(() => {
+            document.addEventListener('click', this.handleClickOutside.bind(this));
+        }, 100);
+    }
+
+    // Close category menus when clicking outside
+    handleClickOutside(event) {
+        if (!event.target.closest('.category-menu-container')) {
+            this.closeAllMenus();
+        }
     }
 
     // Render categories and activities tab
     renderCategoriesTab() {
+        const categories = this.getCategories();
+        const categoryCount = Object.keys(categories).length;
+        
         return `
             <div class="tab-header">
-                <div class="management-actions">
-                    <button class="btn-secondary" onclick="management.toggleAllCategories()">
-                        ${this.collapsedCategories.size > 0 ? '📂 Expand All' : '📁 Collapse All'}
-                    </button>
-                    <button class="btn-primary" onclick="management.showAddCategoryModal()">
-                        ➕ Add Category
+                <div class="tab-header-content">
+                    <h3>Categories & Activities (${categoryCount})</h3>
+                    <button class="btn-icon add-category-compact" onclick="management.showAddCategoryModal()" title="Add New Category">
+                        ➕
                     </button>
                 </div>
             </div>
             
-            <div class="categories-management">
-                ${this.renderCategoriesManagement()}
-            </div>
+            ${categoryCount === 0 ? 
+                '<div class="no-categories-state"><p>No categories yet. Create your first category to get started!</p></div>' 
+                : this.renderCategoriesManagement()
+            }
         `;
     }
 
@@ -338,19 +425,36 @@ export class Management {
                 <div class="settings-section">
                     <h3>ℹ️ About</h3>
                     <div class="settings-info">
-                        <p><strong>Version:</strong> ${this.versionInfo ? this.versionInfo.versionNumber : this.settings.version}</p>
-                        ${this.versionInfo ? `<p><strong>Release:</strong> ${this.versionInfo.description}</p>` : ''}
-                        ${this.versionInfo && this.versionInfo.timestamp ? `<p><strong>Updated:</strong> ${new Date(this.versionInfo.timestamp).toLocaleDateString()}</p>` : ''}
-                        <p><strong>Categories:</strong> ${Object.keys(this.getCategories()).length}</p>
-                        <p><strong>Total Activities:</strong> ${Object.values(this.getCategories()).reduce((sum, cat) => sum + (cat.activities ? cat.activities.length : 0), 0)}</p>
-                        ${this.versionInfo && this.versionInfo.features ? `
-                            <details style="margin-top: 1rem;">
-                                <summary style="cursor: pointer; font-weight: 600; color: #4A90E2;">Latest Features</summary>
-                                <ul style="margin: 0.5rem 0 0 1rem; font-size: 0.9em; color: #666;">
-                                    ${this.versionInfo.features.map(feature => `<li>${feature}</li>`).join('')}
-                                </ul>
-                            </details>
-                        ` : ''}
+                        <div class="version-info">
+                            <div class="version-details">
+                                <div class="version-number">${this.versionInfo ? this.versionInfo.versionNumber : this.settings.version}</div>
+                                <div class="version-description">${this.versionInfo ? this.versionInfo.description : 'Time Tracking Application'}</div>
+                                ${this.versionInfo && this.versionInfo.timestamp ? `<div class="version-timestamp">Released: ${new Date(this.versionInfo.timestamp).toLocaleDateString()}</div>` : ''}
+                            </div>
+                            
+                            <div class="app-stats">
+                                <p><strong>Categories:</strong> ${Object.keys(this.getCategories()).length}</p>
+                                <p><strong>Total Activities:</strong> ${Object.values(this.getCategories()).reduce((sum, cat) => sum + (cat.activities ? cat.activities.length : 0), 0)}</p>
+                            </div>
+
+                            ${this.versionInfo && this.versionInfo.features ? `
+                                <details class="features-details">
+                                    <summary>Latest Features & Improvements</summary>
+                                    <ul class="features-list">
+                                        ${this.versionInfo.features.map(feature => `<li>${feature}</li>`).join('')}
+                                    </ul>
+                                </details>
+                            ` : ''}
+                            
+                            ${this.versionInfo && this.versionInfo.fixes && this.versionInfo.fixes.length > 0 ? `
+                                <details class="fixes-details">
+                                    <summary>Bug Fixes</summary>
+                                    <ul class="fixes-list">
+                                        ${this.versionInfo.fixes.map(fix => `<li>${fix}</li>`).join('')}
+                                    </ul>
+                                </details>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -520,21 +624,6 @@ export class Management {
         }, 3000);
     }
 
-    // Toggle all categories collapse/expand
-    toggleAllCategories() {
-        const categories = this.getCategories();
-        if (this.collapsedCategories.size > 0) {
-            // Expand all
-            this.collapsedCategories.clear();
-        } else {
-            // Collapse all
-            Object.keys(categories).forEach(name => {
-                this.collapsedCategories.add(name);
-            });
-        }
-        this.renderManagementScreen();
-    }
-
     // Render categories management list
     renderCategoriesManagement() {
         const categories = this.getCategories();
@@ -569,26 +658,37 @@ export class Management {
             
             const isCollapsed = this.collapsedCategories.has(categoryName);
             return `
-                <div class="category-management-item" data-category="${categoryName}">
-                    <div class="category-header" onclick="management.editCategory('${categoryName}')" title="Click to edit category">
-                        <div class="category-info">
-                            <button class="collapse-button" onclick="event.stopPropagation(); management.toggleCategoryCollapse('${categoryName}')" title="${isCollapsed ? 'Expand' : 'Collapse'} activities">
-                                ${isCollapsed ? '▶️' : '▼️'}
-                            </button>
-                            <div class="category-color-preview" style="background-color: ${safeData.color}"></div>
-                            <span class="category-emoji">${safeData.emoji}</span>
-                            <h3 class="category-title">${categoryName}</h3>
-                            <span class="activity-count">${safeData.activities.length} activities</span>
-                        </div>
-                        <div class="category-actions" onclick="event.stopPropagation()">
-                            <button class="btn-icon" onclick="management.showAddActivityModal('${categoryName}')" title="Add Activity">
-                                ➕
-                            </button>
-                            ${Object.keys(categories).length > 1 ? `
-                                <button class="btn-icon btn-danger" onclick="management.deleteCategory('${categoryName}')" title="Delete Category">
-                                    🗑️
+                <div class="category-management-item home-style" data-category="${categoryName}">
+                    <div class="category-management-card" style="--category-color: ${safeData.color}" onclick="management.toggleCategoryCollapse('${categoryName}')" title="Click to expand/collapse activities">
+                        <div class="category-management-header">
+                            <div class="category-content">
+                                <div class="category-name">
+                                    <span class="category-emoji">${safeData.emoji}</span>
+                                    <span class="category-text">${categoryName}</span>
+                                </div>
+                                <div class="category-activity-count">${safeData.activities.length} ${safeData.activities.length === 1 ? 'activity' : 'activities'}</div>
+                            </div>
+                            <div class="category-menu-container" onclick="event.stopPropagation()">
+                                <button class="category-menu-button" onclick="management.toggleCategoryMenu('${categoryName}')" title="Category options">
+                                    ⋯
                                 </button>
-                            ` : ''}
+                                <div class="category-menu" id="category-menu-${categoryName.replace(/\s+/g, '-')}" style="display: none;">
+                                    <button class="menu-item" onclick="management.editCategory('${categoryName}')">
+                                        <span class="menu-icon">⚙️</span>
+                                        <span class="menu-text">Edit Category</span>
+                                    </button>
+                                    <button class="menu-item" onclick="management.showAddActivityModal('${categoryName}')">
+                                        <span class="menu-icon">➕</span>
+                                        <span class="menu-text">Add Activity</span>
+                                    </button>
+                                    ${Object.keys(categories).length > 1 ? `
+                                        <button class="menu-item danger" onclick="management.deleteCategory('${categoryName}')">
+                                            <span class="menu-icon">🗑️</span>
+                                            <span class="menu-text">Delete Category</span>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -602,26 +702,36 @@ export class Management {
     renderActivitiesForCategory(categoryName, activities) {
         const sortedActivities = [...activities].sort();
         
-        return sortedActivities.map(activity => {
-            const emoji = this.getActivityEmoji(activity);
-            return `
-                <div class="activity-management-item" onclick="management.editActivity('${categoryName}', '${activity}')" data-activity="${activity}" title="Click to edit activity">
-                    <div class="activity-info">
-                        <span class="activity-emoji">${emoji}</span>
-                        <span class="activity-name">${activity}</span>
-                    </div>
-                    <div class="activity-actions" onclick="event.stopPropagation()">
-                        <button class="btn-icon btn-danger" onclick="management.deleteActivity('${categoryName}', '${activity}')" title="Delete Activity">
-                            🗑️
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        return `
+            <div class="activities-management-list">
+                ${sortedActivities.map(activity => {
+                    const emoji = this.getActivityEmoji(activity);
+                    return `
+                        <div class="activity-management-card" onclick="management.editActivity('${categoryName}', '${activity}')" data-activity="${activity}" title="Click to edit activity">
+                            <div class="activity-card-content">
+                                <div class="activity-name">
+                                    <span class="activity-emoji">${emoji}</span>
+                                    <span class="activity-text">${activity}</span>
+                                </div>
+                                <div class="activity-management-actions" onclick="event.stopPropagation()">
+                                    <button class="activity-edit-cog" onclick="management.editActivity('${categoryName}', '${activity}')" title="Edit activity">
+                                        ⚙️
+                                    </button>
+                                    <button class="btn-icon btn-danger activity-delete" onclick="management.deleteActivity('${categoryName}', '${activity}')" title="Delete Activity">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
     }
 
     // Show add activity modal
     showAddActivityModal(categoryName) {
+        this.closeAllMenus(); // Close any open menus
         this.showActivityModal('add', categoryName);
     }
 
@@ -1002,6 +1112,7 @@ export class Management {
 
     // Delete category (soft delete)
     deleteCategory(categoryName) {
+        this.closeAllMenus(); // Close any open menus
         if (!confirm(`Delete "${categoryName}" category? This will hide it from the interface but preserve historical data for reports.`)) {
             return;
         }
@@ -1275,6 +1386,7 @@ export class Management {
 
     // Edit category
     editCategory(categoryName) {
+        this.closeAllMenus(); // Close any open menus
         this.editingCategory = categoryName;
         const categories = this.getCategories();
         const categoryData = categories[categoryName];

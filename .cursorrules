@@ -8,6 +8,14 @@
 - **USE ESTABLISHED** UI/UX patterns and validation rules from lessons learned
 - **FOLLOW** testing checklists and development guidelines in lessons learned
 
+## CRITICAL: Document Management Consistency (NEW RULE)
+- **SINGLE SOURCE OF TRUTH**: `docs/development/LESSONS_LEARNED.md` is the ONLY lessons learned file
+- **BEFORE CREATING** any new documentation file, CHECK if one already exists
+- **SEARCH PROJECT** for existing documents before creating duplicates
+- **MERGE CONTENT** into existing files rather than creating new ones
+- **UPDATE REFERENCES** in .cursorrules and other files when moving/merging docs
+- **DOCUMENT LOCATIONS**: Maintain awareness of where all project documents are located
+
 ## Vibe Coding Philosophy & Simplicity First (NEW RULE)
 - **SIMPLICITY OVER SOPHISTICATION**: Choose the simple, predictable solution over complex auto-magic
 - **EXPLICIT USER ACTIONS**: Prefer clear user-triggered actions (buttons) over auto-save complexity
@@ -20,10 +28,11 @@
 - **AVOID PREMATURE OPTIMIZATION**: Don't add complexity until there's a proven need
 
 ## Development Workflow & Version Management (CRITICAL NEW RULE)
+### Keep version numbers consistent across all files
 ### During Development (Local Testing)
 - **NEVER** increment version numbers during local development/testing
 - **TRACK ALL CHANGES** in `docs/development/DEVELOPMENT_CHANGELOG.md`
-- **USE CURRENT VERSION** (5.2.6) for all local testing
+- **USE CURRENT VERSION** (5.3.0) for all local testing
 - **DOCUMENT** issues being worked on and investigation findings
 - **ADD** all modifications to "Current Development Cycle" section
 
@@ -36,6 +45,23 @@
 - **CLEAR** "Current Development Cycle" and start new section in development changelog
 - **RUN** `npm test` to verify version consistency
 - **DEPLOY** to staging then production
+
+## Storage Technology Evaluation (NEW RULE)
+- **BEFORE adding data-heavy features**: Evaluate localStorage vs IndexedDB
+- **USE localStorage WHEN**: Simple key-value storage, < 5MB data, synchronous operations preferred
+- **CONSIDER IndexedDB WHEN**: Complex queries needed, large datasets (>5MB), async operations acceptable
+- **TRIGGER EVALUATION FOR**: Search/filter features, offline sync, large import/export, historical data analysis
+- **DOCUMENT DECISION**: Always document why storage technology was chosen in lessons learned
+
+## Mandatory Documentation Discovery Process (NEW RULE)
+- **FIRST**: Check `docs/PROJECT_DOCUMENTS.md` inventory for existing documents
+- **BEFORE ANY WORK**: Search entire project for existing documentation on the topic
+- **SEARCH COMMANDS**: Use file_search tool to find existing docs before creating new ones
+- **SEARCH PATTERNS**: Look for variations like "lesson", "guide", "readme", "doc", "note"
+- **CHECK DIRECTORIES**: Always explore docs/ subdirectories thoroughly
+- **VERIFY UNIQUENESS**: Confirm no similar document exists before creating new ones
+- **UPDATE EXISTING**: Prefer updating existing docs over creating new ones
+- **UPDATE INVENTORY**: Add new documents to `docs/PROJECT_DOCUMENTS.md` when created
 
 ### Version Format Rules
 - **Development**: Keep version.json at current release version (5.2.6)

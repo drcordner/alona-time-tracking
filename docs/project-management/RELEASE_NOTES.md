@@ -4,6 +4,75 @@
 
 ---
 
+## 🚀 **Version 5.3.1 - UX Consistency & Menu Improvements** 
+*Released: June 9, 2025*
+
+### 🌟 **UX CONSISTENCY IMPROVEMENTS**
+
+#### 🎨 **Three-Dot Menu Standardization**
+- **Unified Interface Pattern**: Category view header now uses three-dot menu (⋯) consistent with management interface
+- **Clean Design**: Replaced separate Add (+) and Edit (⚙️) buttons with single menu button
+- **Modern UX**: Consistent interaction patterns across all application screens
+- **Mobile Optimization**: Proper touch targets (44px) and menu positioning for mobile devices
+
+#### 📱 **Enhanced Mobile Experience**
+- **Menu Positioning**: Intelligent menu placement that stays within screen bounds
+- **Touch Targets**: All menu buttons meet 44px minimum for accessibility
+- **Z-Index Management**: Proper menu stacking prevents truncation issues
+- **Click-Outside Behavior**: Menus close when clicking anywhere outside for intuitive UX
+
+### 🐛 **BUG FIXES**
+
+#### ⚡ **Menu Truncation Issues**
+- **Overflow Fixed**: Changed `.category-context` from `overflow: hidden` to `overflow: visible`
+- **Z-Index Elevation**: Menu z-index increased to 10000 with menu-open class at 10001
+- **Proper Lifecycle**: Added/removed menu-open class for z-index elevation during menu display
+- **Comprehensive Solution**: Applied same fixes that resolved management interface truncation
+
+#### 🎯 **Activity Time Display**
+- **Text Truncation Fixed**: Activity time (00:00) no longer overlapped by edit cogs
+- **Margin Adjustment**: Increased activity-time margin-right from 40px to 60px
+- **Better Spacing**: Adequate clearance for 44px minimum touch target edit buttons
+
+#### 🎪 **Goals Section Visibility**
+- **Settings Integration**: Goals section properly respects user settings
+- **Clean UI**: Goals hidden when disabled instead of showing empty sections
+- **Proper Initialization**: Fixed Goals class to receive getSetting function correctly
+
+### 🔧 **TECHNICAL IMPROVEMENTS**
+
+#### 📋 **JavaScript Enhancements**
+- **Menu Toggle Methods**: Added `toggleCategoryHeaderMenu()` and `closeCategoryHeaderMenus()` to app.js
+- **State Management**: Proper menu lifecycle with z-index class management
+- **Cross-Screen Consistency**: Same menu behavior patterns used across all interfaces
+
+#### 🎨 **CSS Standardization**
+- **Menu Styling**: Category header menu styling matches management interface
+- **Responsive Design**: Mobile-optimized menu dimensions and positioning
+- **Visual Consistency**: Unified button styling and menu appearance
+
+### 📁 **FILES MODIFIED**
+- `js/app.js` - ADDED: Menu toggle methods, fixed Goals initialization with proper settings integration
+- `css/components.css` - ENHANCED: Category header menu styling, activity time margins, z-index management
+- `docs/development/DEVELOPMENT_CHANGELOG.md` - UPDATED: Comprehensive documentation of all fixes
+
+### 🎯 **IMPACT**
+
+#### 🌟 **For Users**
+- **Consistent Experience**: Same menu interaction pattern throughout the app
+- **Mobile Friendly**: Better touch targets and menu positioning on mobile devices
+- **Clean Interface**: Unified design language eliminates visual inconsistencies
+- **Reliable Functionality**: No more truncated menus or overlapping text
+
+#### 👨‍💻 **For Developers**
+- **Code Consistency**: Reusable menu patterns and styling across components
+- **Maintainable Architecture**: Centralized menu behavior and styling
+- **Future-Proof**: Established patterns for additional menu implementations
+
+This release focuses on creating a unified, consistent user experience with modern interaction patterns while eliminating UI truncation and spacing issues.
+
+---
+
 ## 🚀 **Version 5.3.0 - Elegant Cache Busting Solution** 
 *Released: December 20, 2024*
 
