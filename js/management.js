@@ -1072,6 +1072,11 @@ export class Management {
             // Migrate time tracking data
             this.storage.migrateCategoryData(oldName, newName);
             
+            // Update current category reference if user is viewing this category
+            if (window.app && window.app.currentCategory === oldName) {
+                window.app.currentCategory = newName;
+            }
+            
             // Remove old category
             delete this.customCategories[oldName];
         }
@@ -1478,7 +1483,12 @@ export class Management {
         }
         
         if (mode === 'edit' && name !== this.editingCategory && categories[name]) {
-            alert('Category name already exists!');
+            const choice = confirm(`A category named "${name}" already exists.\n\nClick OK to choose a different name, or Cancel to keep your current changes in the form.`);
+            if (choice) {
+                // User wants to change name - focus the name input
+                document.getElementById('category-name').focus();
+                document.getElementById('category-name').select();
+            }
             return;
         }
         

@@ -345,19 +345,44 @@ class TimeTrackerApp {
         const categories = this.getCategories();
         const categoryData = categories[categoryName];
         
-        // 🛡️ DEFENSIVE: Check for corrupted category data
+        // 🛡️ DEFENSIVE: Check for missing category data
         if (!categoryData || !categoryData.activities) {
-            console.error('❌ Corrupted category data for:', categoryName, categoryData);
-            container.innerHTML = `
-                <div style="padding: 20px; text-align: center; color: #e74c3c;">
-                    <h3>⚠️ Data Corruption Detected</h3>
-                    <p>Category "${categoryName}" has corrupted data.</p>
-                    <button onclick="localStorage.clear(); location.reload();" style="padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px;">
-                        Clear Data & Reload
-                    </button>
-                </div>
-            `;
-            return;
+            console.warn('⚠️ Category data missing for:', categoryName, categoryData);
+            
+            // Try to recover by refreshing categories first
+            const refreshedCategories = this.getCategories();
+            const refreshedCategoryData = refreshedCategories[categoryName];
+            
+            if (refreshedCategoryData && refreshedCategoryData.activities) {
+                // Data found after refresh, continue with refreshed data
+                console.log('✅ Category data recovered after refresh');
+                categoryData = refreshedCategoryData;
+            } else {
+                // Still no data, show user-friendly recovery options
+                container.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #e74c3c; background: #f8f9fa; border-radius: 8px; margin: 20px;">
+                        <h3>⚠️ Category Not Found</h3>
+                        <p>Category "${categoryName}" could not be loaded. This might happen if:</p>
+                        <ul style="text-align: left; margin: 15px 0; color: #6c757d;">
+                            <li>The category was recently renamed or deleted</li>
+                            <li>There was an editing conflict</li>
+                            <li>Browser data needs to refresh</li>
+                        </ul>
+                        <div style="margin-top: 20px;">
+                            <button onclick="app.showScreen('home')" style="padding: 10px 20px; background: #4A90E2; color: white; border: none; border-radius: 5px; margin-right: 10px;">
+                                Return to Home
+                            </button>
+                            <button onclick="location.reload()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px;">
+                                Refresh App
+                            </button>
+                        </div>
+                        <p style="margin-top: 15px; color: #6c757d; font-size: 0.9em;">
+                            Your data is safe - this doesn't affect your time tracking history.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
         }
 
         // Create category header with context
