@@ -1,5 +1,5 @@
 // Time Tracker Service Worker - Simplified for reliable updates
-const CACHE_VERSION = 'v5.1.5-docs-org';
+const CACHE_VERSION = 'v5.3.2-cache-fix';
 const STATIC_CACHE = `time-tracker-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `time-tracker-runtime-${CACHE_VERSION}`;
 
@@ -12,7 +12,7 @@ const CORE_FILES = [
 
 // Install event - cache only core files
 self.addEventListener('install', event => {
-  console.log('[SW] Installing service worker v5.1.5-docs-org...');
+  console.log('[SW] Installing service worker v5.3.2-cache-fix...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
@@ -32,7 +32,7 @@ self.addEventListener('install', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating service worker v5.1.5-docs-org...');
+  console.log('[SW] Activating service worker v5.3.2-cache-fix...');
   
   event.waitUntil(
     Promise.all([

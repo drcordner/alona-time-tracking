@@ -46,6 +46,15 @@
 - **RUN** `npm test` to verify version consistency
 - **DEPLOY** to staging then production
 
+## Service Worker Cache Management (CRITICAL NEW RULE - v5.3.2)
+- **🚨 MANDATORY**: Service worker CACHE_VERSION MUST be updated whenever app version changes
+- **NAMING CONVENTION**: Use format `vX.Y.Z-descriptive-suffix` (e.g., `v5.3.2-cache-fix`)
+- **SYNCHRONIZATION CHECK**: Verify CACHE_VERSION matches version.json before ANY deployment
+- **CONSOLE LOGS**: Update all service worker console.log messages to reflect new version
+- **TESTING REQUIREMENT**: Verify cache invalidation works by checking all files update together
+- **DOCUMENTATION**: Always document service worker changes in version.json filesModified
+- **PREVENTION**: This rule prevents partial deployments and mixed app states
+
 ## Storage Technology Evaluation (NEW RULE)
 - **BEFORE adding data-heavy features**: Evaluate localStorage vs IndexedDB
 - **USE localStorage WHEN**: Simple key-value storage, < 5MB data, synchronous operations preferred
@@ -196,18 +205,21 @@ When user requests "publish to staging and production":
 ## Pre-Deployment Checklist (FOR STAGING/PRODUCTION)
 1. ✅ **Consolidated all development changelog items**
 2. ✅ **Version incremented appropriately in version.json**
-3. ✅ Release notes updated in RELEASE_NOTES.md
-4. ✅ Lessons learned updated (if applicable)
-5. ✅ **Development changelog cleared and reset**
-6. ✅ `npm test` passes (version consistency verified)
-7. ✅ Tested locally in incognito browser
-8. ✅ Console shows no errors
-9. ✅ All major features work (Home, Reports, Management, Timer)
-10. ✅ Tested category/activity editing thoroughly (if applicable)
-11. ✅ Tested on mobile
-12. ✅ Cross-browser testing completed
-13. ✅ Staging deployment successful
-14. ✅ Ready for production deployment
+3. ✅ **🚨 CRITICAL: Service worker CACHE_VERSION updated to match app version**
+4. ✅ **🚨 CRITICAL: Service worker console.log messages reflect new version**
+5. ✅ Release notes updated in RELEASE_NOTES.md
+6. ✅ Lessons learned updated (if applicable)
+7. ✅ **Development changelog cleared and reset**
+8. ✅ `npm test` passes (version consistency verified)
+9. ✅ Tested locally in incognito browser
+10. ✅ Console shows no errors
+11. ✅ All major features work (Home, Reports, Management, Timer)
+12. ✅ Tested category/activity editing thoroughly (if applicable)
+13. ✅ Tested on mobile
+14. ✅ Cross-browser testing completed
+15. ✅ Staging deployment successful
+16. ✅ **Cache invalidation verified - all files update together**
+17. ✅ Ready for production deployment
 
 ## Publication Command Pattern
 When user says "publish to staging and production":

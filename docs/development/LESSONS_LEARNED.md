@@ -2,6 +2,51 @@
 
 This file documents important lessons, patterns, and solutions discovered during development and deployment to prevent repeating mistakes and to establish best practices.
 
+## Service Worker Cache Version Mismatch (v5.3.2) - CRITICAL
+
+### ❌ **What Happened**
+- **Partial Deployments**: Service worker cache version (`v5.1.5-docs-org`) was outdated while app version was `5.3.1`
+- **Mixed App States**: Some files updated (like `version.json`) while cached files (CSS/JS) remained old
+- **User Confusion**: Version number incremented in app but old functionality still served from cache
+- **Inconsistent UX**: Activities view worked with new features but Manage page showed old interface
+
+### 🔍 **Root Cause Analysis**
+- **Forgotten Service Worker Updates**: When incrementing app version, service worker `CACHE_VERSION` was not updated
+- **Cache Isolation**: Service worker caches operate independently from browser cache
+- **No Automated Synchronization**: No system to ensure service worker version matches app version
+- **Long-Term Caching**: Netlify headers cache JS/CSS for 1 year (`max-age=31536000, immutable`)
+
+### ✅ **Solution Implemented**
+- **Synchronized Versioning**: Service worker `CACHE_VERSION` now matches app version exactly
+- **Automatic Cache Invalidation**: New cache version forces all old caches to be deleted
+- **Consistent Updates**: All files now update together during deployments
+- **Version Naming Convention**: Use descriptive suffixes like `v5.3.2-cache-fix` for tracking
+
+### 🎯 **Critical Prevention Rules Established**
+1. **ALWAYS update service worker cache version when incrementing app version**
+2. **Use descriptive cache version suffixes** to track what changes are being deployed
+3. **Verify cache version matches app version** before any deployment
+4. **Test cache invalidation** by checking all files update together
+5. **Document cache version in deployment notes** for troubleshooting
+
+### 🔧 **Technical Pattern**
+```javascript
+// Service Worker - Always sync with app version
+const CACHE_VERSION = 'v5.3.2-cache-fix'; // Match version.json
+const STATIC_CACHE = `time-tracker-${CACHE_VERSION}`;
+
+// Version.json should document cache changes
+"filesModified": [
+    "sw.js - CRITICAL: Updated CACHE_VERSION to match app version"
+]
+```
+
+### 📋 **Deployment Verification Steps**
+- [ ] Service worker `CACHE_VERSION` matches `version.json` version number
+- [ ] Cache version suffix describes the deployment (e.g., `-cache-fix`, `-ui-update`)
+- [ ] All console.log messages in service worker reflect new version
+- [ ] Test deployment shows cache invalidation in browser dev tools
+
 ## Cache Busting & Version Management (v5.3.0)
 
 ### ❌ **What Didn't Work**

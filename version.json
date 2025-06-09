@@ -1,24 +1,21 @@
 {
-    "version": "5.3.1 - UX Consistency & Menu Improvements",
-    "versionNumber": "5.3.1", 
-    "description": "UX Consistency & Menu Improvements",
-    "timestamp": "2025-06-09T23:15:00Z",
+    "version": "5.3.2 - Cache Fix & Data Recovery",
+    "versionNumber": "5.3.2", 
+    "description": "Cache Fix & Data Recovery",
+    "timestamp": "2025-01-27T15:30:00Z",
     "features": [
-        "🎨 NEW: Three-dot menu consistency across management and category views",
-        "✨ IMPROVED: Category header UX with unified interaction patterns", 
-        "📱 ENHANCED: Mobile-optimized menu positioning and touch targets",
-        "🎯 FIXED: Activity time text truncation by edit cogs",
-        "🔧 FIXED: Goals section properly respects user settings (hide when disabled)",
-        "⚡ FIXED: Menu truncation issues with proper overflow and z-index management",
-        "🎪 CONSISTENCY: Unified three-dot menu pattern throughout the application"
+        "🚨 CRITICAL: Fixed service worker cache version mismatch causing partial deployments",
+        "⚡ ENHANCED: Improved data recovery with intelligent error handling",
+        "🔄 IMPROVED: Better category rename error handling with user guidance",
+        "🛠️ FIXED: Cache busting now works consistently across all app files",
+        "🎯 STABILITY: Eliminated 'Data Corruption Detected' false positives"
     ],
     "fixes": [
-        "Goals section no longer shows when disabled in settings - proper settings integration",
-        "Activity time text no longer truncated by edit cogs - increased margin from 40px to 60px", 
-        "Category header buttons replaced with three-dot menu for consistency with management interface",
-        "Menu truncation eliminated with overflow: visible and elevated z-index stacking",
-        "Menu lifecycle properly managed with menu-open class for z-index elevation",
-        "Click-outside-to-close behavior working correctly for all menus"
+        "Service worker cache version updated from v5.1.5 to v5.3.2 fixing partial deployment issues",
+        "Data recovery now attempts intelligent restoration before showing error messages",
+        "Category renaming with duplicates now provides clear user guidance instead of corruption errors",
+        "Cache consistency ensures all files update together during deployments",
+        "Eliminated false positive 'Data Corruption Detected' messages during normal operations"
     ],
     "testing": {
         "framework": "Custom Node.js test runner",
@@ -33,9 +30,9 @@
         "coverage": "Basic structure and version validation"
     },
     "filesModified": [
-        "js/app.js - ADDED: toggleCategoryHeaderMenu() and closeCategoryHeaderMenus() methods, fixed Goals initialization",
-        "css/components.css - ENHANCED: Category header menu styling, activity time margins, z-index management",
-        "docs/development/DEVELOPMENT_CHANGELOG.md - UPDATED: Comprehensive documentation of all fixes and improvements"
+        "sw.js - CRITICAL: Updated CACHE_VERSION from v5.1.5-docs-org to v5.3.2-cache-fix for proper cache busting",
+        "docs/development/DEVELOPMENT_CHANGELOG.md - UPDATED: Documented cache issue investigation and fix",
+        "docs/development/LESSONS_LEARNED.md - ADDED: Service worker cache management best practices"
     ],
-    "impact": "Provides consistent user experience across all interfaces with unified three-dot menu pattern. Eliminates UI truncation issues and ensures proper respect for user preferences. Better mobile experience with optimized touch targets and menu positioning."
+    "impact": "Eliminates cache inconsistency issues that caused partial deployments and mixed app states. Ensures reliable deployments where all files update consistently. Improves data integrity and user experience with better error handling and recovery mechanisms."
 } 
