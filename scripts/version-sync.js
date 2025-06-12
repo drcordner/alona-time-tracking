@@ -39,22 +39,31 @@ try {
         console.error(`❌ Error updating manifest.json: ${error.message}`);
     }
     
-    // 2. Update service worker cache version
-    try {
+    // 2. Update service worker from template
+    const updateServiceWorker = (versionNumber) => {
+        const swTemplatePath = 'sw-template.js';
         const swPath = 'sw.js';
-        let swContent = fs.readFileSync(swPath, 'utf8');
         
-        // Use regex to update the CACHE_VERSION constant
-        swContent = swContent.replace(
-            /const CACHE_VERSION = ['"]v[\d\.]+[^'"]*['"]/,
-            `const CACHE_VERSION = '${cacheVersion}'`
-        );
-        
-        fs.writeFileSync(swPath, swContent);
-        console.log(`✅ Updated service worker cache version to ${cacheVersion}`);
-    } catch (error) {
-        console.error(`❌ Error updating service worker: ${error.message}`);
-    }
+        try {
+            // Read template
+            let swContent = fs.readFileSync(swTemplatePath, 'utf8');
+            
+            // Generate cache version string
+            const cacheVersion = `v${versionNumber}-auto-version`;
+            
+            // Replace placeholder with actual version
+            swContent = swContent.replace('{{CACHE_VERSION}}', cacheVersion);
+            
+            // Write to actual service worker file
+            fs.writeFileSync(swPath, swContent);
+            console.log(`✅ Updated service worker to version ${versionNumber}`);
+        } catch (error) {
+            console.error(`❌ Error updating service worker: ${error.message}`);
+        }
+    };
+
+    // Add to main sync function
+    updateServiceWorker(versionNumber);
     
     console.log('🎉 Version synchronization complete!');
 } catch (error) {

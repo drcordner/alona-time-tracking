@@ -10,13 +10,19 @@
     "version-check": "node -e \"const v=require('./version.json'); console.log('Current version:', v.versionNumber)\"",
     "version-sync": "node scripts/version-sync.js",
     "version-scan": "node scripts/version-scan.js",
-    "prebuild": "npm run version-sync",
+    "workbox:inject": "workbox injectManifest workbox-config.js",
+    "prebuild": "npm run version-sync && npm run workbox:inject",
     "prepublish": "npm run version-sync"
   },
   "keywords": ["time-tracking", "productivity", "goals"],
   "author": "Time Tracker Development Team",
   "license": "MIT",
-  "devDependencies": {},
+  "devDependencies": {
+    "workbox-core": "^6.4.1",
+    "workbox-routing": "^6.4.1",
+    "workbox-strategies": "^6.4.1",
+    "workbox-precaching": "^6.4.1"
+  },
   "engines": {
     "node": ">=14.0.0"
   }

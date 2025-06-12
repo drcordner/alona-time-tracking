@@ -236,6 +236,16 @@ runner.test('Cursor rules file exists and has version management section', async
     runner.assertTrue(cursorrules.includes('version numbers consistent'), 'Cursor rules emphasize version consistency');
 });
 
+runner.test('service worker version matches app version', async () => {
+    const versionData = runner.readJSON('version.json');
+    const swContent = runner.readFile('sw.js');
+    const cacheVersionMatch = swContent.match(/const CACHE_VERSION = ['"]([^'"]+)['"]/);
+    runner.assertTrue(
+        cacheVersionMatch && cacheVersionMatch[1].includes(versionData.versionNumber),
+        'Service worker cache version should match app version'
+    );
+});
+
 // Run all tests
 runner.run().catch(error => {
     console.error('Test runner failed:', error);
