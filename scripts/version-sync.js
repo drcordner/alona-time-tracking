@@ -12,6 +12,13 @@ try {
     const versionNumber = versionData.versionNumber;
     const fullVersion = versionData.version;
     
+    // Update timestamp to current time
+    versionData.timestamp = new Date().toISOString();
+    
+    // Write updated version.json back
+    fs.writeFileSync('version.json', JSON.stringify(versionData, null, 4));
+    console.log(`✅ Updated version.json timestamp to ${versionData.timestamp}`);
+    
     console.log(`📦 Found version: ${versionNumber} (${fullVersion})`);
     
     // Generate cache version string for service worker
