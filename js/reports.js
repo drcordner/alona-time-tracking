@@ -1,6 +1,8 @@
 // Enhanced Reports Module with Charts and Analytics
 import { formatTime } from './utils.js';
 
+import { getVersionNumber } from './version-loader.js';
+
 export class Reports {
     constructor(storage, getCategories, getGoalsSummary) {
         this.storage = storage;
@@ -1081,7 +1083,7 @@ export class Reports {
             categories: this.reportData,
             summary: this.generateReportSummary(),
             exportedAt: new Date().toISOString(),
-            version: "1.3.0"
+            version: getVersionNumber()
         };
 
         // Generate filename

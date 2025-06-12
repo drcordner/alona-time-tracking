@@ -1,5 +1,6 @@
 // Category & Activity Management Module
 import { categories as defaultCategories, activityEmojis } from './data.js';
+import { getVersionInfo, getFullVersion, getVersionNumber } from './version-loader.js';
 
 export class Management {
     constructor(storage) {
@@ -20,16 +21,21 @@ export class Management {
         this.loadSettings();
     }
 
-    // Load version information from version.json
+    // Load version information using centralized version-loader
     async loadVersionInfo() {
         try {
-            const response = await fetch('version.json');
-            const versionData = await response.json();
+            // Use already loaded version info from version-loader
+            const versionData = getVersionInfo();
             console.log('Management: Version info loaded:', versionData);
             return versionData;
         } catch (error) {
             console.log('Management: Version info loading failed, using fallback');
-            return { versionNumber: '5.3.0', description: 'Elegant Cache Busting Solution' };
+            // Even the fallback uses version-loader, ensuring consistency
+            return {
+                versionNumber: getVersionNumber(),
+                version: getFullVersion(),
+                description: getFullVersion().split(' - ')[1] || 'Time Tracking Application'
+            };
         }
     }
 
@@ -56,8 +62,9 @@ export class Management {
         if (stored) {
             this.settings = stored;
             // Check for version updates and migrate if needed
-            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes" || this.settings.version === "5.1.3 - Bug Fixes & Enhancements" || this.settings.version === "5.1.4 - Enhanced Emoji Picker" || this.settings.version === "5.1.4+ - Streak Calculation Fix") {
-                this.settings.version = this.versionInfo?.version || "5.3.0 - Elegant Cache Busting Solution";
+            // Simplified check - if version doesn't match current, update it
+            if (!this.settings.version || this.settings.version !== getFullVersion()) {
+                this.settings.version = this.versionInfo?.version || getFullVersion();
                 this.saveSettings();
                 console.log('Management: Updated version to', this.settings.version);
             }
@@ -969,12 +976,12 @@ export class Management {
 
     // Get app version for use by other modules
     getAppVersion() {
-        return this.versionInfo?.version || "5.3.0 - Elegant Cache Busting Solution";
+        return this.versionInfo?.version || getFullVersion();
     }
 
     // Get version info object
     getVersionInfo() {
-        return this.versionInfo;
+        return this.versionInfo || getVersionInfo();
     }
 
     // Update only the categories display without affecting modals
@@ -1318,7 +1325,7 @@ export class Management {
             goalsEnabled: true,
             quickStartCount: 6,
             sessionRetentionDays: 60,
-            version: this.versionInfo?.version || "5.3.0 - Elegant Cache Busting Solution"
+            version: this.versionInfo?.version || getFullVersion()
         };
     }
 

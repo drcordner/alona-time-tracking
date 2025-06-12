@@ -1,5 +1,6 @@
 // Main app coordinator
-console.log('🚀 NEW APP.JS LOADED - TIMESTAMP:', Date.now(), 'Version: 5.2.6-dev-fix');
+import { getFullVersion } from './version-loader.js';
+console.log('🚀 NEW APP.JS LOADED - TIMESTAMP:', Date.now(), `Version: ${getFullVersion()}`);
 console.log('🔧 Global assignments should happen AFTER initialization');
 
 import { categories as defaultCategories, activityEmojis } from './data.js';

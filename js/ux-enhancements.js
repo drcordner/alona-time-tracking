@@ -1,4 +1,6 @@
 // UX Enhancements Module
+import { getVersionInfo, getVersionNumber, getFullVersion } from './version-loader.js';
+
 export class UXEnhancements {
     constructor(app) {
         this.app = app;
@@ -199,10 +201,10 @@ export class UXEnhancements {
             return;
         }
 
-        // Get current version from management module
-        const versionInfo = window.management ? window.management.getVersionInfo() : null;
-        const currentVersion = versionInfo ? versionInfo.version : "5.1.6 - UI/UX Improvements & Comprehensive Help Update";
-        const versionNumber = versionInfo ? versionInfo.versionNumber : "5.1.6";
+        // Get current version from central version-loader
+        const versionInfo = getVersionInfo();
+        const currentVersion = getFullVersion();
+        const versionNumber = getVersionNumber();
 
         const helpContent = `
             <div class="help-modal modal-overlay fade-in" onclick="this.remove()">

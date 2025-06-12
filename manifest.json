@@ -1,7 +1,7 @@
 {
   "name": "Time Tracker - Activity & Goals Management",
   "short_name": "TimeTracker",
-  "version": "5.1.5",
+  "version": "5.3.4",
   "description": "Track your time across activities and achieve your goals with beautiful analytics and insights.",
   "start_url": "/",
   "display": "standalone",
@@ -10,7 +10,11 @@
   "theme_color": "#4A90E2",
   "scope": "/",
   "lang": "en",
-  "categories": ["productivity", "lifestyle", "health"],
+  "categories": [
+    "productivity",
+    "lifestyle",
+    "health"
+  ],
   "screenshots": [
     {
       "src": "images/screenshot-wide.png",
@@ -20,7 +24,7 @@
       "label": "Time Tracker Dashboard"
     },
     {
-      "src": "images/screenshot-narrow.png", 
+      "src": "images/screenshot-narrow.png",
       "sizes": "640x1136",
       "type": "image/png",
       "form_factor": "narrow",
@@ -36,7 +40,7 @@
     },
     {
       "src": "images/icon-96x96.png",
-      "sizes": "96x96", 
+      "sizes": "96x96",
       "type": "image/png",
       "purpose": "maskable any"
     },
@@ -77,4 +81,4 @@
       "purpose": "maskable any"
     }
   ]
-} 
+}

@@ -1,5 +1,8 @@
 // Time Tracker Service Worker - Simplified for reliable updates
-const CACHE_VERSION = 'v5.3.3-sw-fix';
+// NOTE: This version string is managed during build/deployment
+// For development, it's manually synced with version.json
+// For production, it's automatically updated by the build process
+const CACHE_VERSION = 'v5.3.4-auto-version';
 const STATIC_CACHE = `time-tracker-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `time-tracker-runtime-${CACHE_VERSION}`;
 
@@ -12,7 +15,7 @@ const CORE_FILES = [
 
 // Install event - cache only core files
 self.addEventListener('install', event => {
-  console.log('[SW] Installing service worker v5.3.3-sw-fix...');
+  console.log(`[SW] Installing service worker ${CACHE_VERSION}...`);
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
@@ -32,7 +35,7 @@ self.addEventListener('install', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating service worker v5.3.3-sw-fix...');
+  console.log(`[SW] Activating service worker ${CACHE_VERSION}...`);
   
   event.waitUntil(
     Promise.all([

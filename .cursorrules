@@ -47,11 +47,20 @@
 - **RUN** `npm test` to verify version consistency
 - **DEPLOY** to staging then production
 
-## Service Worker Cache Management (CRITICAL NEW RULE - v5.3.2)
-- **🚨 MANDATORY**: Service worker CACHE_VERSION MUST be updated whenever app version changes
-- **NAMING CONVENTION**: Use format `vX.Y.Z-descriptive-suffix` (e.g., `v5.3.2-cache-fix`)
-- **SYNCHRONIZATION CHECK**: Verify CACHE_VERSION matches version.json before ANY deployment
-- **CONSOLE LOGS**: Update all service worker console.log messages to reflect new version
+## Version Synchronization (CRITICAL - v5.3.4)
+- **🚨 SINGLE SOURCE OF TRUTH**: `version.json` is the ONLY place to update version numbers
+- **AUTOMATIC SYNCHRONIZATION**: Run `npm run version-sync` to update all version references
+- **VERSION FORMAT**: Always use `X.Y.Z` format in `versionNumber` field (e.g., "5.3.4")
+- **FULL VERSION**: Include descriptive suffix in `version` field (e.g., "5.3.4 - Version Sync System")
+- **FILES UPDATED**: The sync script automatically updates `manifest.json`, `sw.js`, and cache versions
+- **VERIFICATION**: Run `npm test` to verify version consistency across all files
+- **PREVENTION**: This system prevents inconsistent versions across different files
+
+## Service Worker Cache Management (CRITICAL RULE - v5.3.2)
+- **🚨 AUTOMATIC**: Service worker CACHE_VERSION is now updated automatically by version-sync.js
+- **NAMING CONVENTION**: Format `vX.Y.Z-auto-version` is generated automatically
+- **VERIFICATION**: Run `npm test` to verify CACHE_VERSION matches version.json
+- **CONSOLE LOGS**: Service worker logs now use the ${CACHE_VERSION} variable
 - **TESTING REQUIREMENT**: Verify cache invalidation works by checking all files update together
 - **DOCUMENTATION**: Always document service worker changes in version.json filesModified
 - **PREVENTION**: This rule prevents partial deployments and mixed app states

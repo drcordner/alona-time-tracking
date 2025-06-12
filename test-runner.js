@@ -91,6 +91,33 @@ runner.test('version.json exists and is valid', async () => {
     runner.assertTrue(versionData.timestamp, 'Timestamp field exists');
 });
 
+runner.test('package.json version matches version.json', async () => {
+    const versionData = runner.readJSON('version.json');
+    const packageData = runner.readJSON('package.json');
+    runner.assertEqual(packageData.version, versionData.versionNumber, 'Package version should match version.json');
+});
+
+runner.test('manifest.json version matches version.json', async () => {
+    const versionData = runner.readJSON('version.json');
+    const manifestData = runner.readJSON('manifest.json');
+    runner.assertEqual(manifestData.version, versionData.versionNumber, 'Manifest version should match version.json');
+});
+
+runner.test('service worker cache version contains correct version number', async () => {
+    const versionData = runner.readJSON('version.json');
+    const swContent = runner.readFile('sw.js');
+    
+    // Extract CACHE_VERSION value using regex
+    const cacheVersionMatch = swContent.match(/const CACHE_VERSION = ['"]([^'"]+)['"]/);
+    runner.assertTrue(cacheVersionMatch && cacheVersionMatch[1], 'CACHE_VERSION should be defined in sw.js');
+    
+    const cacheVersion = cacheVersionMatch[1];
+    runner.assertTrue(
+        cacheVersion.includes(versionData.versionNumber),
+        `Cache version (${cacheVersion}) should include version number (${versionData.versionNumber})`
+    );
+});
+
 runner.test('HTML version references match version.json', async () => {
     const versionData = runner.readJSON('version.json');
     const htmlContent = runner.readFile('index.html');
