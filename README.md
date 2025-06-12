@@ -1,8 +1,8 @@
-# 🕐 Alona's Time Tracker - Enhanced v5.1.0
+# 🕐 Alona's Time Tracker - Enhanced v5.3.3
 
 **A comprehensive Progressive Web App for activity tracking, goals management, and detailed analytics.**
 
-![Time Tracker](https://img.shields.io/badge/Version-5.1.0-blue.svg) 
+![Time Tracker](https://img.shields.io/badge/Version-5.3.3-blue.svg) 
 ![PWA](https://img.shields.io/badge/PWA-Ready-brightgreen.svg)
 ![Mobile](https://img.shields.io/badge/Mobile-Optimized-orange.svg)
 
@@ -16,10 +16,10 @@
 - `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog
 
 ## 🎯 **Current Status**
-- **Version**: 5.1.4+ (Streak calculation fix)
-- **Phase**: Completed Phase 6, Ready for Phase 7
+- **Version**: 5.3.3 (Service Worker Fix & Enhanced Cache Management)
+- **Phase**: Completed Phase 7
 - **Deployed**: ✅ Live on Netlify
-- **Architecture**: Vanilla JS PWA with design token system
+- **Architecture**: Vanilla JS PWA with design token system and cache busting
 
 ## 🌟 **Features**
 
@@ -118,37 +118,56 @@ alona-time-tracking/
 
 ## 🎯 **Version History**
 
-### **v5.1.0 - UX Polish (Current)**
+### **v5.3.3 - Service Worker Fix & Enhanced Cache Management (Current)**
+- Re-enabled service worker registration
+- Enhanced Check for Updates with version checking
+- Added Nuclear Cache Reset for stubborn cache issues
+- Improved PWA support with aggressive cache management
+- Better cache clearing that preserves user data
+
+### **v5.3.2 - Cache Fix & Data Recovery**
+- Service worker cache version synchronization
+- Enhanced data recovery with intelligent error handling
+- Better category rename error handling
+- Consistent cache busting across all app files
+- Eliminated false positive error messages
+
+### **v5.3.1 - UX Consistency & Menu Improvements**
+- Three-dot menu standardization across interfaces
+- Enhanced mobile experience with proper touch targets
+- Fixed menu truncation issues with proper z-index management
+- Better activity time display and spacing
+- Goals section properly respects user settings
+
+### **v5.3.0 - Elegant Cache Busting Solution**
+- Revolutionary central cache busting system
+- ES6 module system overhaul
+- Dynamic resource loading with environment detection
+- App architecture enhancement
+- Beautiful loading screen and improved performance
+
+### **v5.2.1 - Edit Dialog Bug Fixes**
+- Fixed auto-save closing edit dialogs prematurely
+- Fixed cross-screen updates and display refreshing
+- Enhanced update synchronization across all views
+- Improved state preservation during editing
+
+### **v5.2.0 - Enhanced Management Interface**
+- Redesigned management screens with three-dot menus
+- Improved category and activity management
+- Better mobile responsiveness and touch interactions
+- Enhanced settings organization and controls
+
+### **v5.1.4+ - Streak Calculation Fix**
+- Fixed calculations for activity streaks
+- Improved goal tracking accuracy
+
+### **v5.1.0 - UX Polish**
 - Enhanced accessibility and keyboard shortcuts
 - Mobile touch interactions and gestures
 - Performance optimizations and loading states
 - Comprehensive help system
 - PWA installation prompts
-
-### **v5.0.0 - Phase 4: Interactive Reports**
-- Interactive pie/bar charts with drill-down
-- Individual session timeline tracking
-- Compact mobile-optimized layouts
-- Goals integration in reports
-
-### **v4.0.0 - Phase 3: Enhanced Reports**
-- Advanced analytics and visualizations
-- Multi-period reporting (day/week/month)
-- Activity rankings and insights
-
-### **v3.0.0 - Phase 2: Goals System**
-- Goal creation and management
-- Progress tracking and analytics
-- Smart goal suggestions
-
-### **v2.0.0 - Phase 1: Core Enhancement**
-- Modular JavaScript architecture
-- Enhanced UI/UX design
-- Data persistence and recovery
-
-### **v1.0.0 - Initial Release**
-- Basic time tracking functionality
-- Simple category-based organization
 
 ## 📚 **Quick Documentation Access**
 
@@ -158,40 +177,6 @@ Core project documentation for development context:
 - `docs/development/CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
 - `docs/deployment/DEPLOYMENT.md` - Deployment status and procedures
 - `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog
-
-## 🎯 **Version History**
-
-### **v5.1.0 - UX Polish (Current)**
-- Enhanced accessibility and keyboard shortcuts
-- Mobile touch interactions and gestures
-- Performance optimizations and loading states
-- Comprehensive help system
-- PWA installation prompts
-
-### **v5.0.0 - Phase 4: Interactive Reports**
-- Interactive pie/bar charts with drill-down
-- Individual session timeline tracking
-- Compact mobile-optimized layouts
-- Goals integration in reports
-
-### **v4.0.0 - Phase 3: Enhanced Reports**
-- Advanced analytics and visualizations
-- Multi-period reporting (day/week/month)
-- Activity rankings and insights
-
-### **v3.0.0 - Phase 2: Goals System**
-- Goal creation and management
-- Progress tracking and analytics
-- Smart goal suggestions
-
-### **v2.0.0 - Phase 1: Core Enhancement**
-- Modular JavaScript architecture
-- Enhanced UI/UX design
-- Data persistence and recovery
-
-### **v1.0.0 - Initial Release**
-- Basic time tracking functionality
-- Simple category-based organization
 
 ## 📋 **Project Documentation**
 
@@ -236,9 +221,9 @@ A beautiful, responsive Progressive Web App for time tracking with goals, catego
 - `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog
 
 ## 🎯 **Current Status**
-- **Version**: 5.1.4+ (Streak calculation fix)
-- **Phase**: Completed Phase 6, Ready for Phase 7
-- **Architecture**: Vanilla JS PWA with design token system
+- **Version**: 5.3.3 (Service Worker Fix & Enhanced Cache Management)
+- **Phase**: Completed Phase 7
+- **Architecture**: Vanilla JS PWA with design token system and cache busting
 - **Deployment**: 🚀 **NEW: Staging/Production Pipeline Active**
 
 ## 🚀 **New Deployment Pipeline**

@@ -42,6 +42,7 @@
 - **UPDATE** `version.json` with new version and ALL accumulated changes
 - **UPDATE** `docs/project-management/RELEASE_NOTES.md` with comprehensive changelog
 - **UPDATE** `docs/development/LESSONS_LEARNED.md` if fixing bugs or issues
+- **UPDATE** `README.md` with correct version number and version history
 - **CLEAR** "Current Development Cycle" and start new section in development changelog
 - **RUN** `npm test` to verify version consistency
 - **DEPLOY** to staging then production
@@ -209,17 +210,18 @@ When user requests "publish to staging and production":
 4. ✅ **🚨 CRITICAL: Service worker console.log messages reflect new version**
 5. ✅ Release notes updated in RELEASE_NOTES.md
 6. ✅ Lessons learned updated (if applicable)
-7. ✅ **Development changelog cleared and reset**
-8. ✅ `npm test` passes (version consistency verified)
-9. ✅ Tested locally in incognito browser
-10. ✅ Console shows no errors
-11. ✅ All major features work (Home, Reports, Management, Timer)
-12. ✅ Tested category/activity editing thoroughly (if applicable)
-13. ✅ Tested on mobile
-14. ✅ Cross-browser testing completed
-15. ✅ Staging deployment successful
-16. ✅ **Cache invalidation verified - all files update together**
-17. ✅ Ready for production deployment
+7. ✅ **README.md version number and history updated**
+8. ✅ **Development changelog cleared and reset**
+9. ✅ `npm test` passes (version consistency verified)
+10. ✅ Tested locally in incognito browser
+11. ✅ Console shows no errors
+12. ✅ All major features work (Home, Reports, Management, Timer)
+13. ✅ Tested category/activity editing thoroughly (if applicable)
+14. ✅ Tested on mobile
+15. ✅ Cross-browser testing completed
+16. ✅ Staging deployment successful
+17. ✅ **Cache invalidation verified - all files update together**
+18. ✅ Ready for production deployment
 
 ## Publication Command Pattern
 When user says "publish to staging and production":

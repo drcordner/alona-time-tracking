@@ -9,6 +9,7 @@ This file tracks all key project documents to prevent duplication and ensure con
 | **Lessons Learned** | `docs/development/LESSONS_LEARNED.md` | **SINGLE SOURCE** - All development and deployment lessons, patterns, and solutions | ✅ Active |
 | **Development Changelog** | `docs/development/DEVELOPMENT_CHANGELOG.md` | Track changes during current development cycle before consolidation | ✅ Active |
 | **Cursor Rules** | `.cursorrules` | Development rules, workflow, and consistency requirements | ✅ Active |
+| **README** | `README.md` | Project overview, features, version history, and setup instructions | ✅ Active |
 
 ## Project Management
 
@@ -43,6 +44,7 @@ This file tracks all key project documents to prevent duplication and ensure con
 - **Lessons Learned**: `docs/development/LESSONS_LEARNED.md` (only one)
 - **Current Changes**: `docs/development/DEVELOPMENT_CHANGELOG.md` 
 - **Release History**: `docs/project-management/RELEASE_NOTES.md`
+- **Project Overview**: `README.md` (must be updated with current version)
 
 ### ❌ **Never Create These**
 - Multiple lessons learned files
