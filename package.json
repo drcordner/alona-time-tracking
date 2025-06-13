@@ -1,6 +1,6 @@
 {
   "name": "alona-time-tracker",
-  "version": "5.3.4",
+  "version": "5.3.5",
   "description": "A beautiful time tracking app with goals and analytics",
   "type": "module",
   "scripts": {

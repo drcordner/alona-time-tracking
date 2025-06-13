@@ -1,7 +1,7 @@
 {
   "name": "Time Tracker - Activity & Goals Management",
   "short_name": "TimeTracker",
-  "version": "5.3.4",
+  "version": "5.3.5",
   "description": "Track your time across activities and achieve your goals with beautiful analytics and insights.",
   "start_url": "/",
   "display": "standalone",
