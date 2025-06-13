@@ -111,8 +111,15 @@ export class Management {
         if (key === 'appTitle') {
             this.updateAppTitle();
         } else if (key === 'goalsEnabled') {
-            // Handle goals toggle change
             this.handleGoalsToggle(value);
+        } else if (key === 'featureFlags.enhanced_timer') {
+            if (!this.settings.featureFlags) this.settings.featureFlags = {};
+            this.settings.featureFlags.enhanced_timer = value;
+            this.saveSettings();
+            // Optionally, show feedback
+            this.showToast(value ? 'Enhanced Timer enabled!' : 'Enhanced Timer disabled', value ? 'success' : 'info');
+            // Re-render management/settings to reflect change
+            this.renderManagementScreen();
         }
         
         console.log('Management: updateSetting completed');
@@ -373,6 +380,21 @@ export class Management {
                             <p class="setting-description">
                                 Enable goal setting and progress tracking features. 
                                 ${this.settings.goalsEnabled ? 'Goals will appear on the home screen and in reports.' : 'Goal features will be hidden throughout the app.'}
+                            </p>
+                        </div>
+                        <div class="setting-item">
+                            <div class="setting-toggle">
+                                <label for="enhanced-timer-toggle">Enhanced Timer (Shoelace UI)</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox"
+                                           id="enhanced-timer-toggle"
+                                           ${this.settings.featureFlags && this.settings.featureFlags.enhanced_timer ? 'checked' : ''}
+                                           onchange="management.updateSetting('featureFlags.enhanced_timer', this.checked)">
+                                    <span class="toggle-slider" onclick="document.getElementById('enhanced-timer-toggle').click()"></span>
+                                </div>
+                            </div>
+                            <p class="setting-description">
+                                Enable the new Shoelace-based enhanced timer with advanced editing and adjustment features. (Vibe Coding Philosophy)
                             </p>
                         </div>
                     </div>
@@ -1325,7 +1347,8 @@ export class Management {
             goalsEnabled: true,
             quickStartCount: 6,
             sessionRetentionDays: 60,
-            version: this.versionInfo?.version || getFullVersion()
+            version: this.versionInfo?.version || getFullVersion(),
+            featureFlags: { enhanced_timer: false } // Add enhanced_timer flag
         };
     }
 

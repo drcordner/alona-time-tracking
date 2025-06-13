@@ -1,7 +1,7 @@
 # Time Tracker Development Rules
 
 ## CRITICAL: Always Review Lessons Learned (NEW RULE)
-- **BEFORE making ANY changes**, read `docs/development/LESSONS_LEARNED.md`
+- **BEFORE making ANY changes**, read `docs/lessons_learned.md`
 - **ALWAYS** consider patterns and mistakes from previous development
 - **IMPLEMENT** established best practices for validation, error handling, and data integrity
 - **ADD NEW LESSONS** to the file when discovering issues or implementing fixes
@@ -9,7 +9,7 @@
 - **FOLLOW** testing checklists and development guidelines in lessons learned
 
 ## CRITICAL: Document Management Consistency (NEW RULE)
-- **SINGLE SOURCE OF TRUTH**: `docs/development/LESSONS_LEARNED.md` is the ONLY lessons learned file
+- **SINGLE SOURCE OF TRUTH**: `docs/lessons_learned.md` is the ONLY lessons learned file
 - **BEFORE CREATING** any new documentation file, CHECK if one already exists
 - **SEARCH PROJECT** for existing documents before creating duplicates
 - **MERGE CONTENT** into existing files rather than creating new ones
@@ -31,7 +31,7 @@
 ### Keep version numbers consistent across all files
 ### During Development (Local Testing)
 - **NEVER** increment version numbers during local development/testing
-- **TRACK ALL CHANGES** in `docs/development/DEVELOPMENT_CHANGELOG.md`
+- **TRACK ALL CHANGES** in `docs/development_changelog.md`
 - **USE CURRENT VERSION** (5.3.0) for all local testing
 - **DOCUMENT** issues being worked on and investigation findings
 - **ADD** all modifications to "Current Development Cycle" section
@@ -40,8 +40,8 @@
 - **REVIEW** all accumulated changes in development changelog
 - **CHOOSE** appropriate version increment (patch/minor/major)
 - **UPDATE** `version.json` with new version and ALL accumulated changes
-- **UPDATE** `docs/project-management/RELEASE_NOTES.md` with comprehensive changelog
-- **UPDATE** `docs/development/LESSONS_LEARNED.md` if fixing bugs or issues
+- **UPDATE** `docs/release_notes.md` with comprehensive changelog
+- **UPDATE** `docs/lessons_learned.md` if fixing bugs or issues
 - **UPDATE** `README.md` with correct version number and version history
 - **CLEAR** "Current Development Cycle" and start new section in development changelog
 - **RUN** `npm test` to verify version consistency
@@ -100,15 +100,20 @@
 
 ## Documentation Requirements (CRITICAL)
 ### During Development
-- **ALWAYS** update `docs/development/DEVELOPMENT_CHANGELOG.md` for any changes
+- **ALWAYS** update `docs/development_changelog.md` for any changes
 - **TRACK** all issues, investigation notes, and modifications
 - **DOCUMENT** debugging findings and solution attempts
+- **FOLLOW** formatting rules from DOCUMENTATION_RULES.md
+- **USE** established emoji patterns for better readability
+- **ARCHIVE** old documentation according to rules
 
 ### Ready for Deployment
 - **CONSOLIDATE** all development changelog items into version.json
-- **UPDATE** `docs/project-management/RELEASE_NOTES.md` with comprehensive details
-- **UPDATE** `docs/development/LESSONS_LEARNED.md` for any bug fixes or learnings
+- **UPDATE** `docs/release_notes.md` with comprehensive details
+- **UPDATE** `docs/lessons_learned.md` for any bug fixes or learnings
 - **CLEAR** development changelog and prepare for next cycle
+- **ARCHIVE** old documentation in appropriate directories
+- **VERIFY** all documentation follows established rules
 
 ## Data Integrity & Validation Rules (FROM LESSONS LEARNED)
 - **ALWAYS** validate input at multiple levels: Client-side, function-level, and storage-level
@@ -136,13 +141,13 @@
 ## Complete Publication Workflow (MANDATORY)
 When user requests "publish to staging and production":
 1. **Consolidate Development Changes:**
-   - Review all items in `DEVELOPMENT_CHANGELOG.md`
+   - Review all items in `development_changelog.md`
    - Choose appropriate version increment
    - Update `version.json` with new version and all accumulated features/fixes
 
 2. **Update Documentation:**
-   - Add comprehensive entry to `RELEASE_NOTES.md`
-   - Add entry to `LESSONS_LEARNED.md` if fixing bugs or issues
+   - Add comprehensive entry to `release_notes.md`
+   - Add entry to `lessons_learned.md` if fixing bugs or issues
    - Clear development changelog and start new cycle
 
 3. **Deploy:**
@@ -202,11 +207,11 @@ When user requests "publish to staging and production":
 - If production breaks: **immediately test locally first**
 - If console errors: **fix JavaScript before deployment attempts**
 - If deployment issues: **use simple git commands only**
-- Document all emergency actions taken in LESSONS_LEARNED.md
+- Document all emergency actions taken in lessons_learned.md
 
 ## Development Cycle Checklist (FOR LOCAL DEVELOPMENT)
 1. ✅ **Reviewed lessons learned for relevant patterns and best practices**
-2. ✅ **Updated DEVELOPMENT_CHANGELOG.md with current issues/changes**
+2. ✅ **Updated development_changelog.md with current issues/changes**
 3. ✅ Tested locally (version numbers unchanged)
 4. ✅ Console shows no errors
 5. ✅ Major functionality works as expected
@@ -217,7 +222,7 @@ When user requests "publish to staging and production":
 2. ✅ **Version incremented appropriately in version.json**
 3. ✅ **🚨 CRITICAL: Service worker CACHE_VERSION updated to match app version**
 4. ✅ **🚨 CRITICAL: Service worker console.log messages reflect new version**
-5. ✅ Release notes updated in RELEASE_NOTES.md
+5. ✅ Release notes updated in release_notes.md
 6. ✅ Lessons learned updated (if applicable)
 7. ✅ **README.md version number and history updated**
 8. ✅ **Development changelog cleared and reset**
@@ -231,6 +236,10 @@ When user requests "publish to staging and production":
 16. ✅ Staging deployment successful
 17. ✅ **Cache invalidation verified - all files update together**
 18. ✅ Ready for production deployment
+19. ✅ **Documentation follows DOCUMENTATION_RULES.md standards**
+20. ✅ **Old documentation properly archived**
+21. ✅ **All documentation links verified**
+22. ✅ **Emoji usage consistent across all documents**
 
 ## Publication Command Pattern
 When user says "publish to staging and production":
@@ -250,4 +259,40 @@ git push origin main:production
 
 # 5. Verify production
 # Visit: https://alonastimetracking.netlify.app/
-``` 
+```
+
+## CRITICAL: Project Structure Rule (NEW)
+- **ALL code, assets, and documentation must be contained within the `alona-time-tracking` directory.**
+- **No files or folders should exist in the project root except for project-level config (e.g., .vscode, package.json, README.md, node_modules).**
+- **If you find any code, CSS, JS, or docs outside `alona-time-tracking`, move them immediately and update all import paths.**
+
+## Deployment History and Future Enhancements
+- **Deployment History**: Must be recorded ONLY in `docs/release_notes.md`. Do NOT duplicate in `deployment.md` or other docs.
+- **Future Enhancements/Backlog**: Track all future enhancements and backlog items in the backlog section of `release_notes.md` or a dedicated `BACKLOG.md` file. Do NOT leave in deployment docs.
+- **Versioning**: All version references must use `version.json` as the single source of truth. 
+
+## Design Rule: Shoelace and UI Simplicity
+- Default to plain HTML/CSS/JS for all new features and UI.
+- Shoelace (or any component library) may be used for non-core, non-interactive, or "nice-to-have" UI elements (e.g., toasts, alerts, modals) only after explicit discussion and agreement.
+- All core, interactive, and timer-related UI should be implemented in plain HTML/CSS/JS for maximum simplicity, testability, and explicitness. 
+
+## CRITICAL: Documentation Process Rules (NEW RULE)
+- **FOLLOW DOCUMENTATION_RULES.md**: All documentation must adhere to the standards in `docs/DOCUMENTATION_RULES.md`
+- **DAILY UPDATES**: Update `development_changelog.md` at least once per day during active development
+- **ARCHIVING**: Archive old documentation according to the rules in `DOCUMENTATION_RULES.md`
+- **VERSION TRACKING**: All documentation must reflect current version numbers
+- **EMOJI USAGE**: Follow established emoji patterns for better readability
+- **FORMATTING**: Use consistent markdown formatting across all documents
+
+### Documentation Update Triggers
+- **CODE CHANGES**: Update changelog immediately after any code modification
+- **BUG FIXES**: Document in both changelog and lessons_learned.md
+- **NEW FEATURES**: Update changelog, backlog, and release notes
+- **DEPLOYMENTS**: Update release notes and archive old documentation
+- **LEARNINGS**: Document immediately in lessons_learned.md
+
+### Documentation Quality Checks
+- **BEFORE COMMIT**: Verify documentation is updated and follows rules
+- **BEFORE RELEASE**: Complete documentation checklist from PROJECT_DOCUMENTS.md
+- **AFTER RELEASE**: Archive old documentation and verify links
+- **WEEKLY**: Review all documentation for consistency and completeness 

@@ -1,60 +1,112 @@
-# Project Documents Inventory
+# 📚 Project Documents
 
-This file tracks all key project documents to prevent duplication and ensure consistency.
+This document provides an overview of all project documentation and their purposes.
 
-## Development Documentation
+## 📋 Core Documentation
 
-| Document | Location | Purpose | Status |
-|----------|----------|---------|---------|
-| **Lessons Learned** | `docs/development/LESSONS_LEARNED.md` | **SINGLE SOURCE** - All development and deployment lessons, patterns, and solutions | ✅ Active |
-| **Development Changelog** | `docs/development/DEVELOPMENT_CHANGELOG.md` | Track changes during current development cycle before consolidation | ✅ Active |
-| **Cursor Rules** | `.cursorrules` | Development rules, workflow, and consistency requirements | ✅ Active |
-| **README** | `README.md` | Project overview, features, version history, and setup instructions | ✅ Active |
+| Document | Purpose | Location | Last Updated |
+|----------|---------|----------|--------------|
+| README.md | Project overview, setup, and quick start | Root | v5.3.4 |
+| deployment.md | Deployment instructions and procedures | docs/ | v5.3.4 |
+| deployment_strategy.md | Deployment strategy and best practices | docs/ | v5.3.4 |
+| lessons_learned.md | Development insights and best practices | docs/ | v5.3.4 |
+| development_changelog.md | Current development cycle tracking | docs/ | v5.3.4 |
+| backlog.md | Feature backlog and planning | docs/ | v5.3.4 |
+| release_notes.md | Release history and changes | docs/ | v5.3.4 |
+| DOCUMENTATION_RULES.md | Documentation standards and processes | docs/ | v5.3.4 |
 
-## Project Management
+## 📝 Single Sources of Truth
 
-| Document | Location | Purpose | Status |
-|----------|----------|---------|---------|
-| **Release Notes** | `docs/project-management/RELEASE_NOTES.md` | Comprehensive changelog for all versions | ✅ Active |
-| **Version Info** | `version.json` | Single source of truth for current version and features | ✅ Active |
+The following documents are considered single sources of truth and must be kept up to date:
 
-## Testing & Quality
+1. **README.md**
+   - Project overview
+   - Setup instructions
+   - Version history
+   - Quick start guide
 
-| Document | Location | Purpose | Status |
-|----------|----------|---------|---------|
-| **Test Runner** | `test-runner.js` | Automated testing for version consistency and file structure | ✅ Active |
-| **Package Info** | `package.json` | NPM package configuration and test scripts | ✅ Active |
+2. **deployment.md**
+   - Deployment procedures
+   - Environment setup
+   - Configuration details
 
-## Rules for Document Management
+3. **deployment_strategy.md**
+   - Deployment strategy
+   - Best practices
+   - Rollback procedures
 
-### ✅ **Before Creating ANY Document**
-1. **Search this inventory** to see if document type already exists
-2. **Use file_search tool** to verify no duplicates exist
-3. **Check all docs/ subdirectories** thoroughly
-4. **Update this inventory** when adding new documents
+4. **lessons_learned.md**
+   - Development insights
+   - Best practices
+   - Common pitfalls
 
-### ✅ **When Finding Duplicates**
-1. **Merge content** into the existing document
-2. **Delete the duplicate** file
-3. **Update all references** in other files
-4. **Update this inventory** to reflect changes
+5. **development_changelog.md**
+   - Current development cycle
+   - In-progress changes
+   - Recent fixes
 
-### ✅ **Single Sources of Truth**
-- **Version Information**: `version.json` (not hardcoded anywhere else)
-- **Lessons Learned**: `docs/development/LESSONS_LEARNED.md` (only one)
-- **Current Changes**: `docs/development/DEVELOPMENT_CHANGELOG.md` 
-- **Release History**: `docs/project-management/RELEASE_NOTES.md`
-- **Project Overview**: `README.md` (must be updated with current version)
+6. **backlog.md**
+   - Feature planning
+   - Priority items
+   - Technical debt
 
-### ❌ **Never Create These**
-- Multiple lessons learned files
-- Multiple changelog files  
-- Duplicate documentation on same topic
-- Version information outside version.json
+7. **release_notes.md**
+   - Release history
+   - Version changes
+   - User impact
 
-## Document Change Log
+8. **DOCUMENTATION_RULES.md**
+   - Documentation standards
+   - Maintenance processes
+   - Style guidelines
+   - Archiving rules
 
-| Date | Action | Details |
-|------|--------|---------|
-| 2024-12-20 | **Consolidated** | Merged `docs/deployment/LESSONS_LEARNED.md` into `docs/development/LESSONS_LEARNED.md` |
-| 2024-12-20 | **Created** | Added this document inventory to prevent future duplication | 
+## 🔄 Update Process
+
+1. **Development Phase**
+   - Track changes in `development_changelog.md`
+   - Update `backlog.md` as items are completed
+   - Document lessons in `lessons_learned.md`
+   - Follow rules in `DOCUMENTATION_RULES.md`
+
+2. **Release Phase**
+   - Update `version.json`
+   - Update `release_notes.md`
+   - Update `README.md` version history
+   - Verify all documentation is current
+   - Archive old documentation as per rules
+
+3. **Deployment Phase**
+   - Follow `deployment.md` procedures
+   - Apply `deployment_strategy.md` guidelines
+   - Document any new lessons learned
+   - Update relevant documentation
+
+## 📋 Documentation Checklist
+
+Before each release, verify:
+
+- [ ] All documents are in the correct location
+- [ ] No duplicate documentation exists
+- [ ] All links and references are correct
+- [ ] Version numbers are consistent
+- [ ] Release notes are comprehensive
+- [ ] Development changelog is current
+- [ ] Backlog is up to date
+- [ ] Lessons learned are documented
+- [ ] Documentation follows rules in DOCUMENTATION_RULES.md
+- [ ] Old documentation is properly archived
+
+## 📚 Archive Structure
+
+Historical documentation is maintained in the following structure:
+
+```
+docs/archive/
+  ├── changelog/    # Archived development changelogs
+  ├── releases/     # Archived release notes
+  ├── backlog/      # Archived backlog items
+  └── lessons/      # Archived lessons learned
+```
+
+See `DOCUMENTATION_RULES.md` for detailed archiving procedures and rules. 

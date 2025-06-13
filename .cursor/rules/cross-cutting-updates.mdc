@@ -1,0 +1,80 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 🌐 Cross-Cutting Updates Guide
+
+## 🎯 **Multi-Touch Scenarios (When You're Everywhere at Once)**
+
+### **🔄 Common Cross-Cutting Changes:**
+- **New feature** → JS logic + CSS styling + HTML structure + documentation
+- **Data model changes** → Storage layer + UI components + export/import + goals
+- **Design system updates** → CSS tokens + component classes + documentation
+- **Performance improvements** → Service worker + caching + loading states + UX
+
+## ⚡ **Vibe-Friendly Multi-Touch Workflow**
+
+### **🚀 Start Small, Expand Naturally:**
+```
+1. 🎯 Pick ONE file to start (usually the core logic)
+2. 🔗 Let the changes guide you to what else needs updating
+3. 📝 Keep a mental note of "also need to..."
+4. 🎨 Follow your instincts about what feels incomplete
+5. ✅ Test the whole flow when it "feels done"
+```
+
+### **🧭 Natural Update Order:**
+```
+Core Logic → UI Components → Styling → Documentation → Testing
+```
+
+### **🎨 Multi-File Change Patterns:**
+
+#### **Adding New Feature:**
+```
+✅ js/[feature].js - Core functionality
+✅ css/[feature].css - Styling (if needed)
+✅ index.html - UI integration
+✅ Update relevant .md files
+✅ Quick integration test
+```
+
+#### **Data Model Changes:**
+```
+✅ js/data.js or js/storage.js - Data layer
+✅ Related JS components - UI updates
+✅ Export/import compatibility check
+✅ Staging deployment test
+```
+
+#### **Design System Updates:**
+```
+✅ css/main.css - Design tokens
+✅ All component CSS - Apply tokens
+✅ docs/development/CONSISTENCY_ANALYSIS.md - Update scores
+✅ Visual regression check
+```
+
+## 🎭 **Complexity Scaling (Vibe-Friendly)**
+
+### **Simple Changes:**
+- Touch 1-2 files → Quick check, push to staging
+
+### **Medium Changes:**
+- Touch 3-5 files → Mental checklist, staging validation
+
+### **Complex Changes:**
+- Touch 6+ files → Document the flow, careful staging test, consider breaking into smaller pieces
+
+## 🔍 **Quick Multi-Touch Validation:**
+
+```
+🎯 Does the main user flow still work end-to-end?
+📱 Does it still feel good on mobile?
+💾 Is data still persistent across the changes?
+🎨 Do the visual changes feel cohesive?
+📊 Are the docs updated for anything user-facing?
+```
+
+*Remember: You're not building enterprise software. Follow the natural flow of changes, trust your instincts, and keep it feeling good.*

@@ -83,6 +83,10 @@
     
     <!-- Emoji Picker Element -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+
+    <!-- Shoelace Components (for Enhanced Timer) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.4.0/dist/themes/light.css" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.4.0/dist/shoelace.js"></script>
 </head>
 <body>
     <!-- Loading Screen -->
@@ -122,21 +126,54 @@
                     <!-- Activities will be populated by JavaScript -->
                 </div>
                 <div id="timer-section" style="display: none;">
-                    <div class="timer-container">
-                        <div class="current-activity" id="current-activity-name"></div>
-                        <div class="timer-display" id="timer-display">00:00:00</div>
-                        <div style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.9em;">
-                            <div>Current Session</div>
+                    <div class="timer-card">
+                        <div id="current-activity-name" class="current-activity"></div>
+                        <div class="timer-display-row" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                            <div class="timer-display" id="timer-display" tabindex="0" title="Click to edit elapsed time" style="flex:1; text-align:center;">00:00:00</div>
+                            <button id="pause-button" class="timer-btn timer-btn-primary pause-icon-btn" style="width: 36px; height: 36px; min-width:36px; min-height:36px; border-radius:50%; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; padding: 0; margin-left: 0.5rem;">
+                                <span id="pause-icon">⏸️</span>
+                            </button>
                         </div>
-                        <div style="margin-bottom: 20px; color: #2c3e50; font-size: 1.1em;">
-                            <div>Today Total: <span id="today-total-time">00:00:00</span></div>
+                        <input type="time" id="inline-time-picker" style="display:none; margin: 0 auto; font-size: 1.5rem; text-align: center;" step="1" value="00:00:00" />
+                        <div class="timer-details">
+                            <label for="start-time">Start Time:</label>
+                            <input type="datetime-local" id="start-time" />
+                            <div class="elapsed-time">
+                                <span>Elapsed: </span>
+                                <span id="elapsed-time">00:00:00</span>
+                            </div>
+                            <div class="today-total-time" style="margin-top: 0.5rem;">
+                                Today Total: <span id="today-total-time">00:00:00</span>
+                            </div>
                         </div>
-                        <div id="timer-status" style="margin-bottom: 20px; color: #7f8c8d; font-size: 0.9em; height: 20px;">
-                            <!-- Timer status (running/paused) will show here -->
+                        <div class="timer-controls-bottom">
+                            <button id="stop-button" class="timer-btn timer-btn-danger">Stop</button>
+                            <button id="stop-adjust-button" class="timer-btn">Stop & Adjust</button>
                         </div>
-                        <div style="text-align: center;">
-                            <button class="pause-button" id="pause-button" onclick="togglePause()">Pause</button>
-                        <button class="stop-button" onclick="stopTimer()">Stop</button>
+                    </div>
+                    <!-- Modern, mobile-friendly Adjust Timer modal -->
+                    <div id="adjust-modal" class="modal adjust-bottom-sheet" style="display:none;">
+                        <div class="modal-content adjust-modal-content">
+                            <span class="close" id="adjust-cancel">&times;</span>
+                            <h3 style="margin-bottom: 1.2rem;">Adjust Timer</h3>
+                            <div class="adjust-fields">
+                                <label for="adjust-start-time">Start Time:</label>
+                                <input type="datetime-local" id="adjust-start-time" />
+                                <label for="adjust-elapsed-time">Elapsed Time:</label>
+                                <input type="time" id="adjust-elapsed-time" step="1" value="00:00:00" placeholder="HH:MM:SS" />
+                                <div id="end-time-row" style="display:none;">
+                                    <label for="adjust-end-time">End Time:</label>
+                                    <input type="datetime-local" id="adjust-end-time" />
+                                </div>
+                            </div>
+                            <div class="preview" style="margin: 1rem 0;">
+                                <span>New Duration: </span>
+                                <span id="adjust-preview">00:00:00</span>
+                            </div>
+                            <div class="modal-footer adjust-modal-footer">
+                                <button id="adjust-apply" class="timer-btn timer-btn-primary adjust-btn">Apply</button>
+                                <button id="adjust-apply-stop" class="timer-btn timer-btn-danger adjust-btn">Save & Stop</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -237,5 +274,78 @@
             }
         }, 10000);
     </script>
+    <style>
+        .timer-card { max-width: 350px; margin: 2rem auto; padding: 1.5rem; border: 1px solid #ddd; border-radius: 10px; background: #fff; box-shadow: 0 2px 8px #0001; }
+        .timer-btn { margin: 0.5rem; padding: 0.5rem 1.2rem; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; }
+        .timer-btn-primary { background: #3498db; color: #fff; }
+        .timer-btn-danger { background: #e74c3c; color: #fff; }
+        .timer-display { font-size: 2.5rem; text-align: center; margin: 1rem 0; background: #f8f8f8; border-radius: 8px; padding: 0.5rem; cursor: pointer; }
+        .timer-details { margin-bottom: 1rem; }
+        .elapsed-time { margin-top: 0.5rem; font-size: 1.1rem; }
+        .timer-controls-bottom { text-align: center; margin-top: 1rem; }
+        /* Modal styles */
+        .modal { position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh; overflow: auto; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
+        .modal-content { background: #fff; padding: 2rem; border-radius: 10px; min-width: 300px; position: relative; }
+        .close { position: absolute; right: 1rem; top: 1rem; font-size: 1.5rem; cursor: pointer; }
+        .modal-footer { margin-top: 1.5rem; text-align: right; }
+        .adjust-bottom-sheet {
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            top: auto;
+            width: 100vw;
+            height: auto;
+            min-height: 0;
+            background: rgba(0,0,0,0.18);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .adjust-modal-content {
+            width: 100%;
+            max-width: 420px;
+            border-radius: 18px 18px 0 0;
+            box-shadow: 0 2px 16px #0002;
+            padding: 2rem 1.2rem 1.2rem 1.2rem;
+            background: #fff;
+            position: relative;
+        }
+        .adjust-fields label {
+            font-size: 1rem;
+            margin-top: 0.7rem;
+        }
+        .adjust-fields input[type="datetime-local"],
+        .adjust-fields input[type="time"],
+        .adjust-fields input[type="number"] {
+            width: 100%;
+            font-size: 1.1rem;
+            margin: 0.2rem 0 0.7rem 0;
+            padding: 0.4rem;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+        .adjust-btn {
+            width: 48%;
+            font-size: 1.1rem;
+            margin: 0.5rem 1% 0 1%;
+            padding: 0.7rem 0;
+        }
+        .adjust-modal-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 2%;
+        }
+        @media (max-width: 600px) {
+            .adjust-modal-content {
+                max-width: 100vw;
+                border-radius: 18px 18px 0 0;
+                padding: 1.2rem 0.7rem 0.7rem 0.7rem;
+            }
+            .adjust-btn {
+                font-size: 1rem;
+                padding: 0.7rem 0;
+            }
+        }
+    </style>
 </body>
 </html>

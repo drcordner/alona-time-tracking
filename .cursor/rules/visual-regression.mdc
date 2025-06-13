@@ -1,0 +1,84 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 🎨 Visual Regression Awareness
+
+## 🧘 **Flow-Friendly Testing Mindset**
+
+When making changes that might affect the visual appearance, take a 60-second "vibe check":
+
+### **Quick Visual Check (30 seconds)**
+- 👀 **Quick preview**: How do existing screens look?
+- 📱 **Mobile check**: Does layout still work on narrow screens?
+- 🎯 **Modal check**: Do modals (Help, Management, etc.) still display properly?
+- 🎨 **Color consistency**: Are design tokens still applied correctly?
+
+### **Flow Interruption Scale**
+- **🟢 Simple change**: Single style property → Quick preview
+- **🟡 Medium change**: Multiple CSS rules → 2-minute manual check
+- **🔴 Complex change**: Layout restructure → Full modal/screen verification
+
+## 🎯 **Critical UI Components to Check**
+
+### **Modal System (High Risk for Regression)**
+When touching CSS affecting `.modal-overlay`, `.modal-content`, or related:
+```bash
+# Quick check list:
+✅ Help modal displays centered and properly formatted
+✅ Management modals (add category, etc.) show correctly  
+✅ Goals modal renders without layout issues
+✅ Modal close buttons work and are positioned correctly
+✅ Modal content scrolls properly on mobile
+```
+
+### **Navigation & Layout**
+When changing navigation, positioning, or layout:
+```bash
+✅ Bottom navigation stays fixed and accessible
+✅ Screen transitions work smoothly
+✅ Back button functionality preserved
+✅ Screen content doesn't get cut off
+```
+
+### **Responsive Design**
+When modifying layout or sizing:
+```bash
+✅ Mobile layouts remain usable (320px+)
+✅ Touch targets are finger-friendly (44px+)
+✅ Text remains readable on small screens
+✅ No horizontal scrolling introduced
+```
+
+## 🔄 **60-Second Testing Flows**
+
+### **Core Navigation Flow**
+1. Home → Categories → Activities → Timer (15s)
+2. Reports → Date navigation → Data display (15s)
+3. Management → Settings, Categories tabs (15s)
+4. Help modal → Open/close/scroll (15s)
+
+### **Visual Consistency Flow**
+1. Check 3 different screens for color consistency (20s)
+2. Verify modal alignment and formatting (20s) 
+3. Test one responsive breakpoint (20s)
+
+## 🚨 **Red Flags to Watch For**
+
+- **Modal positioning issues**: Off-center, cut-off content, wrong z-index
+- **Layout shifts**: Content jumping, overlapping elements
+- **Color inconsistencies**: Hard-coded colors instead of design tokens
+- **Mobile breakage**: Unusable on small screens, tiny touch targets
+- **Typography issues**: Fonts not loading, poor readability
+
+## 📱 **Mobile-First Gut Check**
+
+Before finishing any UI change:
+1. **Squint test**: Does the layout make sense at a glance?
+2. **Thumb test**: Can you reach important buttons easily?
+3. **Content test**: Is key information still visible and readable?
+
+Remember: *Better to catch visual issues during development than in production!*
+
+@docs/development/CONSISTENCY_ANALYSIS.md

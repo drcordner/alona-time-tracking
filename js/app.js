@@ -28,7 +28,7 @@ class TimeTrackerApp {
             (key) => this.management.getSetting(key)
         );
         this.reports = new Reports(this.storage, () => this.getCategories(), () => this.renderGoalsSummary());
-        this.timer = new Timer(this.storage, this.showScreen.bind(this), this.updateTimerStatus.bind(this));
+        this.timer = new Timer(this.storage, this.showScreen.bind(this), this.updateTimerStatus.bind(this), this.onTimerStop.bind(this));
         
         // Initialize UX enhancements last (after all other modules)
         this.ux = null; // Will be initialized in init()
@@ -61,7 +61,12 @@ class TimeTrackerApp {
 
         // Check for timer recovery AFTER initial setup
         if (!this.sandbox) {
-            this.timer.recoverActiveTimer();
+            // Use feature flag to recover the correct timer
+            if (this.management.getFeatureFlag && this.management.getFeatureFlag('enhanced_timer')) {
+                this.timer.recoverActiveTimer();
+            } else {
+                this.timer.recoverActiveTimer();
+            }
         }
         
         // Only show home screen if no timer was recovered
@@ -86,8 +91,8 @@ class TimeTrackerApp {
         // Global functions that the HTML needs
         window.goBack = () => this.goBack();
         window.showScreen = (screen) => this.showScreen(screen);
-        window.stopTimer = () => this.timer.stopTimer();
-        window.togglePause = () => this.timer.togglePause();
+        window.stopTimer = () => this.getActiveTimer().stopTimer();
+        window.togglePause = () => this.getActiveTimer().togglePause();
         window.setReportView = (view) => this.reports.setReportView(view);
         window.navigateDate = (direction) => this.reports.navigateDate(direction);
         
@@ -340,11 +345,11 @@ class TimeTrackerApp {
     }
 
     showActivities(categoryName) {
+        console.log('[DEBUG] showActivities called for category:', categoryName);
         this.currentCategory = categoryName;
         const container = document.getElementById('activity-list');
-        
         const categories = this.getCategories();
-        const categoryData = categories[categoryName];
+        let categoryData = categories[categoryName];
         
         // 🛡️ DEFENSIVE: Check for missing category data
         if (!categoryData || !categoryData.activities) {
@@ -424,7 +429,7 @@ class TimeTrackerApp {
             const activityEmoji = this.management.getActivityEmoji(activity);
             return `
                 <div class="activity-button-container">
-                    <button class="activity-button" onclick="app.timer.startActivity('${categoryName}', '${activity}')">
+                    <button class="activity-button" onclick="app.startActivity('${categoryName}', '${activity}')">
                         <div class="activity-name">
                             <span class="activity-emoji">${activityEmoji}</span>
                             <span class="activity-text">${activity}</span>
@@ -444,23 +449,17 @@ class TimeTrackerApp {
 
     // Timer status update
     updateTimerStatus() {
-        const statusEl = document.getElementById('timer-status');
-        if (this.timer.isPaused) {
-            statusEl.textContent = '⏸️ Timer Paused';
-            statusEl.style.color = '#f39c12';
-        } else {
-            statusEl.textContent = '▶️ Timer Running';
-            statusEl.style.color = '#27ae60';
-        }
+        this.timer.updateTimerStatus();
     }
 
     // Check for goal achievements when timer stops
-    onTimerStop(categoryName) {
-        this.goals.checkAchievements(categoryName);
-        // Refresh goals display if on home screen
+    onTimerStop(category) {
+        // Only handle app-level logic here
+        this.goals.checkAchievements(category);
         if (this.currentScreen === 'home') {
             this.renderGoalsSection();
         }
+        // DO NOT call this.timer.onTimerStop(category)
     }
 
     // Service Worker registration
@@ -523,6 +522,16 @@ class TimeTrackerApp {
             // For now, we'll just log it
             console.log('PWA install prompt available');
         }
+    }
+
+    // Helper to get the active timer based on the feature flag
+    getActiveTimer() {
+        return this.timer;
+    }
+
+    // Start activity using the correct timer
+    startActivity(category, activity) {
+        this.timer.startActivity(category, activity);
     }
 }
 

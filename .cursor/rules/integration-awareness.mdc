@@ -1,0 +1,172 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 🔗 Integration Testing Awareness
+
+## 🎯 **Vibe Check: What Might Break?**
+
+When you're changing core files, here's a **quick mental checklist** (not a bureaucratic process):
+
+### **🔧 JS Changes Impact:**
+- **Timer changes** → Test: pause/resume, goal calculations, streak tracking
+- **Storage changes** → Test: export/import, data persistence, category management  
+- **UI state changes** → Test: navigation, modal interactions, screen transitions
+- **Goal calculations** → Test: streak logic, progress bars, achievement triggers
+
+### **🎨 CSS Changes Impact:**
+- **Design token updates** → Quick check: buttons, inputs, spacing consistency
+- **Layout changes** → Quick check: mobile responsiveness, navigation placement
+- **Animation changes** → Quick check: touch interactions, loading states
+
+### **📱 HTML Structure Changes:**
+- **Navigation changes** → Quick check: keyboard navigation, screen readers
+- **Form changes** → Quick check: input validation, data submission
+- **Modal changes** → Quick check: focus management, escape key behavior
+
+## ⚡ **Quick Testing Flow (Vibe-Friendly)**
+
+### **30-Second Checks:**
+```
+1. 📱 Mobile view still works?
+2. ⏱️ Timer start/stop still works?
+3. 🎯 Goals still calculate correctly?
+4. 💾 Data still saves/loads?
+```
+
+### **2-Minute Exploration:**
+```
+1. 🧪 Try the happy path of your change
+2. 🔄 Try one edge case that comes to mind
+3. 📊 Check that related features still feel right
+4. 🚀 If something feels off, follow that instinct
+```
+
+## 🎨 **Vibe Coding Philosophy:**
+
+- **Trust your instincts** - If something feels off, investigate
+- **Test what you touch** - Plus one thing that depends on it
+- **Mobile-first gut check** - Does it still feel good on mobile?
+- **One user journey** - Pick a flow and walk through it
+
+*No pressure, just awareness. Code with confidence, test with curiosity.*
+
+# 🔗 Integration Awareness
+
+## 🧘 **Gentle Integration Testing Reminders**
+
+When making changes, here are some **light integration checks** that won't kill your flow:
+
+### **30-Second Dependency Check**
+Before changing shared components:
+- 🤔 **Who uses this?** (Modal styles, utility classes, etc.)
+- 🔍 **Quick grep**: Where else is this class/function used?
+- 📱 **Modal check**: Will this affect Help, Management, or Goals modals?
+
+### **2-Minute Exploration Flow**
+When touching core systems:
+1. **Timer System**: Start/pause/stop still work? (30s)
+2. **Modal System**: Help modal, category modals display correctly? (30s)
+3. **Navigation**: Screen transitions and back button work? (30s)
+4. **Data Flow**: Categories → Activities → Reports still connected? (30s)
+
+## 🎯 **High-Risk Integration Points**
+
+### **Modal System (Critical)**
+Components: Help, Management, Goals, Category/Activity modals
+```bash
+# When changing modal CSS/JS:
+✅ Help modal positioning and content formatting
+✅ Management tab switching and form modals
+✅ Goals modal and inline goal editing
+✅ Category/Activity add/edit modals
+✅ Modal overlay click-to-close behavior
+```
+
+### **CSS Design Tokens**
+Shared styles that affect multiple components:
+```bash
+# When changing design tokens:
+✅ Colors apply consistently across screens
+✅ Spacing tokens maintain visual rhythm
+✅ Font tokens don't break readability
+✅ Component classes still work everywhere
+```
+
+### **Navigation & Screen Management**
+Core app flow and state management:
+```bash
+# When changing navigation/screens:
+✅ Back button returns to correct screens
+✅ Screen transitions don't break
+✅ Timer status persists across screens
+✅ Active states remain highlighted
+```
+
+### **Data Dependencies**
+Storage, categories, and data flow:
+```bash
+# When changing data structures:
+✅ Categories still appear in all screens
+✅ Time tracking data saves correctly
+✅ Reports reflect current data
+✅ Goals calculate from proper sources
+```
+
+## 🔄 **Quick Integration Flows**
+
+### **Core Feature Flow (90 seconds)**
+1. **Data entry**: Add time → Check Reports (30s)
+2. **Navigation**: Home → Reports → Management → Back (30s)
+3. **Modals**: Help → Settings modal → Category modal (30s)
+
+### **Cross-Component Check (60 seconds)**
+1. **Style consistency**: Same component styles across 3 screens (20s)
+2. **Behavior consistency**: Similar interactions work the same (20s)
+3. **Data consistency**: Changes reflect everywhere they should (20s)
+
+## 🚨 **Integration Red Flags**
+
+### **Breaking Changes to Watch For:**
+- **Modal broken**: Help modal formatting issues, positioning problems
+- **Navigation broken**: Back button doesn't work, screens don't load
+- **Style inconsistencies**: Components look different on different screens
+- **Data disconnect**: Changes in one area don't reflect elsewhere
+- **Feature isolation**: Existing functionality stops working
+
+### **Common Integration Mistakes:**
+- Changed a shared CSS class without checking all usages
+- Modified modal HTML structure without testing all modal types
+- Updated design tokens but missed updating some components
+- Changed navigation logic but broke existing screen flows
+
+## ⚡ **Quick Integration Commands**
+
+### **Find Usage:**
+```bash
+# Quick check where something is used:
+grep -r "className" js/
+grep -r ".modal-" css/
+```
+
+### **Component Test:**
+```bash
+# Quick manual test checklist:
+1. Open Help modal - properly formatted?
+2. Try add category - modal works?
+3. Navigate Home→Reports→Management - smooth?
+4. Start timer - UI updates correctly?
+```
+
+## 🎭 **Integration Mindset**
+
+- **Assume connections exist** - Your change probably affects something else
+- **Quick check, don't obsess** - 30 seconds of testing beats hours of debugging later
+- **Trust but verify** - If it seems like it should work, test it quickly
+- **Modal vigilance** - Modal systems are especially fragile and visible
+
+*Integration testing doesn't have to be formal - just be aware of the ripple effects!*
+
+@docs/development/LESSONS_LEARNED.md
+@docs/development/CONSISTENCY_ANALYSIS.md

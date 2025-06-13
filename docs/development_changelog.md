@@ -25,7 +25,7 @@ This file tracks all changes, issues, and improvements during the current develo
 3. **Updated Project Documents Inventory** (COMPLETED):
    - Problem: README.md wasn't listed as a critical document requiring updates
    - Solution: Added README.md to documents table and single sources of truth
-   - Files modified: docs/PROJECT_DOCUMENTS.md
+   - Files modified: docs/project_documents.md
 
 4. **Implemented Single Source of Truth for Version Numbers** (COMPLETED):
    - Problem: Version numbers were hard-coded in multiple files (app.js, manifest.json, sw.js)
@@ -101,4 +101,4 @@ This file tracks all changes, issues, and improvements during the current develo
 - ✅ Better mobile experience with optimized touch targets
 - ✅ Eliminated UI truncation and spacing issues
 - ✅ Clean home screen when goals are disabled
-- ✅ Proper respect for user preferences
+- ✅ Proper respect for user preferences 
