@@ -247,3 +247,77 @@ docs/archive/
 2. Create security release notes
 3. Update deployment docs
 4. Document in lessons learned 
+
+## 🔄 Version Management Rules
+
+### When to Increment Version
+- **PATCH (Z)**: Documentation updates, process improvements, bug fixes
+- **MINOR (Y)**: New features, significant documentation system changes
+- **MAJOR (X)**: Breaking changes, major architectural changes
+
+### Version Update Process
+1. **Review Changes**
+   - Check development_changelog.md
+   - Assess impact of changes
+   - Determine appropriate version increment
+
+2. **Update Version**
+   - Update version.json FIRST
+   - Run version-sync script
+   - Verify with npm test
+   - Update all documentation
+
+3. **Documentation Updates**
+   - Update release_notes.md
+   - Update README.md version history
+   - Clear development_changelog.md
+   - Archive old documentation
+
+### Version Verification
+- Run version-sync script
+- Run test suite
+- Check all version references
+- Verify service worker cache version
+- Check manifest.json version
+- Verify package.json version
+
+### Common Version Update Triggers
+- Documentation system changes
+- Process improvements
+- Build system updates
+- Deployment procedure changes
+- Project structure changes
+- Development workflow updates 
+
+## 📅 Date and Timestamp Rules
+
+### Timestamp Format
+- **ISO 8601 Format**: Use `YYYY-MM-DDTHH:mm:ss.sssZ` for all timestamps
+- **Example**: `2024-03-14T15:30:00.000Z`
+- **Time Zone**: Always use UTC (Z suffix)
+- **Milliseconds**: Include 3 decimal places for milliseconds
+
+### Date Format
+- **Human Readable**: Use `Month DD, YYYY` format
+- **Example**: `March 14, 2024`
+- **Month Names**: Use full month names, not abbreviations
+- **Time Zone**: Include time zone if relevant (e.g., "UTC")
+
+### Date Rules
+- **NO FUTURE DATES**: Never use dates beyond the current date
+- **Consistent Time**: Use the same timestamp across all files for a release
+- **Version Timestamps**: Must match the version.json timestamp
+- **Release Dates**: Must be the actual release date, not planned dates
+
+### Timestamp Generation
+- **Development**: Use `Date.now()` for local development
+- **Production**: Use version.json timestamp for releases
+- **Documentation**: Use actual dates, not placeholder dates
+- **History**: Keep historical dates accurate, don't modify them
+
+### Date Update Process
+1. **Check Current Date**: Verify against system time
+2. **Update Version**: Set timestamp in version.json
+3. **Sync Dates**: Update all documentation with same date
+4. **Verify**: Check no future dates exist
+5. **Commit**: Include date updates in version commit 

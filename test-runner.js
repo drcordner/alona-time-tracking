@@ -193,7 +193,7 @@ runner.test('Required files exist', async () => {
         'js/app.js',
         'js/management.js',
         'css/components.css',
-        'docs/development/LESSONS_LEARNED.md'
+        'docs/lessons_learned.md'
     ];
     
     requiredFiles.forEach(file => {

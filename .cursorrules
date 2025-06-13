@@ -27,12 +27,32 @@
 - **TEST THE HAPPY PATH FIRST**: Get basic functionality rock-solid before adding sophistication
 - **AVOID PREMATURE OPTIMIZATION**: Don't add complexity until there's a proven need
 
+## CRITICAL: Version Increment Rules (NEW RULE)
+- **ALWAYS** increment version for ANY changes that affect:
+  - Documentation system or rules
+  - Development processes
+  - Build or deployment procedures
+  - Version management system
+  - Project structure or organization
+- **VERSION FORMAT**: Use semantic versioning (X.Y.Z)
+  - X: Major version (breaking changes)
+  - Y: Minor version (new features)
+  - Z: Patch version (bug fixes, documentation, process improvements)
+- **VERSION CHECKLIST**:
+  - [ ] Review all changes in development_changelog.md
+  - [ ] Determine appropriate version increment
+  - [ ] Update version.json FIRST
+  - [ ] Run version-sync to update all files
+  - [ ] Verify version consistency with npm test
+  - [ ] Update release_notes.md with new version
+  - [ ] Clear development_changelog.md for next cycle
+
 ## Development Workflow & Version Management (CRITICAL NEW RULE)
 ### Keep version numbers consistent across all files
 ### During Development (Local Testing)
 - **NEVER** increment version numbers during local development/testing
 - **TRACK ALL CHANGES** in `docs/development_changelog.md`
-- **USE CURRENT VERSION** (5.3.0) for all local testing
+- **USE CURRENT VERSION** for all local testing
 - **DOCUMENT** issues being worked on and investigation findings
 - **ADD** all modifications to "Current Development Cycle" section
 
@@ -240,6 +260,8 @@ When user requests "publish to staging and production":
 20. ✅ **Old documentation properly archived**
 21. ✅ **All documentation links verified**
 22. ✅ **Emoji usage consistent across all documents**
+23. ✅ **Version increment justified and documented**
+24. ✅ **All version numbers verified in sync**
 
 ## Publication Command Pattern
 When user says "publish to staging and production":
