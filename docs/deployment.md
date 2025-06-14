@@ -161,4 +161,27 @@ git branch -d hotfix/critical-fix
 1. Configure staging site on Netlify
 2. Update production site to deploy from `production` branch
 3. Test the new deployment workflow
-4. Document any additional configuration needed 
+4. Document any additional configuration needed
+
+## Deployment Process
+
+## Pre-Deployment Checklist
+- [ ] Ensure all code, documentation, and process compliance rules (including `.cursorrules` and `docs/DOCUMENTATION_RULES.md`) are up to date and committed on `main`/`master`.
+- [ ] Run all tests and version checks.
+- [ ] Update `version.json` and synchronize versions across all files.
+- [ ] Update changelogs and release notes.
+
+## Production Deployment Steps
+1. **Update Rules First:**
+   - Before merging to `production`, ensure `.cursorrules` and `docs/DOCUMENTATION_RULES.md` are the latest accepted versions and committed on `main`/`master`.
+   - If any changes are made to these files, commit them before proceeding.
+2. **Merge to Production:**
+   - Merge the latest changes from `main`/`master` into `production`.
+   - Verify that `.cursorrules` and `docs/DOCUMENTATION_RULES.md` exist and are up to date on `production`.
+3. **Deploy:**
+   - Push the `production` branch to the remote repository to trigger deployment.
+   - Monitor deployment and verify version and documentation compliance on production.
+
+## Notes
+- Never switch to `production` or deploy unless all compliance rules and documentation are present and current on both branches.
+- If files are missing after a branch switch, restore them from the latest commit on `main`/`master` and recommit before proceeding. 
