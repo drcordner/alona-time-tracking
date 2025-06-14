@@ -1,0 +1,25 @@
+name: Critical Files Check
+
+on:
+  push:
+    branches: [ main, production ]
+  pull_request:
+    branches: [ main, production ]
+
+jobs:
+  check-critical-files:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check for critical files
+        run: |
+          CRITICAL_FILES=".cursorrules docs/DOCUMENTATION_RULES.md version.json package.json manifest.json"
+          for file in $CRITICAL_FILES; do
+            if [ ! -f "$file" ]; then
+              echo "Error: Critical file '$file' is missing."
+              exit 1
+            fi
+          done
+          echo "All critical files are present." 
