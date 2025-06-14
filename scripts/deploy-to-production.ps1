@@ -61,8 +61,8 @@ $pushResult = git push origin production
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
     Write-Host "SUCCESS! Production deployment initiated!" -ForegroundColor Green
-    Write-Host "Check: https://alona-time-tracking.netlify.app" -ForegroundColor Cyan
-    Write-Host "Monitor: https://app.netlify.com/sites/alona-time-tracking/deploys" -ForegroundColor Cyan
+    Write-Host "Check: https://alonastimetracking.netlify.app" -ForegroundColor Cyan
+    Write-Host "Monitor: https://app.netlify.com/sites/alonastimetracking/deploys" -ForegroundColor Cyan
 } else {
     Write-Host "Push failed! Please check your connection and try again." -ForegroundColor Red
     exit 1

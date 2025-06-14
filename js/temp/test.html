@@ -1,0 +1,194 @@
+<!--
+RULE:
+- All permanent JavaScript files must be placed in the js/ directory or its appropriate subfolders (e.g., js/components/).
+- All temporary or testing-only files must be placed in js/temp/ (or js/test/ if you prefer).
+- Always use relative paths for imports and links (e.g., ../components/..., ../test-feature-flags.js).
+- Never use absolute paths starting with /.
+- Remove all files in js/temp/ before production deployment.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Tracker - Feature Tests</title>
+    
+    <!-- Shoelace Components -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.4.0/dist/themes/light.css" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.4.0/dist/shoelace.js"></script>
+    
+    <!-- App Styles -->
+    <link rel="stylesheet" href="../../css/components.css">
+    
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+        
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .test-results {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        
+        .test-button {
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Time Tracker Feature Tests</h1>
+        
+        <div class="test-section">
+            <h2>1. Shoelace Components Test</h2>
+            <sl-button class="test-button" id="test-shoelace">Test Shoelace Components</sl-button>
+            <div class="test-results" id="shoelace-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. Enhanced Timer Test</h2>
+            <sl-button class="test-button" id="test-timer">Test Enhanced Timer</sl-button>
+            <div class="test-results" id="timer-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>3. Feature Flag System Test</h2>
+            <sl-button class="test-button" id="test-flags">Test Feature Flags</sl-button>
+            <div class="test-results" id="flags-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>4. Integration Test</h2>
+            <sl-button class="test-button" id="test-integration">Run All Tests</sl-button>
+            <div class="test-results" id="integration-results"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Mock global feature flags and settings for testing
+        if (typeof window.FEATURE_FLAGS === 'undefined') {
+            window.FEATURE_FLAGS = { enhanced_timer: true };
+        }
+        if (typeof window.settings === 'undefined') {
+            window.settings = { featureFlags: { enhanced_timer: true } };
+        }
+        
+        import { EnhancedTimer } from '../components/enhanced-timer.js';
+        import { testFeatureFlags } from '../test-feature-flags.js';
+        
+        // Mock storage and other dependencies
+        const mockStorage = {
+            getTodayTime: () => 0,
+            updateActivityUsage: () => {},
+            saveTimerState: () => {},
+            clearTimerState: () => {},
+            getTimerState: () => null
+        };
+        
+        const mockShowScreen = () => {};
+        const mockUpdateStatus = () => {};
+        
+        // Test Shoelace Components
+        document.getElementById('test-shoelace').addEventListener('click', () => {
+            const results = document.getElementById('shoelace-results');
+            results.innerHTML = '<p>Testing Shoelace components...</p>';
+            
+            const components = [
+                'sl-card',
+                'sl-button',
+                'sl-button-group',
+                'sl-input',
+                'sl-dialog',
+                'sl-format-number',
+                'sl-alert'
+            ];
+            
+            const missing = components.filter(comp => !customElements.get(comp));
+            
+            if (missing.length === 0) {
+                results.innerHTML = '<p style="color: green;">✅ All Shoelace components loaded successfully!</p>';
+            } else {
+                results.innerHTML = `<p style="color: red;">❌ Missing components: ${missing.join(', ')}</p>`;
+            }
+        });
+        
+        // Test Enhanced Timer
+        document.getElementById('test-timer').addEventListener('click', () => {
+            const results = document.getElementById('timer-results');
+            results.innerHTML = '<p>Testing Enhanced Timer...</p>';
+            
+            const timer = new EnhancedTimer(mockStorage, mockShowScreen, mockUpdateStatus);
+            const testResult = timer.test();
+            
+            if (testResult) {
+                results.innerHTML = '<p style="color: green;">✅ Enhanced Timer tests passed!</p>';
+            } else {
+                results.innerHTML = '<p style="color: red;">❌ Enhanced Timer tests failed. Check console for details.</p>';
+            }
+        });
+        
+        // Test Feature Flags
+        document.getElementById('test-flags').addEventListener('click', () => {
+            const results = document.getElementById('flags-results');
+            results.innerHTML = '<p>Testing Feature Flag System...</p>';
+            
+            const testResult = testFeatureFlags();
+            
+            if (testResult) {
+                results.innerHTML = '<p style="color: green;">✅ Feature Flag System tests passed!</p>';
+            } else {
+                results.innerHTML = '<p style="color: red;">❌ Feature Flag System tests failed. Check console for details.</p>';
+            }
+        });
+        
+        // Run All Tests
+        document.getElementById('test-integration').addEventListener('click', () => {
+            const results = document.getElementById('integration-results');
+            results.innerHTML = '<p>Running all tests...</p>';
+            
+            // Test Shoelace
+            const components = [
+                'sl-card',
+                'sl-button',
+                'sl-button-group',
+                'sl-input',
+                'sl-dialog',
+                'sl-format-number',
+                'sl-alert'
+            ];
+            
+            const missingComponents = components.filter(comp => !customElements.get(comp));
+            if (missingComponents.length > 0) {
+                results.innerHTML = `<p style="color: red;">❌ Integration test failed: Missing Shoelace components</p>`;
+                return;
+            }
+            
+            // Test Enhanced Timer
+            const timer = new EnhancedTimer(mockStorage, mockShowScreen, mockUpdateStatus);
+            if (!timer.test()) {
+                results.innerHTML = '<p style="color: red;">❌ Integration test failed: Enhanced Timer tests failed</p>';
+                return;
+            }
+            
+            // Test Feature Flags
+            if (!testFeatureFlags()) {
+                results.innerHTML = '<p style="color: red;">❌ Integration test failed: Feature Flag System tests failed</p>';
+                return;
+            }
+            
+            results.innerHTML = '<p style="color: green;">✅ All integration tests passed!</p>';
+        });
+    </script>
+</body>
+</html> 

@@ -1,5 +1,6 @@
 // Category & Activity Management Module
 import { categories as defaultCategories, activityEmojis } from './data.js';
+import { getVersionInfo, getFullVersion, getVersionNumber } from './version-loader.js';
 
 export class Management {
     constructor(storage) {
@@ -7,22 +8,50 @@ export class Management {
         this.customCategories = null;
         this.editingCategory = null;
         this.editingActivity = null;
-        this.collapsedCategories = new Set(); // Track collapsed categories
+        this.collapsedCategories = new Set(); // Track collapsed categories - will be populated on init
         this.currentTab = 'categories'; // Track active tab
         this.settings = null; // App settings
         this.goalSaveTimeout = null;
+        this.versionInfo = null; // Will store version info from JSON
         
-        // Version constant for consistency across the app
-        this.APP_VERSION = "5.1.4+ - Streak Calculation Fix";
+        // Load version info from JSON
+        this.loadVersionInfo();
         
         // Load settings
         this.loadSettings();
     }
 
+    // Load version information using centralized version-loader
+    async loadVersionInfo() {
+        try {
+            // Use already loaded version info from version-loader
+            const versionData = getVersionInfo();
+            console.log('Management: Version info loaded:', versionData);
+            return versionData;
+        } catch (error) {
+            console.log('Management: Version info loading failed, using fallback');
+            // Even the fallback uses version-loader, ensuring consistency
+            return {
+                versionNumber: getVersionNumber(),
+                version: getFullVersion(),
+                description: getFullVersion().split(' - ')[1] || 'Time Tracking Application'
+            };
+        }
+    }
+
     // Initialize management with custom or default categories and settings
-    init() {
+    async init() {
+        // Load version info first
+        this.versionInfo = await this.loadVersionInfo();
+        
         this.loadCustomCategories();
         this.loadSettings();
+        
+        // Default all categories to collapsed for cleaner initial view
+        const categories = this.getCategories();
+        Object.keys(categories).forEach(categoryName => {
+            this.collapsedCategories.add(categoryName);
+        });
     }
 
     // Load settings from storage or set defaults
@@ -33,10 +62,11 @@ export class Management {
         if (stored) {
             this.settings = stored;
             // Check for version updates and migrate if needed
-            if (!this.settings.version || this.settings.version === "1.0" || this.settings.version === "5.1.0 - UX Polish" || this.settings.version === "5.1.2 - Bug Fixes" || this.settings.version === "5.1.3 - Bug Fixes & Enhancements" || this.settings.version === "5.1.4 - Enhanced Emoji Picker") {
-                this.settings.version = this.APP_VERSION;
+            // Simplified check - if version doesn't match current, update it
+            if (!this.settings.version || this.settings.version !== getFullVersion()) {
+                this.settings.version = this.versionInfo?.version || getFullVersion();
                 this.saveSettings();
-                console.log('Management: Updated version to', this.APP_VERSION);
+                console.log('Management: Updated version to', this.settings.version);
             }
         } else {
             // Default settings
@@ -81,8 +111,15 @@ export class Management {
         if (key === 'appTitle') {
             this.updateAppTitle();
         } else if (key === 'goalsEnabled') {
-            // Handle goals toggle change
             this.handleGoalsToggle(value);
+        } else if (key === 'featureFlags.enhanced_timer') {
+            if (!this.settings.featureFlags) this.settings.featureFlags = {};
+            this.settings.featureFlags.enhanced_timer = value;
+            this.saveSettings();
+            // Optionally, show feedback
+            this.showToast(value ? 'Enhanced Timer enabled!' : 'Enhanced Timer disabled', value ? 'success' : 'info');
+            // Re-render management/settings to reflect change
+            this.renderManagementScreen();
         }
         
         console.log('Management: updateSetting completed');
@@ -160,50 +197,135 @@ export class Management {
         this.renderManagementScreen();
     }
 
+    // Close all category menus and clean up z-index classes
+    closeAllMenus() {
+        document.querySelectorAll('.category-menu').forEach(menu => {
+            menu.style.display = 'none';
+            // Remove menu-open class from parent category item
+            const parentItem = menu.closest('.category-management-item');
+            if (parentItem) {
+                parentItem.classList.remove('menu-open');
+            }
+        });
+    }
+
+    // Toggle category menu dropdown
+    toggleCategoryMenu(categoryName) {
+        // Close all other menus first and remove menu-open class
+        this.closeAllMenus();
+        
+        // Toggle the clicked menu
+        const menuId = `category-menu-${categoryName.replace(/\s+/g, '-')}`;
+        const menu = document.getElementById(menuId);
+        if (menu) {
+            const isVisible = menu.style.display === 'block';
+            menu.style.display = isVisible ? 'none' : 'block';
+            
+            // Add/remove menu-open class for z-index elevation
+            const parentItem = menu.closest('.category-management-item');
+            if (parentItem) {
+                if (isVisible) {
+                    parentItem.classList.remove('menu-open');
+                } else {
+                    parentItem.classList.add('menu-open');
+                }
+            }
+            
+            // Adjust position if menu would be truncated
+            if (!isVisible) {
+                setTimeout(() => {
+                    const rect = menu.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    
+                    // Reset positioning first
+                    menu.style.top = '';
+                    menu.style.bottom = '';
+                    menu.style.right = '';
+                    menu.style.left = '';
+                    menu.style.transform = '';
+                    
+                    // Check horizontal positioning
+                    if (rect.right > viewportWidth - 16) {
+                        menu.style.right = '0';
+                        menu.style.left = 'auto';
+                    } else if (rect.left < 16) {
+                        menu.style.right = 'auto';
+                        menu.style.left = '0';
+                    }
+                    
+                    // Check vertical positioning
+                    if (rect.bottom > viewportHeight - 16) {
+                        // Show menu above the button instead of below
+                        menu.style.top = 'auto';
+                        menu.style.bottom = '100%';
+                        menu.style.marginTop = '0';
+                        menu.style.marginBottom = '4px';
+                    } else {
+                        // Default position below button
+                        menu.style.top = '100%';
+                        menu.style.bottom = 'auto';
+                        menu.style.marginTop = '4px';
+                        menu.style.marginBottom = '0';
+                    }
+                }, 10);
+            }
+        }
+    }
+
     // Render the management screen with tabs
     renderManagementScreen() {
         const container = document.getElementById('management-content');
         container.innerHTML = `
-            <div class="management-header">
-                <h2>⚙️ Manage</h2>
-                <div class="management-tabs">
-                    <button class="tab-button ${this.currentTab === 'categories' ? 'active' : ''}" 
-                            onclick="management.switchTab('categories')">
-                        📁 Categories & Activities
-                    </button>
-                    <button class="tab-button ${this.currentTab === 'settings' ? 'active' : ''}" 
-                            onclick="management.switchTab('settings')">
-                        ⚙️ Settings
-                    </button>
-                </div>
+            <div class="management-tabs">
+                <button class="tab-button ${this.currentTab === 'categories' ? 'active' : ''}" 
+                        onclick="management.switchTab('categories')">
+                    Categories & Activities
+                </button>
+                <button class="tab-button ${this.currentTab === 'settings' ? 'active' : ''}" 
+                        onclick="management.switchTab('settings')">
+                    Settings
+                </button>
             </div>
             
             <div class="tab-content">
                 ${this.currentTab === 'categories' ? this.renderCategoriesTab() : this.renderSettingsTab()}
             </div>
-            
-            <!-- Modals will be added here -->
-            <div id="modal-container"></div>
         `;
+
+        // Add click outside listener to close menus
+        setTimeout(() => {
+            document.addEventListener('click', this.handleClickOutside.bind(this));
+        }, 100);
+    }
+
+    // Close category menus when clicking outside
+    handleClickOutside(event) {
+        if (!event.target.closest('.category-menu-container')) {
+            this.closeAllMenus();
+        }
     }
 
     // Render categories and activities tab
     renderCategoriesTab() {
+        const categories = this.getCategories();
+        const categoryCount = Object.keys(categories).length;
+        
         return `
             <div class="tab-header">
-                <div class="management-actions">
-                    <button class="btn-secondary" onclick="management.toggleAllCategories()">
-                        ${this.collapsedCategories.size > 0 ? '📂 Expand All' : '📁 Collapse All'}
-                    </button>
-                    <button class="btn-primary" onclick="management.showAddCategoryModal()">
-                        ➕ Add Category
+                <div class="tab-header-content">
+                    <h3>Categories & Activities (${categoryCount})</h3>
+                    <button class="btn-icon add-category-compact" onclick="management.showAddCategoryModal()" title="Add New Category">
+                        ➕
                     </button>
                 </div>
             </div>
             
-            <div class="categories-management">
-                ${this.renderCategoriesManagement()}
-            </div>
+            ${categoryCount === 0 ? 
+                '<div class="no-categories-state"><p>No categories yet. Create your first category to get started!</p></div>' 
+                : this.renderCategoriesManagement()
+            }
         `;
     }
 
@@ -262,18 +384,17 @@ export class Management {
                         </div>
                         <div class="setting-item">
                             <div class="setting-toggle">
-                                <label for="enhanced-emoji-picker">Enhanced Emoji Picker</label>
+                                <label for="enhanced-timer-toggle">Enhanced Timer (Shoelace UI)</label>
                                 <div class="toggle-switch">
-                                    <input type="checkbox" 
-                                           id="enhanced-emoji-picker" 
-                                           ${(this.settings.enhancedEmojiPicker !== false) ? 'checked' : ''}
-                                           onchange="management.updateSetting('enhancedEmojiPicker', this.checked)">
-                                    <span class="toggle-slider" onclick="document.getElementById('enhanced-emoji-picker').click()"></span>
+                                    <input type="checkbox"
+                                           id="enhanced-timer-toggle"
+                                           ${this.settings.featureFlags && this.settings.featureFlags.enhanced_timer ? 'checked' : ''}
+                                           onchange="management.updateSetting('featureFlags.enhanced_timer', this.checked)">
+                                    <span class="toggle-slider" onclick="document.getElementById('enhanced-timer-toggle').click()"></span>
                                 </div>
                             </div>
                             <p class="setting-description">
-                                Use the modern emoji picker with search and categories. 
-                                ${(this.settings.enhancedEmojiPicker !== false) ? 'Enhanced picker provides better emoji selection experience.' : 'Simple preset-based emoji selection will be used.'}
+                                Enable the new Shoelace-based enhanced timer with advanced editing and adjustment features. (Vibe Coding Philosophy)
                             </p>
                         </div>
                     </div>
@@ -288,6 +409,13 @@ export class Management {
                                 <span id="update-btn-text">Check for Updates</span>
                             </button>
                             <p class="setting-description">Manually check for app updates and refresh if needed</p>
+                        </div>
+                        <div class="setting-item">
+                            <label>Nuclear Cache Reset</label>
+                            <button class="btn btn-danger" onclick="management.nuclearCacheReset()">
+                                💥 Nuclear Reset
+                            </button>
+                            <p class="setting-description">⚠️ For stubborn cache issues: Completely wipe all caches and force fresh reload</p>
                         </div>
                         <div class="setting-item">
                             <label for="session-retention">Data Retention</label>
@@ -333,9 +461,36 @@ export class Management {
                 <div class="settings-section">
                     <h3>ℹ️ About</h3>
                     <div class="settings-info">
-                        <p><strong>Version:</strong> ${this.settings.version}</p>
-                        <p><strong>Categories:</strong> ${Object.keys(this.getCategories()).length}</p>
-                        <p><strong>Total Activities:</strong> ${Object.values(this.getCategories()).reduce((sum, cat) => sum + cat.activities.length, 0)}</p>
+                        <div class="version-info">
+                            <div class="version-details">
+                                <div class="version-number">${this.versionInfo ? this.versionInfo.versionNumber : this.settings.version}</div>
+                                <div class="version-description">${this.versionInfo ? this.versionInfo.description : 'Time Tracking Application'}</div>
+                                ${this.versionInfo && this.versionInfo.timestamp ? `<div class="version-timestamp">Released: ${new Date(this.versionInfo.timestamp).toLocaleDateString()}</div>` : ''}
+                            </div>
+                            
+                            <div class="app-stats">
+                                <p><strong>Categories:</strong> ${Object.keys(this.getCategories()).length}</p>
+                                <p><strong>Total Activities:</strong> ${Object.values(this.getCategories()).reduce((sum, cat) => sum + (cat.activities ? cat.activities.length : 0), 0)}</p>
+                            </div>
+
+                            ${this.versionInfo && this.versionInfo.features ? `
+                                <details class="features-details">
+                                    <summary>Latest Features & Improvements</summary>
+                                    <ul class="features-list">
+                                        ${this.versionInfo.features.map(feature => `<li>${feature}</li>`).join('')}
+                                    </ul>
+                                </details>
+                            ` : ''}
+                            
+                            ${this.versionInfo && this.versionInfo.fixes && this.versionInfo.fixes.length > 0 ? `
+                                <details class="fixes-details">
+                                    <summary>Bug Fixes</summary>
+                                    <ul class="fixes-list">
+                                        ${this.versionInfo.fixes.map(fix => `<li>${fix}</li>`).join('')}
+                                    </ul>
+                                </details>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -344,10 +499,20 @@ export class Management {
 
     // Export data functionality
     exportData() {
+        // Include Goals data in export
+        let goalsData = {};
+        if (!this.storage.sandbox) {
+            const storedGoals = localStorage.getItem('categoryGoals');
+            if (storedGoals) {
+                goalsData = JSON.parse(storedGoals);
+            }
+        }
+
         const data = {
             categories: this.customCategories,
             settings: this.settings,
             timeTracking: this.storage.getAllData(),
+            goals: goalsData, // Add Goals data to export
             exportDate: new Date().toISOString(),
             version: this.settings.version
         };
@@ -411,6 +576,15 @@ export class Management {
                     // Import time tracking data if present
                     if (data.timeTracking) {
                         this.storage.importData(data.timeTracking);
+                    }
+                    
+                    // Import Goals data if present
+                    if (data.goals && !this.storage.sandbox) {
+                        localStorage.setItem('categoryGoals', JSON.stringify(data.goals));
+                        // Reinitialize goals if the goals system is available
+                        if (window.app && window.app.goals) {
+                            window.app.goals.loadGoals();
+                        }
                     }
                     
                     this.updateAppTitle();
@@ -486,89 +660,114 @@ export class Management {
         }, 3000);
     }
 
-    // Toggle all categories collapse/expand
-    toggleAllCategories() {
-        const categories = this.getCategories();
-        if (this.collapsedCategories.size > 0) {
-            // Expand all
-            this.collapsedCategories.clear();
-        } else {
-            // Collapse all
-            Object.keys(categories).forEach(name => {
-                this.collapsedCategories.add(name);
-            });
-        }
-        this.renderManagementScreen();
-    }
-
     // Render categories management list
     renderCategoriesManagement() {
         const categories = this.getCategories();
         
+        // Handle case where no categories exist or categories are corrupted
+        if (!categories || Object.keys(categories).length === 0) {
+            return `
+                <div class="no-categories-state">
+                    <div class="no-categories-icon">📁</div>
+                    <h3>No Categories Found</h3>
+                    <p>It looks like your categories may have been corrupted or deleted.</p>
+                    <button class="btn-primary" onclick="management.restoreDefaultCategories()">
+                        🔄 Restore Default Categories
+                    </button>
+                </div>
+            `;
+        }
+        
         return Object.entries(categories).map(([categoryName, categoryData], index) => {
+            // Validate category data before rendering
+            if (!categoryData || typeof categoryData !== 'object') {
+                console.warn(`Skipping corrupted category: ${categoryName}`, categoryData);
+                return '';
+            }
+            
+            // Ensure required fields exist with defaults
+            const safeData = {
+                color: categoryData.color || '#4A90E2',
+                emoji: categoryData.emoji || '📁',
+                activities: Array.isArray(categoryData.activities) ? categoryData.activities : []
+            };
+            
             const isCollapsed = this.collapsedCategories.has(categoryName);
             return `
-                <div class="category-management-item" data-category="${categoryName}">
-                    <div class="category-header">
-                        <div class="category-info">
-                            <button class="collapse-button" onclick="management.toggleCategoryCollapse('${categoryName}')" title="${isCollapsed ? 'Expand' : 'Collapse'} activities">
-                                ${isCollapsed ? '▶️' : '▼️'}
-                            </button>
-                            <div class="category-color-preview" style="background-color: ${categoryData.color}"></div>
-                            <span class="category-emoji">${categoryData.emoji}</span>
-                            <h3 class="category-title">${categoryName}</h3>
-                            <span class="activity-count">${categoryData.activities.length} activities</span>
-                        </div>
-                        <div class="category-actions">
-                            <button class="btn-icon" onclick="management.editCategory('${categoryName}')" title="Edit Category">
-                                ✏️
-                            </button>
-                            <button class="btn-icon" onclick="management.showAddActivityModal('${categoryName}')" title="Add Activity">
-                                ➕
-                            </button>
-                            ${Object.keys(categories).length > 1 ? `
-                                <button class="btn-icon btn-danger" onclick="management.deleteCategory('${categoryName}')" title="Delete Category">
-                                    🗑️
+                <div class="category-management-item home-style" data-category="${categoryName}">
+                    <div class="category-management-card" style="--category-color: ${safeData.color}" onclick="management.toggleCategoryCollapse('${categoryName}')" title="Click to expand/collapse activities">
+                        <div class="category-management-header">
+                            <div class="category-content">
+                                <div class="category-name">
+                                    <span class="category-emoji">${safeData.emoji}</span>
+                                    <span class="category-text">${categoryName}</span>
+                                </div>
+                                <div class="category-activity-count">${safeData.activities.length} ${safeData.activities.length === 1 ? 'activity' : 'activities'}</div>
+                            </div>
+                            <div class="category-menu-container" onclick="event.stopPropagation()">
+                                <button class="category-menu-button" onclick="management.toggleCategoryMenu('${categoryName}')" title="Category options">
+                                    ⋯
                                 </button>
-                            ` : ''}
+                                <div class="category-menu" id="category-menu-${categoryName.replace(/\s+/g, '-')}" style="display: none;">
+                                    <button class="menu-item" onclick="management.editCategory('${categoryName}')">
+                                        <span class="menu-icon">⚙️</span>
+                                        <span class="menu-text">Edit Category</span>
+                                    </button>
+                                    <button class="menu-item" onclick="management.showAddActivityModal('${categoryName}')">
+                                        <span class="menu-icon">➕</span>
+                                        <span class="menu-text">Add Activity</span>
+                                    </button>
+                                    ${Object.keys(categories).length > 1 ? `
+                                        <button class="menu-item danger" onclick="management.deleteCategory('${categoryName}')">
+                                            <span class="menu-icon">🗑️</span>
+                                            <span class="menu-text">Delete Category</span>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="activities-list ${isCollapsed ? 'collapsed' : ''}">
-                        ${this.renderActivitiesForCategory(categoryName, categoryData.activities)}
-                    </div>
+                    ${!isCollapsed ? this.renderActivitiesForCategory(categoryName, safeData.activities) : ''}
                 </div>
             `;
-        }).join('');
+        }).filter(html => html).join(''); // Filter out empty strings from corrupted categories
     }
 
     // Render activities for a category (sorted alphabetically)
     renderActivitiesForCategory(categoryName, activities) {
         const sortedActivities = [...activities].sort();
         
-        return sortedActivities.map(activity => {
-            const emoji = this.getActivityEmoji(activity);
-            return `
-                <div class="activity-management-item" data-activity="${activity}">
-                    <div class="activity-info">
-                        <span class="activity-emoji">${emoji}</span>
-                        <span class="activity-name">${activity}</span>
-                    </div>
-                    <div class="activity-actions">
-                        <button class="btn-icon" onclick="management.editActivity('${categoryName}', '${activity}')" title="Edit Activity">
-                            ✏️
-                        </button>
-                        <button class="btn-icon btn-danger" onclick="management.deleteActivity('${categoryName}', '${activity}')" title="Delete Activity">
-                            🗑️
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        return `
+            <div class="activities-management-list">
+                ${sortedActivities.map(activity => {
+                    const emoji = this.getActivityEmoji(activity);
+                    return `
+                        <div class="activity-management-card" onclick="management.editActivity('${categoryName}', '${activity}')" data-activity="${activity}" title="Click to edit activity">
+                            <div class="activity-card-content">
+                                <div class="activity-name">
+                                    <span class="activity-emoji">${emoji}</span>
+                                    <span class="activity-text">${activity}</span>
+                                </div>
+                                <div class="activity-management-actions" onclick="event.stopPropagation()">
+                                    <button class="activity-edit-cog" onclick="management.editActivity('${categoryName}', '${activity}')" title="Edit activity">
+                                        ⚙️
+                                    </button>
+                                    <button class="btn-icon btn-danger activity-delete" onclick="management.deleteActivity('${categoryName}', '${activity}')" title="Delete Activity">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
     }
 
     // Show add activity modal
     showAddActivityModal(categoryName) {
+        this.closeAllMenus(); // Close any open menus
         this.showActivityModal('add', categoryName);
     }
 
@@ -582,7 +781,6 @@ export class Management {
     showActivityModal(mode, categoryName, activityName = '') {
         const isEdit = mode === 'edit';
         const title = isEdit ? 'Edit Activity' : 'Add Activity';
-        const submitText = isEdit ? 'Update Activity' : 'Create Activity';
         const currentEmoji = isEdit ? this.getActivityEmoji(activityName) : '⭐';
         
         const modal = `
@@ -594,9 +792,12 @@ export class Management {
                     </div>
                     
                     <form id="activity-form" onsubmit="management.submitActivityForm(event, '${mode}', '${categoryName}')">
+                        <div class="activity-form-content">
                         <div class="form-group">
                             <label>Activity Name</label>
-                            <input type="text" id="activity-name" value="${isEdit ? activityName : ''}" required maxlength="30">
+                                <input type="text" id="activity-name" 
+                                       value="${isEdit ? activityName : ''}" 
+                                       required maxlength="30">
                         </div>
                         
                         <div class="form-group">
@@ -606,7 +807,8 @@ export class Management {
                         
                         <div class="modal-actions">
                             <button type="button" class="btn-secondary" onclick="management.closeModal()">Cancel</button>
-                            <button type="submit" class="btn-primary">${submitText}</button>
+                                <button type="submit" class="btn-primary">${isEdit ? 'Update Activity' : 'Create Activity'}</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -614,41 +816,6 @@ export class Management {
         `;
         
         document.getElementById('modal-container').innerHTML = modal;
-    }
-
-    // Create emoji picker based on user preference
-    createEmojiPicker(currentEmoji, inputId, isCategory = true) {
-        // Check user preference for enhanced emoji picker
-        if (this.getSetting('enhancedEmojiPicker') !== false) {
-            return this.createEnhancedEmojiPicker(currentEmoji, inputId, isCategory);
-        } else {
-            // Fallback to simple emoji picker
-            return this.createSimpleEmojiPicker(currentEmoji, inputId, isCategory);
-        }
-    }
-
-    // Simple emoji picker (legacy/fallback)
-    createSimpleEmojiPicker(currentEmoji, inputId, isCategory = true) {
-        return `
-            <div class="emoji-picker">
-                <input type="text" id="${inputId}" value="${currentEmoji}" maxlength="2">
-                <div class="emoji-presets">
-                    ${isCategory ? this.renderEmojiPresets() : this.renderActivityEmojiPresets()}
-                </div>
-            </div>
-        `;
-    }
-
-    // Render activity-specific emoji presets
-    renderActivityEmojiPresets() {
-        const emojis = [
-            '⭐', '🎨', '🎵', '🎸', '🎹', '🎤', '✍️', '📚', '💪', '🏃', '🚶', '🧘', 
-            '🤸', '🥋', '☕', '🍽️', '🚿', '😴', '🔨', '🧹', '🍳', '🌱', '🏠', '🛒', 
-            '👋', '🤗', '💄', '🫁', '🌍', '☀️', '💆', '🧵', '📋', '🌳'
-        ];
-        return emojis.map(emoji => 
-            `<span class="emoji-preset" onclick="management.selectEmoji('${emoji}', 'activity')">${emoji}</span>`
-        ).join('');
     }
 
     // Submit activity form
@@ -658,327 +825,313 @@ export class Management {
         const name = document.getElementById('activity-name').value.trim();
         const emoji = document.getElementById('activity-emoji').value.trim();
         
+        // Validation
         if (!name || !emoji) {
             alert('Please fill in all fields');
             return;
         }
         
-        if (mode === 'add') {
-            this.addActivity(categoryName, name, emoji);
-        } else {
-            this.updateActivity(this.editingActivity.category, this.editingActivity.activity, name, emoji);
-        }
-        
-        this.closeModal();
-        this.renderManagementScreen();
-    }
-
-    // Show add category modal
-    showAddCategoryModal() {
-        this.showCategoryModal('add');
-    }
-
-    // Edit category
-    editCategory(categoryName) {
-        this.editingCategory = categoryName;
-        this.showCategoryModal('edit', this.getCategories()[categoryName]);
-    }
-
-    // Show category modal (add or edit)
-    showCategoryModal(mode, categoryData = null) {
-        const isEdit = mode === 'edit';
-        const title = isEdit ? 'Edit Category' : 'Add Category';
-        const submitText = isEdit ? 'Update Category' : 'Create Category';
-        
-        // Get current goals for this category (if editing and goals are enabled)
-        const categoryName = isEdit ? this.editingCategory : '';
-        const currentGoals = isEdit && window.app.goals && this.getSetting('goalsEnabled') ? window.app.goals.getCategoryGoals(categoryName) : {};
-        
-        const modal = `
-            <div class="modal-overlay" onclick="management.closeModal()">
-                <div class="modal-content category-modal-extended" onclick="event.stopPropagation()">
-                    <div class="modal-header">
-                        <h3>${title}</h3>
-                        <button class="modal-close" onclick="management.closeModal()">✕</button>
-                    </div>
-                    
-                    <form id="category-form" onsubmit="management.submitCategoryForm(event, '${mode}')">
-                        <div class="form-group">
-                            <label>Category Name</label>
-                            <input type="text" id="category-name" value="${categoryData?.name || categoryData ? this.editingCategory : ''}" required maxlength="30">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Color</label>
-                            <div class="color-picker">
-                                <input type="color" id="category-color" value="${categoryData?.color || '#4A90E2'}">
-                                <div class="color-presets">
-                                    ${this.renderColorPresets()}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Emoji</label>
-                            ${this.createEmojiPicker(categoryData?.emoji || '📁', 'category-emoji', true)}
-                        </div>
-                        
-                        ${isEdit && this.getSetting('goalsEnabled') ? this.renderGoalsSection(categoryName, currentGoals) : ''}
-                        
-                        <div class="modal-actions">
-                            <button type="button" class="btn-secondary" onclick="management.closeModal()">Cancel</button>
-                            <button type="submit" class="btn-primary">${submitText}</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('modal-container').innerHTML = modal;
-    }
-
-    // Render color presets
-    renderColorPresets() {
-        const colors = ['#e74c3c', '#f39c12', '#27ae60', '#3498db', '#9b59b6', '#e67e22', '#95a5a6', '#34495e'];
-        return colors.map(color => 
-            `<div class="color-preset" style="background-color: ${color}" onclick="management.selectColor('${color}')"></div>`
-        ).join('');
-    }
-
-    // Render emoji presets
-    renderEmojiPresets() {
-        const commonEmojis = ['📚', '💼', '🏃', '🍳', '🧹', '🎮', '📺', '🛌', '🚗', '🛒', '👨‍👩‍👧‍👦', '📞', '💻', '📖', '🎨', '🎵'];
-        return commonEmojis.map(emoji => 
-            `<span class="emoji-preset" onclick="management.selectEmoji('${emoji}', 'category')">${emoji}</span>`
-        ).join('');
-        // TODO: Replace with enhanced emoji-picker-element for better UX
-    }
-
-    // Render goals section within category modal (inline goals)
-    renderGoalsSection(categoryName, currentGoals) {
-        const dailyGoal = currentGoals.daily ? Math.floor(currentGoals.daily.target / 60) : 0;
-        const weeklyGoal = currentGoals.weekly ? Math.floor(currentGoals.weekly.target / 60) : 0;
-        const monthlyGoal = currentGoals.monthly ? Math.floor(currentGoals.monthly.target / 60) : 0;
-        
-        const dailyProgress = currentGoals.daily ? window.app.goals.calculateProgress(categoryName, 'daily') : null;
-        const weeklyProgress = currentGoals.weekly ? window.app.goals.calculateProgress(categoryName, 'weekly') : null;
-        const monthlyProgress = currentGoals.monthly ? window.app.goals.calculateProgress(categoryName, 'monthly') : null;
-
-        return `
-            <div class="form-section">
-                <h4>🎯 Time Goals</h4>
-                <p class="form-section-description">Set daily, weekly, or monthly time goals for this category</p>
-                
-                <div class="goals-grid">
-                    <div class="goal-input-card">
-                        <label>Daily Goal</label>
-                        ${dailyProgress ? `<span class="goal-progress-hint">${Math.round(dailyProgress.percentage)}% today</span>` : ''}
-                        <div class="goal-input-group">
-                            <input type="number" 
-                                   id="daily-goal" 
-                                   value="${dailyGoal}" 
-                                   min="0" 
-                                   max="1440" 
-                                   placeholder="0" 
-                                   onchange="management.autoSaveGoalInModal('${categoryName}', 'daily', this)"
-                                   oninput="management.showGoalSavingIndicator(this, 'daily')">
-                            <span class="goal-unit">minutes</span>
-                            <span class="goal-save-status" id="daily-goal-status"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="goal-input-card">
-                        <label>Weekly Goal</label>
-                        ${weeklyProgress ? `<span class="goal-progress-hint">${Math.round(weeklyProgress.percentage)}% this week</span>` : ''}
-                        <div class="goal-input-group">
-                            <input type="number" 
-                                   id="weekly-goal" 
-                                   value="${weeklyGoal}" 
-                                   min="0" 
-                                   max="10080" 
-                                   placeholder="0"
-                                   onchange="management.autoSaveGoalInModal('${categoryName}', 'weekly', this)"
-                                   oninput="management.showGoalSavingIndicator(this, 'weekly')">
-                            <span class="goal-unit">minutes</span>
-                            <span class="goal-save-status" id="weekly-goal-status"></span>
-                        </div>
-                    </div>
-                    
-                    <div class="goal-input-card">
-                        <label>Monthly Goal</label>
-                        ${monthlyProgress ? `<span class="goal-progress-hint">${Math.round(monthlyProgress.percentage)}% this month</span>` : ''}
-                        <div class="goal-input-group">
-                            <input type="number" 
-                                   id="monthly-goal" 
-                                   value="${monthlyGoal}" 
-                                   min="0" 
-                                   max="43200" 
-                                   placeholder="0"
-                                   onchange="management.autoSaveGoalInModal('${categoryName}', 'monthly', this)"
-                                   oninput="management.showGoalSavingIndicator(this, 'monthly')">
-                            <span class="goal-unit">minutes</span>
-                            <span class="goal-save-status" id="monthly-goal-status"></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="goal-hint">
-                    💡 Goals auto-save as you type. Set to 0 to remove a goal.
-                </div>
-            </div>
-        `;
-    }
-
-    // Select color preset
-    selectColor(color) {
-        document.getElementById('category-color').value = color;
-    }
-
-    // Select emoji preset
-    selectEmoji(emoji, type = 'category') {
-        const inputId = type === 'category' ? 'category-emoji' : 'activity-emoji';
-        document.getElementById(inputId).value = emoji;
-    }
-
-    // Submit category form
-    submitCategoryForm(event, mode) {
-        event.preventDefault();
-        
-        const name = document.getElementById('category-name').value.trim();
-        const color = document.getElementById('category-color').value;
-        const emoji = document.getElementById('category-emoji').value.trim();
-        
-        if (!name || !color || !emoji) {
-            alert('Please fill in all fields');
+        // Check for duplicates
+        const category = this.customCategories[categoryName];
+        if (mode === 'add' && category.activities.includes(name)) {
+            alert('Activity already exists in this category!');
             return;
         }
         
-        if (mode === 'add') {
-            this.addCategory(name, color, emoji);
-        } else {
-            this.updateCategory(this.editingCategory, name, color, emoji);
+        if (mode === 'edit' && name !== this.editingActivity.activity && category.activities.includes(name)) {
+            alert('Activity name already exists in this category!');
+            return;
         }
         
-        // Save the category to data
-        const success = this.storage.saveCategory(name, this.getCategories()[name]);
-        
-        if (success) {
-            // Goals are now auto-saved individually, no need to save from form
-            this.showToast(`Category ${mode === 'edit' ? 'updated' : 'created'} successfully!`, 'success');
-            this.closeModal();
-            this.renderTab(); // Refresh the current tab
+        try {
+        if (mode === 'add') {
+            this.addActivity(categoryName, name, emoji);
+                this.showToast('Activity created successfully!', 'success');
         } else {
-            this.showToast('Failed to save category', 'error');
+                this.updateActivity(categoryName, this.editingActivity.activity, name, emoji);
+                this.showToast('Activity updated successfully!', 'success');
+        }
+        
+            // Close modal and refresh displays
+        this.closeModal();
+        this.renderManagementScreen();
+            this.updateAllDisplays();
+            
+        } catch (error) {
+            console.error('Error saving activity:', error);
+            alert('Error saving activity: ' + error.message);
         }
     }
 
-    // Auto-save goal from category modal
-    autoSaveGoalInModal(categoryName, period, inputElement) {
-        // Only save goals if the feature is enabled
-        if (!window.app.goals || !this.getSetting('goalsEnabled')) return;
+    // Create emoji picker (always use enhanced version)
+    createEmojiPicker(currentEmoji, inputId, isCategory = true) {
+        const pickerId = `emoji-picker-${Date.now()}`;
         
-        const minutes = parseInt(inputElement.value) || 0;
-        const statusElement = document.getElementById(`${period}-goal-status`);
+        return `
+            <div class="emoji-picker-enhanced">
+                <div class="emoji-input-container">
+                    <input type="text" 
+                           id="${inputId}" 
+                           value="${currentEmoji}" 
+                           maxlength="2" 
+                           placeholder="🎯"
+                           readonly>
+                    <button type="button" 
+                            class="emoji-picker-button" 
+                            onclick="management.toggleEmojiPicker('${pickerId}', '${inputId}')">
+                        <span>😀</span>
+                        <span>Pick Emoji</span>
+                    </button>
+                    </div>
+                <div id="${pickerId}" class="emoji-picker-container">
+                    <!-- Emoji picker will be loaded here -->
+                </div>
+            </div>
+        `;
+    }
+
+    // Toggle emoji picker visibility
+    async toggleEmojiPicker(pickerId, inputId) {
+        const container = document.getElementById(pickerId);
+        const isVisible = container.classList.contains('show');
         
-        // Show saving indicator
-        if (statusElement) {
-            statusElement.innerHTML = `<span class="goal-saving">💾</span>`;
-            statusElement.className = 'goal-save-status saving';
+        // Close all other emoji pickers first
+        document.querySelectorAll('.emoji-picker-container.show').forEach(picker => {
+            if (picker.id !== pickerId) {
+                picker.classList.remove('show');
+            }
+        });
+        
+        if (isVisible) {
+            container.classList.remove('show');
+            // Remove body scroll lock
+            this.unlockBodyScroll();
+            return;
         }
         
-        // Debounce save to prevent too many calls
-        clearTimeout(this.goalSaveTimeout);
-        this.goalSaveTimeout = setTimeout(() => {
-            try {
-                if (minutes > 0) {
-                    window.app.goals.setGoal(categoryName, period, minutes * 60); // Convert to seconds
-                } else {
-                    // Remove goal
-                    if (window.app.goals.goals[categoryName]) {
-                        delete window.app.goals.goals[categoryName][period];
-                        if (Object.keys(window.app.goals.goals[categoryName]).length === 0) {
-                            delete window.app.goals.goals[categoryName];
-                        }
+        // Show this picker
+        container.classList.add('show');
+        
+        // Add body scroll lock on mobile
+        this.lockBodyScroll();
+        
+        // Load emoji picker if not already loaded
+        if (!container.querySelector('emoji-picker')) {
+            await this.loadEmojiPicker(container, inputId);
+        }
+    }
+
+    // Load and configure emoji picker
+    async loadEmojiPicker(container, inputId) {
+        try {
+            // Show loading state
+            container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;"><div class="loading-spinner"></div><p style="margin-top: 1rem;">Loading emoji picker...</p></div>';
+            
+            // Wait for emoji-picker-element to be available
+            if (!customElements.get('emoji-picker')) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                if (!customElements.get('emoji-picker')) {
+                    throw new Error('emoji-picker-element not loaded');
+                }
+            }
+            
+            // Create and configure emoji picker
+            const picker = document.createElement('emoji-picker');
+            picker.addEventListener('emoji-click', (event) => {
+                const emoji = event.detail.emoji.unicode;
+                const emojiInput = document.getElementById(inputId);
+                if (emojiInput) {
+                    emojiInput.value = emoji;
+                    container.classList.remove('show');
+                }
+            });
+            
+            // Clear loading and add picker
+            container.innerHTML = '';
+            container.appendChild(picker);
+            
+            // Add click outside handler
+            const handleClickOutside = (event) => {
+                if (!container.contains(event.target) && !event.target.closest('.emoji-picker-button')) {
+                    container.classList.remove('show');
+                    document.removeEventListener('click', handleClickOutside);
+                }
+            };
+            setTimeout(() => document.addEventListener('click', handleClickOutside), 100);
+            
+        } catch (error) {
+            console.error('Error loading emoji picker:', error);
+            // Fallback to simple picker
+            container.innerHTML = `
+                <div style="padding: 1rem;">
+                    <p style="margin-bottom: 1rem; text-align: center; color: #666; font-size: 0.9em;">
+                        Enhanced picker unavailable. Using simple selection:
+                    </p>
+                    <div class="emoji-presets" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
+                        ${this.renderEmojiPresets()}
+                </div>
+            </div>
+        `;
+    }
+    }
+
+    // Close all emoji pickers
+    closeAllEmojiPickers() {
+        document.querySelectorAll('.emoji-picker-container.show').forEach(picker => {
+            picker.classList.remove('show');
+        });
+        // Remove body scroll lock when closing pickers
+        this.unlockBodyScroll();
+    }
+
+    // Lock body scroll (for mobile emoji picker)
+    lockBodyScroll() {
+        if (window.innerWidth <= 768) {
+            document.body.classList.add('emoji-picker-open');
+        }
+    }
+
+    // Unlock body scroll
+    unlockBodyScroll() {
+        document.body.classList.remove('emoji-picker-open');
+    }
+
+    // Get app version for use by other modules
+    getAppVersion() {
+        return this.versionInfo?.version || getFullVersion();
+    }
+
+    // Get version info object
+    getVersionInfo() {
+        return this.versionInfo || getVersionInfo();
+    }
+
+    // Update only the categories display without affecting modals
+    updateCategoriesDisplay() {
+        const categoriesContainer = document.querySelector('.categories-management');
+        if (categoriesContainer) {
+            categoriesContainer.innerHTML = this.renderCategoriesManagement();
+        }
+    }
+
+    // Update all displays that might show category/activity data
+    updateAllDisplays() {
+        // Update management screen if it's showing
+        this.updateCategoriesDisplay();
+        
+        // Update activity emojis in case they changed
+        if (window.app) {
+            window.app.loadCustomActivityEmojis();
+        }
+        
+        // Refresh current screen displays if we're on home or activity screens
+        if (window.app && window.app.currentScreen) {
+            switch (window.app.currentScreen) {
+                case 'home':
+                    // Refresh the category list on home screen
+                    window.app.renderCategories();
+                    break;
+                case 'activity':
+                    // Refresh the activity list if we're showing activities
+                    if (window.app.currentCategory) {
+                        window.app.showActivities(window.app.currentCategory);
                     }
-                }
-                
-                window.app.goals.saveGoals();
-                
-                // Show success indicator
-                if (statusElement) {
-                    statusElement.innerHTML = `<span class="goal-saved">✓</span>`;
-                    statusElement.className = 'goal-save-status saved';
-                    
-                    // Hide success indicator after 2 seconds
-                    setTimeout(() => {
-                        statusElement.innerHTML = '';
-                        statusElement.className = 'goal-save-status';
-                    }, 2000);
-                }
-                
-                // Trigger goal calculation for daily goals
-                if (period === 'daily') {
-                    this.handleDailyGoalAutoCalculation(inputElement);
-                }
-                
-                // Refresh goals UI if needed
-                if (window.app?.renderGoalsUI) {
-                    window.app.renderGoalsUI();
-                }
-                
-            } catch (error) {
-                console.error('Error auto-saving goal in modal:', error);
-                if (statusElement) {
-                    statusElement.innerHTML = `<span class="goal-error">⚠️</span>`;
-                    statusElement.className = 'goal-save-status error';
-                }
+                    break;
+                // Other screens don't typically show editable category/activity data
             }
-        }, 500); // 500ms debounce
-    }
-    
-    // Show saving indicator while typing
-    showGoalSavingIndicator(inputElement, period) {
-        const statusElement = document.getElementById(`${period}-goal-status`);
-        if (statusElement) {
-            statusElement.innerHTML = `<span class="goal-typing">✏️</span>`;
-            statusElement.className = 'goal-save-status typing';
         }
     }
-    
-    // Handle daily goal auto-calculation (optional feature)
-    handleDailyGoalAutoCalculation(dailyInput) {
-        const weeklyInput = document.getElementById('weekly-goal');
-        const monthlyInput = document.getElementById('monthly-goal');
+
+    // Restore default categories in case of corruption
+    async restoreDefaultCategories() {
+        if (!confirm('This will restore the default categories. Any custom categories will be lost. Continue?')) {
+            return;
+        }
         
-        if (!weeklyInput || !monthlyInput) return;
-        
-        const dailyValue = parseInt(dailyInput.value) || 0;
-        const currentWeekly = parseInt(weeklyInput.value) || 0;
-        const currentMonthly = parseInt(monthlyInput.value) || 0;
-        
-        // Only auto-calculate if weekly and monthly are currently 0 and daily > 0
-        if (dailyValue > 0 && currentWeekly === 0 && currentMonthly === 0) {
-            const suggestedWeekly = dailyValue * 7;
-            const suggestedMonthly = dailyValue * 30;
+        try {
+            // Import default categories
+            const { categories: defaultCategories } = await import('./data.js');
             
-            weeklyInput.value = suggestedWeekly;
-            monthlyInput.value = suggestedMonthly;
+            // Reset to defaults
+            this.customCategories = JSON.parse(JSON.stringify(defaultCategories));
+            this.saveCustomCategories();
             
-            // Auto-save the calculated values
-            if (window.app.goals) {
-                window.app.goals.setGoal(this.editingCategory || 'Unknown', 'weekly', suggestedWeekly * 60);
-                window.app.goals.setGoal(this.editingCategory || 'Unknown', 'monthly', suggestedMonthly * 60);
-                window.app.goals.saveGoals();
+            // Clear editing state
+            this.editingCategory = null;
+            this.closeModal();
+            
+            // Refresh display
+            this.renderManagementScreen();
+            
+            this.showToast('Default categories restored successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Error restoring default categories:', error);
+            this.showToast('Failed to restore default categories', 'error');
+        }
+    }
+
+    // Update existing category
+    updateCategory(oldName, newName, color, emoji) {
+        try {
+            const categories = this.getCategories();
+            const categoryData = categories[oldName];
+            
+            // Validation: check that category exists
+            if (!categoryData) {
+                throw new Error(`Category "${oldName}" not found`);
             }
             
-            // Visual feedback
-            weeklyInput.style.background = '#e8f5e8';
-            monthlyInput.style.background = '#e8f5e8';
+            // Validation: check required fields
+            if (!newName || !newName.trim()) {
+                throw new Error('Category name is required');
+            }
             
-            setTimeout(() => {
-                weeklyInput.style.background = '';
-                monthlyInput.style.background = '';
-            }, 1500);
+            if (!color) {
+                throw new Error('Category color is required');
+            }
+            
+            if (!emoji || !emoji.trim()) {
+                throw new Error('Category emoji is required');
+            }
+            
+            // Clean the new name
+            newName = newName.trim();
+            emoji = emoji.trim();
+        
+        // If name changed, need to migrate data
+        if (oldName !== newName) {
+            if (categories[newName]) {
+                    throw new Error('Category name already exists!');
+            }
+            
+            // Migrate time tracking data
+            this.storage.migrateCategoryData(oldName, newName);
+            
+            // Update current category reference if user is viewing this category
+            if (window.app && window.app.currentCategory === oldName) {
+                window.app.currentCategory = newName;
+            }
+            
+            // Remove old category
+            delete this.customCategories[oldName];
+        }
+        
+        // Update category (use newName which equals oldName if unchanged)
+        this.customCategories[newName] = {
+            ...categoryData,
+            color: color,
+            emoji: emoji
+        };
+        
+        this.saveCustomCategories();
+        this.editingCategory = null;
+            
+            return true; // Success
+            
+        } catch (error) {
+            console.error('Error updating category:', error);
+            throw error; // Re-throw for caller to handle
         }
     }
 
@@ -998,38 +1151,9 @@ export class Management {
         this.saveCustomCategories();
     }
 
-    // Update existing category
-    updateCategory(oldName, newName, color, emoji) {
-        const categories = this.getCategories();
-        const categoryData = categories[oldName];
-        
-        // If name changed, need to migrate data
-        if (oldName !== newName) {
-            if (categories[newName]) {
-                alert('Category name already exists!');
-                return;
-            }
-            
-            // Migrate time tracking data
-            this.storage.migrateCategoryData(oldName, newName);
-            
-            // Remove old category
-            delete this.customCategories[oldName];
-        }
-        
-        // Update category (use newName which equals oldName if unchanged)
-        this.customCategories[newName] = {
-            ...categoryData,
-            color: color,
-            emoji: emoji
-        };
-        
-        this.saveCustomCategories();
-        this.editingCategory = null;
-    }
-
     // Delete category (soft delete)
     deleteCategory(categoryName) {
+        this.closeAllMenus(); // Close any open menus
         if (!confirm(`Delete "${categoryName}" category? This will hide it from the interface but preserve historical data for reports.`)) {
             return;
         }
@@ -1038,6 +1162,30 @@ export class Management {
         this.storage.softDeleteCategory(categoryName);
         
         this.renderManagementScreen();
+    }
+
+    // Refresh category form data to show current saved values
+    refreshCategoryFormData() {
+        if (!this.editingCategory) return;
+        
+        const categories = this.getCategories();
+        const categoryData = categories[this.editingCategory];
+        
+        if (!categoryData) {
+            // Category no longer exists, close the modal
+            this.closeModal();
+            this.showToast('Category was deleted or corrupted. Please try again.', 'error');
+            return;
+        }
+        
+        // Update form fields with current saved values
+        const nameInput = document.getElementById('category-name');
+        const colorInput = document.getElementById('category-color');
+        const emojiInput = document.getElementById('category-emoji');
+        
+        if (nameInput) nameInput.value = this.editingCategory;
+        if (colorInput) colorInput.value = categoryData.color;
+        if (emojiInput) emojiInput.value = categoryData.emoji;
     }
 
     // Add activity to category
@@ -1073,8 +1221,7 @@ export class Management {
         
         if (oldActivityName !== newActivityName) {
             if (category.activities.includes(newActivityName)) {
-                alert('Activity already exists in this category!');
-                return;
+                throw new Error('Activity already exists in this category!');
             }
             
             // Update activity name
@@ -1101,7 +1248,6 @@ export class Management {
         }
         
         category.activities.sort(); // Keep alphabetically sorted
-        
         this.saveCustomCategories();
         this.editingActivity = null;
     }
@@ -1186,22 +1332,27 @@ export class Management {
         
         // Clear modal content
         document.getElementById('modal-container').innerHTML = '';
-        this.editingCategory = null;
+        
+        // Clear editing state
         this.editingActivity = null;
+        
+        // Refresh displays to ensure they show current state
+        this.updateAllDisplays();
     }
 
+    // Get default settings
     getDefaultSettings() {
         return {
             appTitle: "Alona's Activity Tracker",
             goalsEnabled: true,
             quickStartCount: 6,
             sessionRetentionDays: 60,
-            enhancedEmojiPicker: true,
-            version: this.APP_VERSION
+            version: this.versionInfo?.version || getFullVersion(),
+            featureFlags: { enhanced_timer: false } // Add enhanced_timer flag
         };
     }
 
-    // Check for app updates
+    // Check for app updates - Enhanced with aggressive cache clearing
     async checkForUpdates() {
         const updateBtn = document.getElementById('update-btn-text');
         const originalText = updateBtn.textContent;
@@ -1209,228 +1360,433 @@ export class Management {
         updateBtn.textContent = 'Checking...';
         
         try {
-            // First, try to update the service worker
+            // First, check if there's actually an update
+            const currentVersion = this.getAppVersion();
+            const response = await fetch('version.json?' + Date.now());
+            const versionData = await response.json();
+            const latestVersion = versionData.version;
+            
+            if (currentVersion === latestVersion) {
+                // No update needed, but user wants to refresh anyway
+                updateBtn.textContent = 'Force Refresh?';
+                
+                const shouldRefresh = await new Promise(resolve => {
+                    setTimeout(() => {
+                        const userWants = confirm(
+                            `You already have the latest version (${versionData.versionNumber}).\n\n` +
+                            `Do you want to force refresh anyway?\n\n` +
+                            `This will clear all caches and reload the app completely.`
+                        );
+                        resolve(userWants);
+                    }, 500);
+                });
+                
+                if (!shouldRefresh) {
+                    updateBtn.textContent = originalText;
+                    this.showToast('App is already up to date!', 'success');
+                    return;
+                }
+            } else {
+                // Update available
+                this.showToast(`Update found: ${versionData.versionNumber}`, 'info');
+            }
+            
+            updateBtn.textContent = 'Clearing Caches...';
+            
+            // AGGRESSIVE CACHE CLEARING
+            
+            // 1. Clear Service Worker caches
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                console.log('🗑️ Clearing all caches:', cacheNames);
+                await Promise.all(
+                    cacheNames.map(cacheName => {
+                        console.log('🗑️ Deleting cache:', cacheName);
+                        return caches.delete(cacheName);
+                    })
+                );
+            }
+
+            // 2. Clear service worker registration and force update
             if ('serviceWorker' in navigator) {
                 const registration = await navigator.serviceWorker.getRegistration();
                 if (registration) {
-                    console.log('Management: Found service worker registration');
+                    console.log('🔄 Unregistering service worker for fresh start');
                     
-                    // Force an immediate update check
-                    await registration.update();
-                    
-                    // Wait a moment for the update to process
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                    
-                    // Check if there's a waiting worker (new version available)
+                    // Send skip waiting message first
                     if (registration.waiting) {
-                        console.log('Management: New service worker is waiting');
-                        updateBtn.textContent = 'Update Available - Applying...';
-                        
-                        // Force the waiting worker to become active
-                        registration.waiting.postMessage({ action: 'skipWaiting' });
-                        
-                        // Clear all caches more aggressively
-                        if ('caches' in window) {
-                            const cacheNames = await caches.keys();
-                            console.log('Management: Clearing all caches:', cacheNames);
-                            await Promise.all(
-                                cacheNames.map(cacheName => {
-                                    console.log('Management: Deleting cache:', cacheName);
-                                    return caches.delete(cacheName);
-                                })
-                            );
-                        }
-                        
-                        // Force reload after a short delay
-                        updateBtn.textContent = 'Reloading...';
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        
-                        // For PWA installations, use more aggressive reload
-                        if (window.matchMedia('(display-mode: standalone)').matches || 
-                            window.navigator.standalone || 
-                            document.referrer.includes('android-app://')) {
-                            
-                            console.log('Management: PWA detected - performing hard reload');
-                            // PWA mode - use hard reload
-                            window.location.href = window.location.href + '?force-refresh=' + Date.now();
-                        } else {
-                            console.log('Management: Browser mode - performing standard reload');
-                            window.location.reload(true);
-                        }
-                        
-                        return;
-                    } else if (registration.installing) {
-                        console.log('Management: Service worker is installing');
-                        updateBtn.textContent = 'Installing Update...';
-                        
-                        // Wait for installation to complete
-                        await new Promise((resolve) => {
-                            registration.installing.addEventListener('statechange', () => {
-                                if (registration.installing.state === 'installed') {
-                                    resolve();
-                                }
-                            });
-                        });
-                        
-                        // Now check again for waiting worker
-                        if (registration.waiting) {
-                            registration.waiting.postMessage({ action: 'skipWaiting' });
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                            window.location.reload(true);
-                            return;
-                        }
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
                     }
+                    
+                    await registration.unregister();
                 }
             }
             
-            // If no service worker update available, try hard refresh
-            console.log('Management: No service worker update available, trying hard refresh');
-            updateBtn.textContent = 'Refreshing...';
+            // 3. Clear localStorage app data (but preserve user data)
+            const preserveKeys = ['categories', 'activities', 'timeEntries', 'settings', 'usageStats'];
+            const allKeys = Object.keys(localStorage);
+            allKeys.forEach(key => {
+                if (!preserveKeys.some(preserve => key.includes(preserve))) {
+                    console.log('🗑️ Removing localStorage key:', key);
+                    localStorage.removeItem(key);
+                }
+            });
             
-            // Clear localStorage version tracking to force re-check
-            if (this.settings.lastUpdateCheck) {
-                delete this.settings.lastUpdateCheck;
-                this.saveSettings();
-            }
+            updateBtn.textContent = 'Reloading...';
             
-            // Wait a moment
+            // 4. Force complete reload with cache busting
             await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Hard refresh
-            if (window.location.search.includes('force-refresh')) {
-                updateBtn.textContent = 'App is up to date!';
-                setTimeout(() => {
-                    updateBtn.textContent = originalText;
-                }, 3000);
-            } else {
-                window.location.href = window.location.href + '?force-refresh=' + Date.now();
-            }
+            // Multiple cache busting strategies
+            const now = Date.now();
+            const url = new URL(window.location);
+            url.searchParams.set('refresh', now);
+            url.searchParams.set('v', now);
+            url.searchParams.set('cache', 'false');
+            
+            // Nuclear option: completely replace current page
+            window.location.replace(url.toString());
             
         } catch (error) {
-            console.error('Management: Update check failed:', error);
-            updateBtn.textContent = 'Update Failed';
+            console.error('❌ Update check/refresh failed:', error);
+            updateBtn.textContent = 'Refresh Failed';
             setTimeout(() => {
                 updateBtn.textContent = originalText;
             }, 3000);
             
-            this.showToast('Update check failed. Try again later.', 'error');
+            this.showToast('Refresh failed. Try closing and reopening the app, or reinstalling if it\'s a PWA.', 'error');
         }
     }
 
-    // Enhanced emoji picker methods
-    createEnhancedEmojiPicker(currentEmoji, inputId, isCategory = true) {
-        const pickerId = `emoji-picker-${Date.now()}`;
+    // Nuclear cache reset - for extreme cases
+    async nuclearCacheReset() {
+        const confirmed = confirm(
+            '💥 NUCLEAR CACHE RESET\n\n' +
+            'This will:\n' +
+            '• Clear ALL browser caches\n' +
+            '• Unregister service worker\n' +
+            '• Clear ALL localStorage (except your time tracking data)\n' +
+            '• Force complete app reload\n\n' +
+            'Your time tracking data will be PRESERVED.\n\n' +
+            'This is only for severe cache issues.\n\n' +
+            'Continue?'
+        );
         
-        return `
-            <div class="emoji-picker-enhanced">
-                <div class="emoji-input-container">
-                    <input type="text" 
-                           id="${inputId}" 
-                           value="${currentEmoji}" 
-                           maxlength="2" 
-                           placeholder="🎯"
-                           readonly>
-                    <button type="button" 
-                            class="emoji-picker-button" 
-                            onclick="management.toggleEmojiPicker('${pickerId}', '${inputId}')">
-                        <span>😀</span>
-                        <span>Pick Emoji</span>
-                    </button>
+        if (!confirmed) return;
+        
+        try {
+            console.log('💥 STARTING NUCLEAR CACHE RESET');
+            
+            // Show progress to user
+            this.showToast('💥 Nuclear reset in progress... DO NOT CLOSE THE APP!', 'warning', 10000);
+            
+            // 1. Clear ALL browser caches
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                console.log('💥 Nuking all caches:', cacheNames);
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+            }
+            
+            // 2. Unregister ALL service workers
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                console.log('💥 Nuking service workers:', registrations.length);
+                await Promise.all(registrations.map(reg => reg.unregister()));
+            }
+            
+            // 3. Clear ALL localStorage except essential user data
+            const preserve = [
+                'categories', 'activities', 'timeEntries', 'settings', 
+                'usageStats', 'categoryGoals', 'customActivityEmojis'
+            ];
+            
+            const allKeys = Object.keys(localStorage);
+            allKeys.forEach(key => {
+                if (!preserve.some(p => key.includes(p))) {
+                    console.log('💥 Nuking localStorage key:', key);
+                    localStorage.removeItem(key);
+                }
+            });
+            
+            // 4. Clear sessionStorage completely
+            sessionStorage.clear();
+            console.log('💥 SessionStorage nuked');
+            
+            // 5. Clear IndexedDB if it exists
+            if ('indexedDB' in window) {
+                try {
+                    // This is more complex but we'll do a basic attempt
+                    const databases = await indexedDB.databases();
+                    for (const db of databases) {
+                        if (db.name && !db.name.includes('time-tracker')) { // Don't delete our own DB
+                            indexedDB.deleteDatabase(db.name);
+                            console.log('💥 Nuked IndexedDB:', db.name);
+                        }
+                    }
+                } catch (e) {
+                    console.log('💥 IndexedDB clearing skipped:', e.message);
+                }
+            }
+            
+            // 6. Force immediate page replacement with maximum cache busting
+            console.log('💥 Final nuclear reload...');
+            
+            const now = Date.now();
+            const url = new URL(window.location);
+            url.searchParams.set('nuclear', now);
+            url.searchParams.set('refresh', now)
+            url.searchParams.set('v', now);
+            url.searchParams.set('cache', 'false');
+            url.searchParams.set('timestamp', now);
+            
+            // Replace history and force complete reload
+            window.location.replace(url.toString());
+            
+        } catch (error) {
+            console.error('💥 Nuclear reset failed:', error);
+            alert('Nuclear reset failed: ' + error.message + '\n\nTry manually clearing your browser cache or reinstalling the PWA.');
+        }
+    }
+
+    // Render emoji presets
+    renderEmojiPresets() {
+        const commonEmojis = ['📚', '💼', '🏃', '🍳', '🧹', '🎮', '📺', '🛌', '🚗', '🛒', '👨‍👩‍👧‍👦', '📞', '💻', '📖', '🎨', '🎵'];
+        return commonEmojis.map(emoji => 
+            `<span class="emoji-preset" onclick="management.selectEmoji('${emoji}', 'category')">${emoji}</span>`
+        ).join('');
+        // TODO: Replace with enhanced emoji-picker-element for better UX
+    }
+
+    // Select emoji preset
+    selectEmoji(emoji, type = 'category') {
+        const inputId = type === 'category' ? 'category-emoji' : 'activity-emoji';
+        const emojiInput = document.getElementById(inputId);
+        if (emojiInput) {
+            emojiInput.value = emoji;
+        }
+    }
+
+    // Select color preset
+    selectColor(color) {
+        const colorInput = document.getElementById('category-color');
+        if (colorInput) {
+            colorInput.value = color;
+        }
+    }
+
+    // Edit category
+    editCategory(categoryName) {
+        this.closeAllMenus(); // Close any open menus
+        this.editingCategory = categoryName;
+        const categories = this.getCategories();
+        const categoryData = categories[categoryName];
+        this.showCategoryModal('edit', categoryData);
+    }
+
+    // Show add category modal
+    showAddCategoryModal() {
+        this.showCategoryModal('add');
+    }
+
+    // Show category modal (add or edit)
+    showCategoryModal(mode, categoryData = null) {
+        const isEdit = mode === 'edit';
+        const title = isEdit ? 'Edit Category' : 'Add Category';
+        
+        // Get current goals for this category (if editing and goals are enabled)
+        const categoryName = isEdit ? this.editingCategory : '';
+        const currentGoals = isEdit && window.app.goals && this.getSetting('goalsEnabled') ? window.app.goals.getCategoryGoals(categoryName) : {};
+        
+        // Simple form value handling - no complex conditionals
+        const categoryNameValue = isEdit ? this.editingCategory : '';
+        const categoryColorValue = isEdit && categoryData ? categoryData.color : '#4A90E2';
+        const categoryEmojiValue = isEdit && categoryData ? categoryData.emoji : '📁';
+        
+        const modal = `
+            <div class="modal-overlay" onclick="management.closeModal()">
+                <div class="modal-content" onclick="event.stopPropagation()">
+                    <div class="modal-header">
+                        <h3>${title}</h3>
+                        <button class="modal-close" onclick="management.closeModal()">✕</button>
                 </div>
-                <div id="${pickerId}" class="emoji-picker-container">
-                    <!-- Emoji picker will be loaded here -->
+                    
+                    <form id="category-form" onsubmit="management.submitCategoryForm(event, '${mode}')">
+                        <div class="category-form-content">
+                            <div class="form-group">
+                                <label>Category Name</label>
+                                <input type="text" id="category-name" 
+                                       value="${categoryNameValue}" 
+                                       required maxlength="30">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Color</label>
+                                <input type="color" id="category-color" 
+                                       value="${categoryColorValue}" 
+                                       required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Emoji</label>
+                                ${this.createEmojiPicker(categoryEmojiValue, 'category-emoji', true)}
+                            </div>
+                            
+                            ${isEdit && this.getSetting('goalsEnabled') ? this.renderGoalsSection(categoryName, currentGoals) : ''}
+                        </div>
+                        
+                        <div class="modal-actions">
+                            <button type="button" class="btn-secondary" onclick="management.closeModal()">Cancel</button>
+                            <button type="submit" class="btn-primary">${isEdit ? 'Update Category' : 'Create Category'}</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         `;
+        
+        document.getElementById('modal-container').innerHTML = modal;
     }
 
-    // Toggle emoji picker visibility
-    async toggleEmojiPicker(pickerId, inputId) {
-        const container = document.getElementById(pickerId);
-        const isVisible = container.classList.contains('show');
+    // Submit category form
+    submitCategoryForm(event, mode) {
+        event.preventDefault();
         
-        // Close all other emoji pickers
-        document.querySelectorAll('.emoji-picker-container.show').forEach(picker => {
-            if (picker.id !== pickerId) {
-                picker.classList.remove('show');
-            }
-        });
+        const name = document.getElementById('category-name').value.trim();
+        const color = document.getElementById('category-color').value;
+        const emoji = document.getElementById('category-emoji').value.trim();
         
-        if (isVisible) {
-            container.classList.remove('show');
+        // Validation
+        if (!name || !color || !emoji) {
+            alert('Please fill in all fields');
             return;
         }
         
-        // Show this picker
-        container.classList.add('show');
+        // Check for duplicate names (only when adding or changing name)
+        const categories = this.getCategories();
+        if (mode === 'add' && categories[name]) {
+            alert('Category already exists!');
+            return;
+        }
         
-        // Load emoji picker if not already loaded
-        if (!container.querySelector('emoji-picker')) {
-            await this.loadEmojiPicker(container, inputId);
+        if (mode === 'edit' && name !== this.editingCategory && categories[name]) {
+            const choice = confirm(`A category named "${name}" already exists.\n\nClick OK to choose a different name, or Cancel to keep your current changes in the form.`);
+            if (choice) {
+                // User wants to change name - focus the name input
+                document.getElementById('category-name').focus();
+                document.getElementById('category-name').select();
+            }
+            return;
+        }
+        
+        try {
+            if (mode === 'add') {
+                this.addCategory(name, color, emoji);
+                this.showToast('Category created successfully!', 'success');
+            } else {
+                this.updateCategory(this.editingCategory, name, color, emoji);
+                this.showToast('Category updated successfully!', 'success');
+            }
+            
+            // Save goals if they exist
+            if (this.getSetting('goalsEnabled')) {
+                this.saveGoalsFromModal(name);
+            }
+            
+            // Close modal and refresh displays
+            this.closeModal();
+            this.renderManagementScreen();
+            this.updateAllDisplays();
+            
+        } catch (error) {
+            console.error('Error saving category:', error);
+            alert('Error saving category: ' + error.message);
         }
     }
 
-    // Load and configure emoji picker
-    async loadEmojiPicker(container, inputId) {
-        try {
-            // Show loading state
-            container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;"><div class="loading-spinner"></div><p style="margin-top: 1rem;">Loading emoji picker...</p></div>';
-            
-            // Wait for emoji-picker-element to be available
-            if (!customElements.get('emoji-picker')) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                if (!customElements.get('emoji-picker')) {
-                    throw new Error('emoji-picker-element not loaded');
-                }
-            }
-            
-            // Create and configure emoji picker
-            const picker = document.createElement('emoji-picker');
-            picker.addEventListener('emoji-click', (event) => {
-                const emoji = event.detail.emoji.unicode;
-                document.getElementById(inputId).value = emoji;
-                container.classList.remove('show');
-                document.getElementById(inputId).dispatchEvent(new Event('change', { bubbles: true }));
-            });
-            
-            // Clear loading and add picker
-            container.innerHTML = '';
-            container.appendChild(picker);
-            
-            // Add click outside handler
-            const handleClickOutside = (event) => {
-                if (!container.contains(event.target) && !event.target.closest('.emoji-picker-button')) {
-                    container.classList.remove('show');
-                    document.removeEventListener('click', handleClickOutside);
-                }
-            };
-            setTimeout(() => document.addEventListener('click', handleClickOutside), 100);
-            
-        } catch (error) {
-            console.error('Error loading emoji picker:', error);
-            // Fallback to simple picker
-            container.innerHTML = `
-                <div style="padding: 1rem;">
-                    <p style="margin-bottom: 1rem; text-align: center; color: #666; font-size: 0.9em;">
-                        Enhanced picker unavailable. Using simple selection:
-                    </p>
-                    <div class="emoji-presets" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
-                        ${this.renderEmojiPresets()}
+    // Render goals section within category modal (inline goals)
+    renderGoalsSection(categoryName, currentGoals) {
+        const dailyGoal = currentGoals.daily ? Math.floor(currentGoals.daily.target / 60) : 0;
+        const weeklyGoal = currentGoals.weekly ? Math.floor(currentGoals.weekly.target / 60) : 0;
+        const monthlyGoal = currentGoals.monthly ? Math.floor(currentGoals.monthly.target / 60) : 0;
+        
+        const dailyProgress = currentGoals.daily ? window.app.goals.calculateProgress(categoryName, 'daily') : null;
+        const weeklyProgress = currentGoals.weekly ? window.app.goals.calculateProgress(categoryName, 'weekly') : null;
+        const monthlyProgress = currentGoals.monthly ? window.app.goals.calculateProgress(categoryName, 'monthly') : null;
+        
+        return `
+            <div class="goals-section">
+                <h4>🎯 Goals (Optional)</h4>
+                <div class="goals-grid">
+                    <div class="goal-input-group">
+                        <label>Daily Goal (minutes)</label>
+                        <input type="number" id="daily-goal" value="${dailyGoal}" min="0" max="1440" step="15">
+                        ${dailyProgress ? `<div class="goal-progress">Current: ${Math.round(dailyProgress.percentage)}% (${Math.floor(dailyProgress.actual / 60)}min)</div>` : ''}
+                    </div>
+                    <div class="goal-input-group">
+                        <label>Weekly Goal (minutes)</label>
+                        <input type="number" id="weekly-goal" value="${weeklyGoal}" min="0" max="10080" step="30">
+                        ${weeklyProgress ? `<div class="goal-progress">Current: ${Math.round(weeklyProgress.percentage)}% (${Math.floor(weeklyProgress.actual / 60)}min)</div>` : ''}
+                    </div>
+                    <div class="goal-input-group">
+                        <label>Monthly Goal (minutes)</label>
+                        <input type="number" id="monthly-goal" value="${monthlyGoal}" min="0" max="43200" step="60">
+                        ${monthlyProgress ? `<div class="goal-progress">Current: ${Math.round(monthlyProgress.percentage)}% (${Math.floor(monthlyProgress.actual / 60)}min)</div>` : ''}
+                    </div>
                     </div>
                 </div>
             `;
+    }
+
+    // Save goals from modal (simplified)
+    saveGoalsFromModal(categoryName) {
+        try {
+            const dailyInput = document.getElementById('daily-goal');
+            const weeklyInput = document.getElementById('weekly-goal');
+            const monthlyInput = document.getElementById('monthly-goal');
+            
+            if (dailyInput) {
+                const minutes = parseInt(dailyInput.value) || 0;
+                if (minutes > 0) {
+                    window.app.goals.setGoal(categoryName, 'daily', minutes * 60);
+                } else {
+                    // Remove goal if set to 0
+                    if (window.app.goals.goals[categoryName] && window.app.goals.goals[categoryName].daily) {
+                        delete window.app.goals.goals[categoryName].daily;
+                    }
+                }
+            }
+            
+            if (weeklyInput) {
+                const minutes = parseInt(weeklyInput.value) || 0;
+                if (minutes > 0) {
+                    window.app.goals.setGoal(categoryName, 'weekly', minutes * 60);
+                } else {
+                    if (window.app.goals.goals[categoryName] && window.app.goals.goals[categoryName].weekly) {
+                        delete window.app.goals.goals[categoryName].weekly;
+                    }
+                }
+            }
+            
+            if (monthlyInput) {
+                const minutes = parseInt(monthlyInput.value) || 0;
+                if (minutes > 0) {
+                    window.app.goals.setGoal(categoryName, 'monthly', minutes * 60);
+                } else {
+                    if (window.app.goals.goals[categoryName] && window.app.goals.goals[categoryName].monthly) {
+                        delete window.app.goals.goals[categoryName].monthly;
+                    }
+                }
+            }
+            
+            // Clean up empty goal categories
+            if (window.app.goals.goals[categoryName] && Object.keys(window.app.goals.goals[categoryName]).length === 0) {
+                delete window.app.goals.goals[categoryName];
+            }
+            
+            // Save goals
+            window.app.goals.saveGoals();
+            
+        } catch (error) {
+            console.error('Error saving goals:', error);
         }
-    }
-
-    // Close all emoji pickers
-    closeAllEmojiPickers() {
-        document.querySelectorAll('.emoji-picker-container.show').forEach(picker => {
-            picker.classList.remove('show');
-        });
-    }
-
-    // Get app version for use by other modules
-    getAppVersion() {
-        return this.APP_VERSION;
     }
 } 

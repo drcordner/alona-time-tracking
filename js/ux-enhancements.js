@@ -1,4 +1,6 @@
 // UX Enhancements Module
+import { getVersionInfo, getVersionNumber, getFullVersion } from './version-loader.js';
+
 export class UXEnhancements {
     constructor(app) {
         this.app = app;
@@ -199,103 +201,185 @@ export class UXEnhancements {
             return;
         }
 
-        // Get current version from management module
-        const currentVersion = window.management ? window.management.getAppVersion() : "5.1.4+ - Streak Calculation Fix";
+        // Get current version from central version-loader
+        const versionInfo = getVersionInfo();
+        const currentVersion = getFullVersion();
+        const versionNumber = getVersionNumber();
 
         const helpContent = `
             <div class="help-modal modal-overlay fade-in" onclick="this.remove()">
                 <div class="help-content modal-content" onclick="event.stopPropagation()">
                     <div class="help-header modal-header">
-                        <h2>📖 Time Tracker - Help & Shortcuts</h2>
+                        <h2>📖 Time Tracker - Help & Guide</h2>
                         <button class="modal-close" onclick="this.closest('.help-modal').remove()">✕</button>
                     </div>
                     
                     <div class="help-body">
-                        <!-- Keyboard Shortcuts -->
-                        <div class="help-section">
-                            <h3>⌨️ Keyboard Shortcuts</h3>
-                            <div class="shortcuts-grid">
-                                <div class="shortcut-item">
-                                    <kbd>Space</kbd>
-                                    <span>Start/Pause/Resume Timer</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Escape</kbd>
-                                    <span>Stop Timer / Go Back</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Ctrl</kbd> + <kbd>H</kbd>
-                                    <span>Go to Home</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Ctrl</kbd> + <kbd>R</kbd>
-                                    <span>Go to Reports</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Ctrl</kbd> + <kbd>M</kbd>
-                                    <span>Go to Management</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>←</kbd> <kbd>→</kbd>
-                                    <span>Navigate Dates in Reports</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Ctrl</kbd> + <kbd>/</kbd>
-                                    <span>Show This Help</span>
-                                </div>
-                                <div class="shortcut-item">
-                                    <kbd>Enter</kbd>
-                                    <span>Submit Forms</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Features Overview -->
-                        <div class="help-section">
-                            <h3>🌟 Key Features</h3>
-                            <div class="features-list">
-                                <div class="feature-item">
-                                    <strong>⏱️ Time Tracking:</strong> Click any activity to start tracking time immediately
-                                </div>
-                                <div class="feature-item">
-                                    <strong>🎯 Goals System:</strong> Set daily, weekly, or monthly time goals for categories
-                                </div>
-                                <div class="feature-item">
-                                    <strong>📊 Reports:</strong> View detailed analytics with interactive charts
-                                </div>
-                                <div class="feature-item">
-                                    <strong>⚡ Quick Start:</strong> Personalized suggestions based on your usage patterns
-                                </div>
-                                <div class="feature-item">
-                                    <strong>📱 PWA Support:</strong> Install as an app on your device for offline use
-                                </div>
-                                <div class="feature-item">
-                                    <strong>🎨 Customization:</strong> Add custom categories, activities, and emojis
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Getting Started -->
                         <div class="help-section">
-                            <h3>🚀 Getting Started</h3>
-                            <ol class="getting-started-list">
-                                <li>Start by clicking any activity from Quick Start or category view</li>
-                                <li>Use the timer controls to pause, resume, or stop tracking</li>
-                                <li>Set goals in Management → Categories to track your progress</li>
-                                <li>View your time data in Reports with different time periods</li>
-                                <li>Customize categories and activities in Management</li>
-                            </ol>
+                            <h4>🚀 Getting Started</h4>
+                            <div class="help-text">
+                                <ol>
+                                    <li><strong>Start Tracking:</strong> Click any activity from Quick Start or browse categories</li>
+                                    <li><strong>Timer Controls:</strong> Use Pause/Resume and Stop buttons, or press <kbd>Space</kbd> for quick control</li>
+                                    <li><strong>Set Goals:</strong> Go to Management → Edit any category to set time goals</li>
+                                    <li><strong>View Reports:</strong> Check Reports tab for detailed analytics and charts</li>
+                                    <li><strong>Customize:</strong> Add your own categories and activities in Management</li>
+                                </ol>
+                            </div>
                         </div>
 
-                        <!-- Tips & Tricks -->
+                        <!-- Key Features -->
                         <div class="help-section">
-                            <h3>💡 Tips & Tricks</h3>
-                            <div class="tips-list">
-                                <div class="tip-item">Use spacebar for quick timer control from anywhere</div>
-                                <div class="tip-item">Goals auto-calculate weekly/monthly targets from daily values</div>
-                                <div class="tip-item">Export your data regularly as backup</div>
-                                <div class="tip-item">The app works offline after initial load</div>
-                                <div class="tip-item">Install as PWA for a native app experience</div>
+                            <h4>🌟 Key Features</h4>
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <div class="feature-icon">⏱️</div>
+                                    <div class="feature-desc">
+                                        <strong>Smart Time Tracking:</strong> One-click start with automatic session management and pause tracking
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">🎯</div>
+                                    <div class="feature-desc">
+                                        <strong>Goals & Streaks:</strong> Set daily/weekly/monthly goals with automatic streak tracking and achievements
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">📊</div>
+                                    <div class="feature-desc">
+                                        <strong>Advanced Reports:</strong> Interactive charts, timeline view, custom date ranges, and CSV/JSON export
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">✏️</div>
+                                    <div class="feature-desc">
+                                        <strong>Timeline Editing:</strong> Edit or delete any session directly from the Activity Timeline in Reports
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">💾</div>
+                                    <div class="feature-desc">
+                                        <strong>Auto-Save Everything:</strong> Changes to categories, activities, and goals save automatically as you type
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">📱</div>
+                                    <div class="feature-desc">
+                                        <strong>PWA Support:</strong> Install as an app on any device for offline use and native experience
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">⚡</div>
+                                    <div class="feature-desc">
+                                        <strong>Quick Start:</strong> AI-powered suggestions based on your usage patterns and time of day
+                                    </div>
+                                </div>
+                                <div class="feature-item">
+                                    <div class="feature-icon">🎨</div>
+                                    <div class="feature-desc">
+                                        <strong>Full Customization:</strong> Custom categories, activities, colors, emojis with enhanced emoji picker
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Keyboard Shortcuts -->
+                        <div class="help-section">
+                            <h4>⌨️ Keyboard Shortcuts</h4>
+                            <div class="shortcuts-grid">
+                                <div class="shortcut-group">
+                                    <h5>Timer Controls</h5>
+                                    <div class="shortcut-item">
+                                        <kbd>Space</kbd>
+                                        <span>Start/Pause/Resume Timer</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Escape</kbd>
+                                        <span>Stop Timer / Go Back</span>
+                                    </div>
+                                </div>
+                                <div class="shortcut-group">
+                                    <h5>Navigation</h5>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl</kbd> + <kbd>H</kbd>
+                                        <span>Go to Home</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl</kbd> + <kbd>R</kbd>
+                                        <span>Go to Reports</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl</kbd> + <kbd>M</kbd>
+                                        <span>Go to Management</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>←</kbd> <kbd>→</kbd>
+                                        <span>Navigate Dates in Reports</span>
+                                    </div>
+                                </div>
+                                <div class="shortcut-group">
+                                    <h5>Other</h5>
+                                    <div class="shortcut-item">
+                                        <kbd>Ctrl</kbd> + <kbd>/</kbd>
+                                        <span>Show This Help</span>
+                                    </div>
+                                    <div class="shortcut-item">
+                                        <kbd>Enter</kbd>
+                                        <span>Submit Forms</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Tips & Tricks -->
+                        <div class="help-section">
+                            <h4>💡 Pro Tips & Tricks</h4>
+                            <div class="help-text">
+                                <ul>
+                                    <li><strong>Fix Mistakes:</strong> Go to Reports → Activity Timeline and click ✏️ to edit any session time, category, or activity</li>
+                                    <li><strong>Custom Date Analysis:</strong> In Reports, click "Custom Range" to analyze any specific time period</li>
+                                    <li><strong>Goal Auto-Calculation:</strong> Set a daily goal and weekly/monthly goals will be auto-suggested (daily × 7 and × 30)</li>
+                                    <li><strong>Quick Timer Control:</strong> Press <kbd>Space</kbd> from anywhere to control the timer without navigating</li>
+                                    <li><strong>Data Backup:</strong> Go to Management → Settings → Export Data regularly to backup your time tracking</li>
+                                    <li><strong>Timeline Editing:</strong> Edit session start/end times, duration, or pause time directly in the timeline</li>
+                                    <li><strong>Auto-Save:</strong> No need to click "Save" - all edits save automatically as you type</li>
+                                    <li><strong>Enhanced Emoji Picker:</strong> Click the emoji button for a full emoji picker with search and categories</li>
+                                    <li><strong>Streak Tracking:</strong> Achieve your daily goals to build streaks and unlock achievements 🔥</li>
+                                    <li><strong>Smart Quick Start:</strong> The more you use the app, the better your personalized suggestions become</li>
+                                    <li><strong>Offline Mode:</strong> The app works offline after first load - perfect for productivity anywhere</li>
+                                    <li><strong>PWA Installation:</strong> Install as an app for faster access and notification support</li>
+                                    <li><strong>Data Export:</strong> Export to CSV for spreadsheet analysis or JSON for full data backup</li>
+                                    <li><strong>Session Details:</strong> View pause time, modification history, and session metadata in timeline</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Data Management -->
+                        <div class="help-section">
+                            <h4>💾 Data Management</h4>
+                            <div class="help-text">
+                                <ul>
+                                    <li><strong>Backup:</strong> Management → Settings → Export Data creates a complete backup file</li>
+                                    <li><strong>Restore:</strong> Use Import Data to restore from backup files</li>
+                                    <li><strong>Data Retention:</strong> Configure how long to keep session data (30 days to forever)</li>
+                                    <li><strong>Clear Data:</strong> Reset app to initial state while preserving settings if needed</li>
+                                    <li><strong>Goals Data:</strong> Goals, streaks, and achievements are included in backup/restore</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Troubleshooting -->
+                        <div class="help-section">
+                            <h4>🔧 Troubleshooting</h4>
+                            <div class="help-text">
+                                <ul>
+                                    <li><strong>App Updates:</strong> Go to Management → Settings → Check for Updates to refresh the app</li>
+                                    <li><strong>Broken Sessions:</strong> Edit incorrect sessions in Reports → Activity Timeline</li>
+                                    <li><strong>Missing Data:</strong> Check data retention settings and restore from backup if needed</li>
+                                    <li><strong>Performance:</strong> Clear browser cache or reinstall PWA if app feels slow</li>
+                                    <li><strong>Lost Goals:</strong> Re-import data to restore goals if they disappear after updates</li>
+                                </ul>
                             </div>
                         </div>
 
@@ -303,8 +387,14 @@ export class UXEnhancements {
                         <div class="help-section version-info">
                             <div class="version-badge">
                                 <span class="version-label">Version</span>
-                                <span class="version-number">${currentVersion}</span>
+                                <span class="version-number">${versionNumber}</span>
                             </div>
+                            <p style="text-align: center; margin-top: 0.5rem; color: #666; font-size: 0.85em;">
+                                ${versionInfo ? versionInfo.description : 'UI/UX Improvements & Comprehensive Help Update'}
+                            </p>
+                            <p style="text-align: center; margin-top: 1rem; color: #666; font-size: 0.9em;">
+                                💡 Check Management → Settings for app updates and new features
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -688,13 +778,18 @@ const shortcutsCSS = `
     }
     
     .shortcut-group {
-        margin-bottom: 24px;
+        background: #f8f9fa;
+        padding: 16px;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+        margin-bottom: 16px;
     }
     
-    .shortcut-group h4 {
+    .shortcut-group h5 {
         margin: 0 0 12px 0;
         color: #2c3e50;
-        font-size: 1em;
+        font-size: 0.95em;
+        font-weight: 600;
         border-bottom: 1px solid #e9ecef;
         padding-bottom: 8px;
     }
@@ -704,7 +799,7 @@ const shortcutsCSS = `
         justify-content: space-between;
         align-items: center;
         padding: 8px 0;
-        border-bottom: 1px solid #f8f9fa;
+        border-bottom: 1px solid #ffffff;
     }
     
     .shortcut-item:last-child {
@@ -718,16 +813,52 @@ const shortcutsCSS = `
 
     /* Enhanced Help Modal Styles */
     .help-modal {
-        max-width: 700px;
-        width: 95vw;
-        max-height: 90vh;
-        overflow-y: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+        box-sizing: border-box;
     }
 
     .help-content {
-        padding: 0;
-        max-height: 70vh;
+        background: white;
+        border-radius: 12px;
+        max-width: 800px;
+        width: 100%;
+        max-height: 90vh;
         overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .help-header {
+        padding: 24px 24px 16px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        background: white;
+        border-radius: 12px 12px 0 0;
+        z-index: 1;
+    }
+
+    .help-header h2 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.4em;
+        font-weight: 600;
+    }
+
+    .help-body {
+        padding: 24px;
     }
 
     .help-section {
@@ -742,7 +873,7 @@ const shortcutsCSS = `
     }
 
     .help-section h4 {
-        margin: 0 0 16px 0;
+        margin: 0 0 20px 0;
         color: #2c3e50;
         font-size: 1.2em;
         font-weight: 600;
@@ -751,16 +882,10 @@ const shortcutsCSS = `
         gap: 8px;
     }
 
-    .help-section h5 {
-        margin: 0 0 12px 0;
-        color: #495057;
-        font-size: 1em;
-        font-weight: 600;
-    }
-
     .help-text {
-        color: #6c757d;
+        color: #495057;
         line-height: 1.6;
+        font-size: 0.95em;
     }
 
     .help-text p {
@@ -774,10 +899,12 @@ const shortcutsCSS = `
 
     .help-text li {
         margin-bottom: 8px;
+        line-height: 1.5;
     }
 
     .help-text strong {
-        color: #495057;
+        color: #2c3e50;
+        font-weight: 600;
     }
 
     .feature-list {
@@ -812,6 +939,7 @@ const shortcutsCSS = `
         flex: 1;
         color: #495057;
         line-height: 1.5;
+        font-size: 0.95em;
     }
 
     .feature-desc strong {
@@ -821,20 +949,14 @@ const shortcutsCSS = `
 
     .shortcuts-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 24px;
-    }
-
-    .shortcut-group {
-        background: #f8f9fa;
-        padding: 16px;
-        border-radius: 8px;
-        border-left: 4px solid #28a745;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
     }
 
     .version-info {
         text-align: center;
         padding-top: 16px;
+        border-top: 1px solid #e9ecef;
     }
 
     .version-badge {
@@ -843,14 +965,14 @@ const shortcutsCSS = `
         gap: 8px;
         background: linear-gradient(135deg, #4A90E2, #357abd);
         color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
+        padding: 10px 20px;
+        border-radius: 25px;
         font-size: 0.9em;
         box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        font-weight: 500;
     }
 
     .version-label {
-        font-weight: 500;
         opacity: 0.9;
     }
 
@@ -858,20 +980,66 @@ const shortcutsCSS = `
         font-weight: 600;
     }
 
+    /* Keyboard key styling */
+    kbd {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        box-shadow: 0 1px 0 rgba(0,0,0,0.2), inset 0 0 0 2px #fff;
+        color: #495057;
+        display: inline-block;
+        font-family: monospace;
+        font-size: 0.8em;
+        font-weight: 600;
+        line-height: 1;
+        padding: 4px 6px;
+        white-space: nowrap;
+        margin: 0 2px;
+    }
+
+    /* Modal close button */
+    .modal-close {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        color: #6c757d;
+        cursor: pointer;
+        font-size: 18px;
+        height: 32px;
+        width: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .modal-close:hover {
+        background: #e9ecef;
+        color: #495057;
+    }
+
     /* Mobile Responsive */
     @media (max-width: 768px) {
         .help-modal {
-            width: 100vw;
-            max-width: none;
-            height: 100vh;
-            max-height: none;
-            border-radius: 0;
-            margin: 0;
+            padding: 10px;
         }
 
         .help-content {
-            max-height: none;
-            padding: 0 16px 16px;
+            max-height: 95vh;
+            border-radius: 8px;
+        }
+
+        .help-header {
+            padding: 16px 16px 12px;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .help-header h2 {
+            font-size: 1.2em;
+        }
+
+        .help-body {
+            padding: 16px;
         }
 
         .shortcuts-grid {
@@ -881,39 +1049,81 @@ const shortcutsCSS = `
 
         .feature-item {
             padding: 12px;
+            flex-direction: column;
+            text-align: center;
+            gap: 12px;
         }
 
         .feature-icon {
-            width: 32px;
-            height: 32px;
-            font-size: 1.2em;
+            width: 48px;
+            height: 48px;
+            font-size: 1.8em;
+            margin: 0 auto;
         }
 
         .help-section {
             margin-bottom: 24px;
             padding-bottom: 16px;
         }
+
+        .help-section h4 {
+            font-size: 1.1em;
+            margin-bottom: 16px;
+        }
+
+        .shortcut-group {
+            padding: 12px;
+        }
+
+        .version-badge {
+            padding: 8px 16px;
+            font-size: 0.85em;
+        }
     }
 
     @media (max-width: 480px) {
+        .help-modal {
+            padding: 5px;
+        }
+
+        .help-content {
+            border-radius: 6px;
+        }
+
+        .help-header {
+            padding: 12px;
+        }
+
+        .help-body {
+            padding: 12px;
+        }
+
         .shortcut-item {
             flex-direction: column;
             align-items: flex-start;
             gap: 4px;
+            padding: 10px 0;
         }
 
         .shortcut-item span:last-child {
             font-size: 0.85em;
+            color: #6c757d;
         }
+    }
 
-        .feature-item {
-            flex-direction: column;
-            text-align: center;
-            gap: 12px;
+    /* Animation */
+    .fade-in {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
         }
-
-        .help-section h4 {
-            font-size: 1.1em;
+        to {
+            opacity: 1;
+            transform: scale(1);
         }
     }
 `;

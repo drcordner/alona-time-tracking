@@ -1,4 +1,8 @@
 // Main app coordinator
+import { getFullVersion } from './version-loader.js';
+console.log('🚀 NEW APP.JS LOADED - TIMESTAMP:', Date.now(), `Version: ${getFullVersion()}`);
+console.log('🔧 Global assignments should happen AFTER initialization');
+
 import { categories as defaultCategories, activityEmojis } from './data.js';
 import { Storage } from './storage.js';
 import { Timer } from './timer.js';
@@ -17,14 +21,14 @@ class TimeTrackerApp {
         // Initialize modules
         this.storage = new Storage(this.sandbox);
         this.management = new Management(this.storage);
-        this.goals = new Goals(this.storage, () => this.management.getCategories());
+        this.goals = new Goals(this.storage, () => this.management.getCategories(), (key) => this.management.getSetting(key));
         this.quickStart = new QuickStart(
             this.storage, 
             () => this.management.getCategories(),
             (key) => this.management.getSetting(key)
         );
         this.reports = new Reports(this.storage, () => this.getCategories(), () => this.renderGoalsSummary());
-        this.timer = new Timer(this.storage, this.showScreen.bind(this), this.updateTimerStatus.bind(this));
+        this.timer = new Timer(this.storage, this.showScreen.bind(this), this.updateTimerStatus.bind(this), this.onTimerStop.bind(this));
         
         // Initialize UX enhancements last (after all other modules)
         this.ux = null; // Will be initialized in init()
@@ -35,16 +39,17 @@ class TimeTrackerApp {
     }
 
     // Initialize the app
-    init() {
+    async init() {
         console.log('TimeTrackerApp: Initializing...');
         
+        // Initialize storage first
         if (!this.sandbox) {
             this.storage.loadData();
             this.storage.loadUsageStats();
         }
         
         // Initialize management system first (loads settings)
-        this.management.init();
+        await this.management.init();
         console.log('TimeTrackerApp: Management initialized');
         
         // Initialize goals system (depends on settings)
@@ -53,19 +58,29 @@ class TimeTrackerApp {
         
         this.renderCategories();
         this.reports.updateReportDate();
-        
+
         // Check for timer recovery AFTER initial setup
         if (!this.sandbox) {
-            this.timer.recoverActiveTimer();
+            // Use feature flag to recover the correct timer
+            if (this.management.getFeatureFlag && this.management.getFeatureFlag('enhanced_timer')) {
+                this.timer.recoverActiveTimer();
+            } else {
+                this.timer.recoverActiveTimer();
+            }
         }
         
         // Only show home screen if no timer was recovered
         if (!this.timer.timerInterval) {
             this.showScreen('home');
         }
-        
+
         this.registerServiceWorker();
-        
+
+        // Initialize UX enhancements after everything else is set up
+        this.ux = new UXEnhancements(this);
+        console.log('TimeTrackerApp: UX enhancements initialized');
+
+        // 🚨 FIX: Move global assignments HERE after all modules are initialized
         // Expose modules globally for onclick handlers
         window.app = this;
         window.reports = this.reports;
@@ -73,135 +88,68 @@ class TimeTrackerApp {
         window.goals = this.goals;
         window.timer = this.timer;
         
-        // Initialize UX enhancements after everything else is set up
-        this.ux = new UXEnhancements(this);
-        console.log('TimeTrackerApp: UX enhancements initialized');
+        // Global functions that the HTML needs
+        window.goBack = () => this.goBack();
+        window.showScreen = (screen) => this.showScreen(screen);
+        window.stopTimer = () => this.getActiveTimer().stopTimer();
+        window.togglePause = () => this.getActiveTimer().togglePause();
+        window.setReportView = (view) => this.reports.setReportView(view);
+        window.navigateDate = (direction) => this.reports.navigateDate(direction);
         
-        console.log('TimeTrackerApp: Initialization complete');
-
-        // Add service worker registration and PWA install prompt
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', async () => {
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js');
-                    console.log('Service Worker registered successfully:', registration.scope);
-                    
-                    // Handle updates
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        if (newWorker) {
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // Show update available notification
-                                    showUpdateNotification();
-                                }
-                            });
-                        }
-                    });
-
-                    // Check for existing service worker and force manifest refresh
-                    if (navigator.serviceWorker.controller) {
-                        console.log('Service Worker is controlling the page, refreshing manifest...');
-                        this.refreshManifestCache();
-                    }
-
-                } catch (error) {
-                    console.log('Service Worker registration failed:', error);
-                }
-            });
-            
-            // Listen for messages from service worker
-            navigator.serviceWorker.addEventListener('message', (event) => {
-                const { action } = event.data;
-                
-                if (action === 'reload') {
-                    console.log('App: Received reload message from service worker');
-                    window.location.reload(true);
-                }
-                
-                if (action === 'updateAvailable') {
-                    console.log('App: Update available notification from service worker');
-                    showUpdateNotification();
-                }
-            });
-        }
-
-        // PWA Install prompt
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            // Show install button (could be added to management screen)
-            showInstallPrompt();
-        });
-
-        function showInstallPrompt() {
-            // This could be integrated into the management screen
-            // For now, we'll just log it
-            console.log('PWA install prompt available');
-        }
-
-        function showUpdateNotification() {
-            // Show a subtle notification that an update is available
-            const notification = document.createElement('div');
-            notification.className = 'update-notification';
-            notification.innerHTML = `
-                <div class="update-content">
-                    <span>📱 New version available!</span>
-                    <button onclick="window.location.reload()" class="btn-small">Update</button>
-                    <button onclick="this.parentElement.parentElement.remove()" class="btn-small">Later</button>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Auto-remove after 10 seconds
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.remove();
-                }
-            }, 10000);
-        }
-
-        // Global PWA install function
-        window.installPWA = async () => {
-            if (deferredPrompt) {
-                // Show the install prompt
-                deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to install prompt: ${outcome}`);
-                // Clear the deferredPrompt variable
-                deferredPrompt = null;
+        // Global help function - now app.ux is properly initialized
+        window.showHelp = () => {
+            if (this.ux) {
+                this.ux.showHelp();
+            } else {
+                console.error('UX module not initialized');
             }
         };
+
+        console.log('TimeTrackerApp: Initialization complete');
 
         // Make globally available for components
         window.activityEmojis = activityEmojis;
         
         // Load custom activity emojis
         this.loadCustomActivityEmojis();
+        
+        // Check for auto-updates after everything loads
+        setTimeout(() => this.checkForAutoUpdate(), 2000);
     }
 
-    // Refresh manifest cache to fix "undefined" app name issue
-    refreshManifestCache() {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            const messageChannel = new MessageChannel();
+    // Auto-update check functionality
+    async checkForAutoUpdate() {
+        // Disable auto-updates in production to prevent false positives
+        // User can manually check for updates via Settings → Check for Updates
+        const isDevelopment = false; // Changed from true to false
+        
+        if (!isDevelopment) return; // Skip when disabled
+        
+        try {
+            const currentVersion = this.management.getAppVersion();
+            const response = await fetch('version.json?' + Date.now());
+            const versionData = await response.json();
+            const latestVersion = versionData.version;
             
-            messageChannel.port1.onmessage = (event) => {
-                if (event.data.success) {
-                    console.log('Manifest cache refreshed successfully');
-                } else {
-                    console.warn('Failed to refresh manifest cache:', event.data.error);
+            if (currentVersion !== latestVersion) {
+                console.log(`Auto-update detected: ${currentVersion} → ${latestVersion}`);
+                
+                // Show brief notification (optional)
+                if (this.ux) {
+                    this.ux.showToast(`New version available: ${versionData.versionNumber}`, 'info', 3000);
                 }
-            };
-            
-            navigator.serviceWorker.controller.postMessage(
-                { type: 'REFRESH_MANIFEST' },
-                [messageChannel.port2]
-            );
+                
+                // Auto-refresh after a short delay so user sees the notification
+                setTimeout(() => {
+                    console.log('Auto-updating to latest version...');
+                    this.management.checkForUpdates();
+                }, 3000);
+            } else {
+                console.log('App is up to date:', currentVersion);
+            }
+        } catch (error) {
+            // Silently fail - don't disrupt user experience
+            console.log('Auto-update check failed (this is normal):', error.message);
         }
     }
 
@@ -248,11 +196,51 @@ class TimeTrackerApp {
         }
     }
 
+    // Toggle category header menu (consistent with management.js implementation)
+    toggleCategoryHeaderMenu(categoryName) {
+        const safeId = categoryName.replace(/\s+/g, '-');
+        const menu = document.getElementById(`category-header-menu-${safeId}`);
+        const categoryContext = document.querySelector('.category-context');
+        const isOpen = menu.style.display === 'block';
+        
+        // Close all other menus first
+        this.closeCategoryHeaderMenus();
+        
+        if (!isOpen) {
+            menu.style.display = 'block';
+            // Elevate parent category z-index when menu is open
+            if (categoryContext) {
+                categoryContext.classList.add('menu-open');
+            }
+            // Close menu when clicking elsewhere
+            setTimeout(() => {
+                document.addEventListener('click', this.closeCategoryHeaderMenus.bind(this), { once: true });
+            }, 0);
+        }
+    }
+
+    // Close all category header menus
+    closeCategoryHeaderMenus() {
+        document.querySelectorAll('.category-header-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+        // Remove menu-open class from category context
+        document.querySelectorAll('.category-context.menu-open').forEach(context => {
+            context.classList.remove('menu-open');
+        });
+    }
+
     // Goals rendering
     renderGoalsSection() {
         const container = document.getElementById('goals-container');
         if (!container) {
             return; // Container might not exist if goals are disabled
+        }
+        
+        // Check if goals are enabled in settings
+        if (!this.management.getSetting('goalsEnabled')) {
+            container.innerHTML = ''; // Clear goals section if disabled
+            return;
         }
         
         const goalsHtml = this.goals.renderGoalsSection();
@@ -326,82 +314,180 @@ class TimeTrackerApp {
         // Categories are already sorted alphabetically from getCategories()
         Object.entries(categories).forEach(([categoryName, categoryData]) => {
             const todayTime = this.storage.getTodayTime(categoryName);
-            const button = document.createElement('button');
-            button.className = 'category-button';
-            button.style.setProperty('--category-color', categoryData.color);
+            const button = document.createElement('div');
+            button.className = 'category-button-container';
+            
+            const categoryButton = document.createElement('button');
+            categoryButton.className = 'category-button';
+            categoryButton.style.setProperty('--category-color', categoryData.color);
             
             // If category has only one activity, go directly to timer
-            if (categoryData.activities.length === 1) {
-                button.onclick = () => this.timer.startActivity(categoryName, categoryData.activities[0]);
+            if (categoryData && categoryData.activities && categoryData.activities.length === 1) {
+                categoryButton.onclick = () => this.timer.startActivity(categoryName, categoryData.activities[0]);
             } else {
-                button.onclick = () => this.showActivities(categoryName);
+                categoryButton.onclick = () => this.showActivities(categoryName);
             }
 
-            button.innerHTML = `
-                <div class="category-name">${categoryName} ${categoryData.emoji}</div>
+            categoryButton.innerHTML = `
+                <div class="category-name">
+                    <span class="category-emoji">${categoryData.emoji}</span>
+                    <span class="category-text">${categoryName}</span>
+                </div>
                 <div class="category-time">${formatTime(todayTime)}</div>
+                <button class="category-edit-cog" onclick="event.stopPropagation(); management.editCategory('${categoryName}')" title="Edit category">
+                    ⚙️
+                </button>
             `;
 
+            button.appendChild(categoryButton);
             container.appendChild(button);
         });
     }
 
     showActivities(categoryName) {
+        console.log('[DEBUG] showActivities called for category:', categoryName);
         this.currentCategory = categoryName;
         const container = document.getElementById('activity-list');
-        container.innerHTML = '';
-
         const categories = this.getCategories();
-        // Sort activities alphabetically for consistency
-        const activities = [...categories[categoryName].activities].sort();
+        let categoryData = categories[categoryName];
         
-        activities.forEach(activity => {
+        // 🛡️ DEFENSIVE: Check for missing category data
+        if (!categoryData || !categoryData.activities) {
+            console.warn('⚠️ Category data missing for:', categoryName, categoryData);
+            
+            // Try to recover by refreshing categories first
+            const refreshedCategories = this.getCategories();
+            const refreshedCategoryData = refreshedCategories[categoryName];
+            
+            if (refreshedCategoryData && refreshedCategoryData.activities) {
+                // Data found after refresh, continue with refreshed data
+                console.log('✅ Category data recovered after refresh');
+                categoryData = refreshedCategoryData;
+            } else {
+                // Still no data, show user-friendly recovery options
+                container.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #e74c3c; background: #f8f9fa; border-radius: 8px; margin: 20px;">
+                        <h3>⚠️ Category Not Found</h3>
+                        <p>Category "${categoryName}" could not be loaded. This might happen if:</p>
+                        <ul style="text-align: left; margin: 15px 0; color: #6c757d;">
+                            <li>The category was recently renamed or deleted</li>
+                            <li>There was an editing conflict</li>
+                            <li>Browser data needs to refresh</li>
+                        </ul>
+                        <div style="margin-top: 20px;">
+                            <button onclick="app.showScreen('home')" style="padding: 10px 20px; background: #4A90E2; color: white; border: none; border-radius: 5px; margin-right: 10px;">
+                                Return to Home
+                            </button>
+                            <button onclick="location.reload()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px;">
+                                Refresh App
+                            </button>
+                        </div>
+                        <p style="margin-top: 15px; color: #6c757d; font-size: 0.9em;">
+                            Your data is safe - this doesn't affect your time tracking history.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+        }
+
+        // Create category header with context
+        const categoryHeader = `
+            <div class="activity-screen-header">
+                <div class="category-context" style="--category-color: ${categoryData.color}">
+                    <div class="category-context-info">
+                        <span class="category-context-emoji">${categoryData.emoji}</span>
+                        <div class="category-context-text">
+                            <h2 class="category-context-name">${categoryName}</h2>
+                            <p class="category-context-subtitle">Select an activity to start tracking</p>
+                        </div>
+                    </div>
+                    <div class="category-context-actions">
+                        <button class="category-header-menu-btn" onclick="app.toggleCategoryHeaderMenu('${categoryName}')" title="Category options">
+                            ⋯
+                        </button>
+                        <div class="category-header-menu" id="category-header-menu-${categoryName.replace(/\s+/g, '-')}" style="display: none;">
+                            <button class="menu-item" onclick="app.closeCategoryHeaderMenus(); management.editCategory('${categoryName}')">
+                                <span class="menu-icon">⚙️</span>
+                                <span class="menu-text">Edit Category</span>
+                            </button>
+                            <button class="menu-item" onclick="app.closeCategoryHeaderMenus(); management.showAddActivityModal('${categoryName}')">
+                                <span class="menu-icon">➕</span>
+                                <span class="menu-text">Add Activity</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Sort activities alphabetically for consistency
+        const activities = [...categoryData.activities].sort();
+        
+        const activitiesHtml = activities.map(activity => {
             const todayTime = this.storage.getTodayTime(categoryName, activity);
-            const button = document.createElement('button');
-            button.className = 'activity-button';
-            button.onclick = () => this.timer.startActivity(categoryName, activity);
-
-            button.innerHTML = `
-                <div class="activity-name">${activity} ${activityEmojis[activity] || '⭐'}</div>
-                <div class="activity-time">${formatTime(todayTime)}</div>
+            const activityEmoji = this.management.getActivityEmoji(activity);
+            return `
+                <div class="activity-button-container">
+                    <button class="activity-button" onclick="app.startActivity('${categoryName}', '${activity}')">
+                        <div class="activity-name">
+                            <span class="activity-emoji">${activityEmoji}</span>
+                            <span class="activity-text">${activity}</span>
+                        </div>
+                        <div class="activity-time">${formatTime(todayTime)}</div>
+                        <button class="activity-edit-cog" onclick="event.stopPropagation(); management.editActivity('${categoryName}', '${activity}')" title="Edit activity">
+                            ⚙️
+                        </button>
+                    </button>
+                </div>
             `;
+        }).join('');
 
-            container.appendChild(button);
-        });
-
+        container.innerHTML = categoryHeader + activitiesHtml;
         this.showScreen('activity');
     }
 
     // Timer status update
     updateTimerStatus() {
-        const statusEl = document.getElementById('timer-status');
-        if (this.timer.isPaused) {
-            statusEl.textContent = '⏸️ Timer Paused';
-            statusEl.style.color = '#f39c12';
-        } else {
-            statusEl.textContent = '▶️ Timer Running';
-            statusEl.style.color = '#27ae60';
-        }
+        this.timer.updateTimerStatus();
     }
 
     // Check for goal achievements when timer stops
-    onTimerStop(categoryName) {
-        this.goals.checkAchievements(categoryName);
-        // Refresh goals display if on home screen
+    onTimerStop(category) {
+        // Only handle app-level logic here
+        this.goals.checkAchievements(category);
         if (this.currentScreen === 'home') {
             this.renderGoalsSection();
         }
+        // DO NOT call this.timer.onTimerStop(category)
     }
 
     // Service Worker registration
     registerServiceWorker() {
-        // Temporarily disabled due to browser compatibility issues
-        // if (!this.sandbox && 'serviceWorker' in navigator) {
-        //     navigator.serviceWorker.register('data:application/javascript;base64,Y29uc3QgQ0FDSEVfTkFNRSA9ICd0aW1lLXRyYWNrZXItdjEnOwpjb25zdCB1cmxzVG9DYWNoZSA9IFsKICAnLycsICAgCiAgJy9tYW5pZmVzdC5qc29uJwpdOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZXZlbnQgPT4gewogIGV2ZW50LndhaXRVbnRpbCgKICAgIGNhY2hlcy5vcGVuKENBQ0hFX05BTUUpCiAgICAgIC50aGVuKGNhY2hlID0+IGNhY2hlLmFkZEFsbCh1cmxzVG9DYWNoZSkpCiAgKTsKfSk7CgpzZWxmLmFkZEV2ZW50TGlzdGVuZXIoJ2ZldGNoJywgZXZlbnQgPT4gewogIGV2ZW50LnJlc3BvbmRXaXRoKAogICAgY2FjaGVzLm1hdGNoKGV2ZW50LnJlcXVlc3QpCiAgICAgIC50aGVuKHJlc3BvbnNlID0+IHsKICAgICAgICByZXR1cm4gcmVzcG9uc2UgfHwgZmV0Y2goZXZlbnQucmVxdWVzdCk7CiAgICAgIH0pCiAgKTsKfSk7')
-        //         .then(() => console.log('Service Worker registered'))
-        //         .catch(err => console.log('Service Worker registration failed:', err));
-        // }
-        console.log('Service Worker registration disabled for compatibility');
+        if (!this.sandbox && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => {
+                    console.log('✅ Service Worker registered successfully:', registration);
+                    
+                    // Listen for updates
+                    registration.addEventListener('updatefound', () => {
+                        console.log('🔄 Service Worker update found');
+                        const newWorker = registration.installing;
+                        if (newWorker) {
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    console.log('🆕 New Service Worker installed, ready to activate');
+                                }
+                            });
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.error('❌ Service Worker registration failed:', err);
+                });
+        } else {
+            console.log('Service Worker not available or in sandbox mode');
+        }
     }
 
     // Load custom activity emojis
@@ -418,39 +504,39 @@ class TimeTrackerApp {
             console.error('Error loading custom activity emojis:', error);
         }
     }
+
+    // Setup PWA install prompt
+    setupPWAInstallPrompt() {
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show install button (could be added to management screen)
+            showInstallPrompt();
+        });
+
+        function showInstallPrompt() {
+            // This could be integrated into the management screen
+            // For now, we'll just log it
+            console.log('PWA install prompt available');
+        }
+    }
+
+    // Helper to get the active timer based on the feature flag
+    getActiveTimer() {
+        return this.timer;
+    }
+
+    // Start activity using the correct timer
+    startActivity(category, activity) {
+        this.timer.startActivity(category, activity);
+    }
 }
 
-// Global functions for HTML onclick handlers
-window.app = new TimeTrackerApp();
+// Export the class for ES6 modules and make it globally available
+window.TimeTrackerApp = TimeTrackerApp;
 
-// Global functions that the HTML needs
-window.goBack = () => app.goBack();
-window.showScreen = (screen) => app.showScreen(screen);
-window.stopTimer = () => app.timer.stopTimer();
-window.togglePause = () => app.timer.togglePause();
-window.setReportView = (view) => app.reports.setReportView(view);
-window.navigateDate = (direction) => app.reports.navigateDate(direction);
-
-// Global management functions
-window.management = app.management;
-
-// Global goals functions
-window.goals = app.goals;
-
-// Global reports functions
-window.reports = app.reports;
-
-// Global data access
-window.activityEmojis = activityEmojis;
-
-// Global help function
-window.showHelp = () => {
-    if (app.ux) {
-        app.ux.showHelp();
-    }
-};
-
-// Initialize app when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    app.init();
-}); 
+// Don't auto-initialize here since cache-buster will handle it
+// The cache-buster will create the instance after all modules are loaded 

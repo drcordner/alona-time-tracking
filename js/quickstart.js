@@ -55,7 +55,7 @@ export class QuickStart {
             const [category, activity] = key.split('::');
             
             // Skip if category doesn't exist anymore
-            if (!categories[category] || !categories[category].activities.includes(activity)) {
+            if (!categories[category] || !categories[category].activities || !categories[category].activities.includes(activity)) {
                 return;
             }
             

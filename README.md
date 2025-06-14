@@ -1,25 +1,25 @@
-# 🕐 Alona's Time Tracker - Enhanced v5.1.0
+# 🕐 Alona's Time Tracker - Enhanced v5.3.4
 
 **A comprehensive Progressive Web App for activity tracking, goals management, and detailed analytics.**
 
-![Time Tracker](https://img.shields.io/badge/Version-5.1.0-blue.svg) 
+![Time Tracker](https://img.shields.io/badge/Version-5.3.4-blue.svg) 
 ![PWA](https://img.shields.io/badge/PWA-Ready-brightgreen.svg)
 ![Mobile](https://img.shields.io/badge/Mobile-Optimized-orange.svg)
 
 ## 🚨 **Documentation Maintenance Required**
 
 **Critical files to maintain after ANY code changes:**
-- `BACKLOG.md` - Feature roadmap and phase tracking
-- `LESSONS_LEARNED.md` - Technical patterns and best practices
-- `CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
-- `DEPLOYMENT.md` - Deployment status and procedures
-- `RELEASE_NOTES.md` - Comprehensive changelog
+- `docs/project-management/BACKLOG.md` - Feature roadmap and phase tracking
+- `docs/development/LESSONS_LEARNED.md` - Technical patterns and best practices
+- `docs/development/CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
+- `docs/deployment/DEPLOYMENT.md` - Deployment status and procedures
+- `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog
 
 ## 🎯 **Current Status**
-- **Version**: 5.1.4+ (Streak calculation fix)
-- **Phase**: Completed Phase 6, Ready for Phase 7
+- **Version**: 5.3.4 (Version Synchronization System)
+- **Phase**: Completed Phase 7
 - **Deployed**: ✅ Live on Netlify
-- **Architecture**: Vanilla JS PWA with design token system
+- **Architecture**: Vanilla JS PWA with design token system and cache busting
 
 ## 🌟 **Features**
 
@@ -118,45 +118,85 @@ alona-time-tracking/
 
 ## 🎯 **Version History**
 
-### **v5.1.0 - UX Polish (Current)**
+### **v5.3.4 - Version Synchronization System (Current)**
+- Single source of truth for version management
+- Version loader module provides centralized version information
+- Automatic version sync script across all files
+- Deep version scanner to find hard-coded versions
+- Build scripts ensure versions stay synchronized
+
+### **v5.3.3 - Service Worker Fix & Enhanced Cache Management**
+- Re-enabled service worker registration
+- Enhanced Check for Updates with version checking
+- Added Nuclear Cache Reset for stubborn cache issues
+- Improved PWA support with aggressive cache management
+- Better cache clearing that preserves user data
+
+### **v5.3.2 - Cache Fix & Data Recovery**
+- Service worker cache version synchronization
+- Enhanced data recovery with intelligent error handling
+- Better category rename error handling
+- Consistent cache busting across all app files
+- Eliminated false positive error messages
+
+### **v5.3.1 - UX Consistency & Menu Improvements**
+- Three-dot menu standardization across interfaces
+- Enhanced mobile experience with proper touch targets
+- Fixed menu truncation issues with proper z-index management
+- Better activity time display and spacing
+- Goals section properly respects user settings
+
+### **v5.3.0 - Elegant Cache Busting Solution**
+- Revolutionary central cache busting system
+- ES6 module system overhaul
+- Dynamic resource loading with environment detection
+- App architecture enhancement
+- Beautiful loading screen and improved performance
+
+### **v5.2.1 - Edit Dialog Bug Fixes**
+- Fixed auto-save closing edit dialogs prematurely
+- Fixed cross-screen updates and display refreshing
+- Enhanced update synchronization across all views
+- Improved state preservation during editing
+
+### **v5.2.0 - Enhanced Management Interface**
+- Redesigned management screens with three-dot menus
+- Improved category and activity management
+- Better mobile responsiveness and touch interactions
+- Enhanced settings organization and controls
+
+### **v5.1.4+ - Streak Calculation Fix**
+- Fixed calculations for activity streaks
+- Improved goal tracking accuracy
+
+### **v5.1.0 - UX Polish**
 - Enhanced accessibility and keyboard shortcuts
 - Mobile touch interactions and gestures
 - Performance optimizations and loading states
 - Comprehensive help system
 - PWA installation prompts
 
-### **v5.0.0 - Phase 4: Interactive Reports**
-- Interactive pie/bar charts with drill-down
-- Individual session timeline tracking
-- Compact mobile-optimized layouts
-- Goals integration in reports
+## 📚 **Quick Documentation Access**
 
-### **v4.0.0 - Phase 3: Enhanced Reports**
-- Advanced analytics and visualizations
-- Multi-period reporting (day/week/month)
-- Activity rankings and insights
+Core project documentation for development context:
+- `docs/project-management/BACKLOG.md` - Feature roadmap and phase tracking
+- `docs/development/LESSONS_LEARNED.md` - Technical patterns and best practices
+- `docs/development/CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
+- `docs/deployment/DEPLOYMENT.md` - Deployment status and procedures (no deployment history)
+- `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog and deployment history (single source of truth)
 
-### **v3.0.0 - Phase 2: Goals System**
-- Goal creation and management
-- Progress tracking and analytics
-- Smart goal suggestions
+> **Note:**
+> - All deployment history is recorded ONLY in `RELEASE_NOTES.md`.
+> - All future enhancements and backlog items are tracked in the backlog section of `RELEASE_NOTES.md` or in `BACKLOG.md`.
+> - Do NOT duplicate deployment history or backlog items in deployment docs.
 
-### **v2.0.0 - Phase 1: Core Enhancement**
-- Modular JavaScript architecture
-- Enhanced UI/UX design
-- Data persistence and recovery
+## 📋 **Project Documentation**
 
-### **v1.0.0 - Initial Release**
-- Basic time tracking functionality
-- Simple category-based organization
-
-## 📄 **Documentation**
-
-- **[Release Notes](RELEASE_NOTES.md)**: Detailed changelog
-- **[Development Backlog](BACKLOG.md)**: Future plans and features
-- **[Deployment Guide](DEPLOYMENT.md)**: Production deployment instructions
-- **[Lessons Learned](LESSONS_LEARNED.md)**: Development insights
-- **[Consistency Analysis](CONSISTENCY_ANALYSIS.md)**: Code quality notes
+- **[Release Notes](docs/release_notes.md)**: Detailed changelog
+- **[Development Backlog](docs/project-management/BACKLOG.md)**: Future plans and features
+- **[Deployment Guide](docs/deployment.md)**: Production deployment instructions
+- **[Lessons Learned](docs/lessons_learned.md)**: Development insights
+- **[Consistency Analysis](docs/CONSISTENCY_ANALYSIS.md)**: Code quality notes
 
 ## 🤝 **Contributing**
 
@@ -172,23 +212,30 @@ MIT License - Feel free to use and modify for your own projects.
 
 # ⏱️ Alona's Time Tracker - PWA
 
-> **🤖 For AI Assistants**: Always check and update documentation files after ANY changes. See `AI_INSTRUCTIONS.md` for complete guidelines.
+> **🤖 For AI Assistants**: Always check and update documentation files after ANY changes. See `docs/development/AI_INSTRUCTIONS.md` for complete guidelines.
+
+**Critical Documentation Files** (in order of priority):
+- `docs/project-management/BACKLOG.md` - Feature roadmap and phase tracking
+- `docs/development/LESSONS_LEARNED.md` - Technical patterns and best practices
+- `docs/development/CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
+- `docs/deployment/DEPLOYMENT.md` - Deployment status and procedures
+- `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog
 
 A beautiful, responsive Progressive Web App for time tracking with goals, categories, and comprehensive analytics.
 
 ## 🚨 **Documentation Maintenance Required**
 
 **Critical files to maintain after ANY code changes:**
-- `BACKLOG.md` - Feature roadmap and phase tracking
-- `LESSONS_LEARNED.md` - Technical patterns and best practices
-- `CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
-- `DEPLOYMENT.md` - Deployment status and procedures
-- `RELEASE_NOTES.md` - Comprehensive changelog
+- `docs/project-management/BACKLOG.md` - Feature roadmap and phase tracking
+- `docs/development/LESSONS_LEARNED.md` - Technical patterns and best practices
+- `docs/development/CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
+- `docs/deployment/DEPLOYMENT.md` - Deployment status and procedures
+- `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog
 
 ## 🎯 **Current Status**
-- **Version**: 5.1.4+ (Streak calculation fix)
-- **Phase**: Completed Phase 6, Ready for Phase 7
-- **Architecture**: Vanilla JS PWA with design token system
+- **Version**: 5.3.4 (Version Synchronization System)
+- **Phase**: Completed Phase 7
+- **Architecture**: Vanilla JS PWA with design token system and cache busting
 - **Deployment**: 🚀 **NEW: Staging/Production Pipeline Active**
 
 ## 🚀 **New Deployment Pipeline**
@@ -248,3 +295,125 @@ git push origin main
 ---
 
 **🎉 Ready for Phase 7 development with bulletproof deployment pipeline!**
+
+## Recent Improvements
+- **Timer Editing UX:** Enhanced timer editing with support for seconds, local time display, and improved keyboard input.
+- **Negative Duration Handling:** All calculations now clamp to zero, preventing invalid time values.
+- **Robust Parsing and Formatting:** Consistent handling of `HH:MM` and `HH:MM:SS` formats.
+
+## Next Steps
+- **Accessibility:** Add ARIA labels and keyboard navigation for better accessibility.
+- **Mobile Optimization:** Test and optimize the timer for mobile/touch devices.
+- **Feature Enhancements:** Consider adding timer history, undo/redo, and quick actions.
+- **Testing:** Conduct user testing and add automated tests for robustness.
+
+## Getting Started
+1. Clone the repository.
+2. Open `index.html` in your browser.
+3. Start tracking your time!
+
+## Deployment
+- **Staging:** Deploy to staging for testing and validation.
+- **Production:** Follow the deployment strategy outlined in `docs/deployment_strategy.md`.
+
+## Documentation
+- **Lessons Learned:** See `docs/lessons_learned.md` for insights from recent improvements.
+- **Deployment Guide:** Refer to `docs/deployment.md` for detailed deployment instructions.
+
+## Contributing
+Contributions are welcome! Please read our contributing guidelines before submitting a pull request.
+
+# ⏱️ Time Tracker
+
+A beautiful, intuitive time tracking application for managing your daily activities and goals.
+
+## 🚀 Quick Start
+
+1. Clone the repository
+2. Open `index.html` in your browser
+3. Start tracking your time!
+
+## 📚 Documentation
+
+All project documentation is maintained in the `docs/` directory:
+
+- 📋 [Project Documents](docs/project_documents.md) - Overview of all documentation
+- 📝 [Release Notes](docs/release_notes.md) - Comprehensive changelog
+- 🚀 [Deployment Guide](docs/deployment.md) - Deployment procedures
+- 📈 [Development Changelog](docs/development_changelog.md) - Current development cycle
+- 💡 [Lessons Learned](docs/lessons_learned.md) - Development insights
+- 📋 [Backlog](docs/backlog.md) - Feature roadmap and phase tracking
+
+## 🌟 Features
+
+- 📊 Beautiful, intuitive interface
+- 🎯 Goal tracking and progress visualization
+- 📱 Mobile-friendly design
+- 🔄 Real-time updates
+- 💾 Local storage for data persistence
+- 🎨 Customizable categories and activities
+
+## 🔧 Development
+
+### Prerequisites
+
+- Modern web browser
+- Local development server (optional)
+
+### Setup
+
+1. Clone the repository
+2. Open `index.html` in your browser
+3. For development, use a local server:
+   ```bash
+   python -m http.server 8000
+   ```
+   Then visit `http://localhost:8000`
+
+## 📦 Version History
+
+### v5.3.4 - Documentation Restructuring
+- Consolidated all documentation into `docs/` directory
+- Improved documentation organization and accessibility
+- Enhanced documentation maintenance processes
+
+### v5.3.3 - Mobile Cache Fix
+- Fixed mobile browser caching issues
+- Improved service worker cache management
+- Enhanced deployment reliability
+
+### v5.3.2 - Cache Fix & Data Recovery
+- Fixed service worker cache version synchronization
+- Enhanced data recovery mechanisms
+- Improved error handling and user guidance
+
+### v5.3.1 - UX Consistency & Menu Improvements
+- Standardized three-dot menu interface
+- Enhanced mobile experience
+- Fixed menu truncation issues
+
+### v5.3.0 - Elegant Cache Busting Solution
+- Revolutionary cache busting system
+- Enhanced user experience
+- Improved developer workflow
+
+### v5.2.1 - Edit Dialog Bug Fixes
+- Fixed auto-save modal closing
+- Enhanced update synchronization
+- Improved cross-screen updates
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 Support
+
+For support, please open an issue in the GitHub repository.

@@ -61,8 +61,8 @@ echo "🚀 Pushing to production (this will trigger deployment)..."
 if git push origin production; then
     echo ""
     echo "🎉 SUCCESS! Production deployment initiated!"
-    echo "🌐 Check: https://alona-time-tracking.netlify.app"
-    echo "📊 Monitor: https://app.netlify.com/sites/alona-time-tracking/deploys"
+    echo "🌐 Check: https://alonastimetracking.netlify.app"
+    echo "📊 Monitor: https://app.netlify.com/sites/alonastimetracking/deploys"
 else
     echo "❌ Push failed! Please check your connection and try again."
     exit 1
