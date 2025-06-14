@@ -16,11 +16,31 @@ workbox.precaching.precacheAndRoute([
   { url: '/manifest.json', revision: CACHE_VERSION }
 ]);
 
-// Simple runtime caching
+// Critical resources - use NetworkFirst strategy
 workbox.routing.registerRoute(
-  ({ request }) => request.destination === 'script' || request.destination === 'style',
+  ({ request }) => request.destination === 'script',
+  new workbox.strategies.NetworkFirst({
+    cacheName: STATIC_CACHE,
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 24 * 60 * 60 // 24 hours
+      })
+    ]
+  })
+);
+
+// Styles and other static assets - use StaleWhileRevalidate
+workbox.routing.registerRoute(
+  ({ request }) => request.destination === 'style' || request.destination === 'image',
   new workbox.strategies.StaleWhileRevalidate({
-    cacheName: STATIC_CACHE
+    cacheName: STATIC_CACHE,
+    plugins: [
+      new workbox.expiration.ExpirationPlugin({
+        maxEntries: 50,
+        maxAgeSeconds: 24 * 60 * 60 // 24 hours
+      })
+    ]
   })
 );
 
