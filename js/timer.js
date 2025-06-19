@@ -43,7 +43,16 @@ export class Timer {
                 inlineTimePicker.value = `${h}:${m}:${s}`;
                 timerDisplay.style.display = 'none';
                 inlineTimePicker.style.display = 'block';
-                inlineTimePicker.focus();
+                
+                // Enhanced focus and selection for immediate editing
+                // Use setTimeout to ensure DOM update completes before focusing
+                setTimeout(() => {
+                    inlineTimePicker.focus();
+                    // Select all text for immediate editing
+                    inlineTimePicker.select();
+                    // For mobile devices, ensure the input is properly activated
+                    inlineTimePicker.click();
+                }, 10);
             });
             // Only save on blur or Enter key
             function applyInlineTimeEdit() {
