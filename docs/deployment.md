@@ -156,6 +156,7 @@ git branch -d hotfix/critical-fix
 - **v5.1.2**: Goals system with streak tracking
 - **v5.1.1**: Enhanced reports and analytics
 - **v5.1.0**: Initial PWA with core features
+- **v5.3.6**: Timer UI/UX Improvements
 
 ### **Next Steps**
 1. Configure staging site on Netlify
@@ -184,4 +185,9 @@ git branch -d hotfix/critical-fix
 
 ## Notes
 - Never switch to `production` or deploy unless all compliance rules and documentation are present and current on both branches.
-- If files are missing after a branch switch, restore them from the latest commit on `main`/`master` and recommit before proceeding. 
+- If files are missing after a branch switch, restore them from the latest commit on `main`/`master` and recommit before proceeding.
+
+## v5.3.6 - Timer UI/UX Improvements
+- **Timer UI/UX improvements**: Enhanced timer display and interaction.
+- **Mobile consistency**: Improved mobile experience and consistency.
+- **Background fix**: Removed grey background from timer display for a cleaner look. 

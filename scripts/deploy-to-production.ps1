@@ -4,9 +4,17 @@
 Write-Host "Time Tracker - Deploy to Production" -ForegroundColor Cyan
 Write-Host "====================================" -ForegroundColor Cyan
 
-# Check if we're in the right directory
+# Check if we're in the right directory (alona-time-tracking)
 if (-not (Test-Path "manifest.json")) {
-    Write-Host "Error: Please run this script from the project root directory" -ForegroundColor Red
+    Write-Host "Error: Please run this script from the alona-time-tracking directory" -ForegroundColor Red
+    Write-Host "Current directory: $(Get-Location)" -ForegroundColor Yellow
+    Write-Host "Expected files: manifest.json, package.json, version.json" -ForegroundColor Yellow
+    exit 1
+}
+
+# Additional safety check - ensure we're in alona-time-tracking
+if (-not (Test-Path "package.json") -or -not (Test-Path "version.json")) {
+    Write-Host "Error: Missing required files. Please run from alona-time-tracking directory" -ForegroundColor Red
     exit 1
 }
 

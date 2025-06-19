@@ -248,3 +248,8 @@ segments.filter(segment => segment.trim()).join('')
 - **Use simple, single commands** instead of compound commands
 - **Avoid interactive git commands** that can hang
 - **Never use git reset/checkout commands** that delete directories 
+
+## v5.3.6 - Timer UI/UX Improvements
+- **Timer UI/UX improvements**: Enhanced timer display and interaction.
+- **Mobile consistency**: Improved mobile experience and consistency.
+- **Background fix**: Removed grey background from timer display for a cleaner look. 

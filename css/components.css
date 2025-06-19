@@ -62,16 +62,19 @@
 
 /* Standardized Input System */
 .input-base {
-  border: 2px solid #e9ecef;
-  border-radius: var(--radius-md);
-  transition: all 0.2s ease;
+  border: 1.5px solid #e9ecef;
+  border-radius: 6px;
   color: #2c3e50;
+  font-size: 1.1rem;
+  padding: 0.4rem 0.7rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .input-base:focus {
-  outline: none;
   border-color: #4A90E2;
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.12);
+  outline: none;
 }
 
 .input-small {
@@ -85,8 +88,8 @@
 }
 
 .input-large {
-  padding: var(--space-lg) var(--space-xl);
-  font-size: var(--font-lg);
+  font-size: 1.1rem;
+  padding: 0.5rem 0.8rem;
 }
 
 /* Category grid and buttons */
@@ -3400,4 +3403,28 @@ body.emoji-picker-open {
 .fixes-list li::before {
     content: "🔧 ";
     margin-right: 8px;
+}
+
+.timer-display {
+    font-size: 2.5rem;
+    text-align: center;
+    margin: 1rem 0;
+    background: transparent;
+    border-radius: 8px;
+    padding: 0.5rem;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    color: #222;
+}
+
+.timer-btn {
+    margin: 0.5rem;
+    padding: 0.5rem 1.2rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    min-width: 44px;
+    min-height: 44px;
 }

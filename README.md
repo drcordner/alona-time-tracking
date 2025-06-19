@@ -9,11 +9,11 @@
 ## 🚨 **Documentation Maintenance Required**
 
 **Critical files to maintain after ANY code changes:**
-- `docs/project-management/BACKLOG.md` - Feature roadmap and phase tracking
-- `docs/development/LESSONS_LEARNED.md` - Technical patterns and best practices
-- `docs/development/CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
-- `docs/deployment/DEPLOYMENT.md` - Deployment status and procedures
-- `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog
+- `docs/backlog.md` - Feature roadmap and phase tracking
+- `docs/lessons_learned.md` - Technical patterns and best practices
+- `docs/consistency_analysis.md` - UI consistency and design tokens
+- `docs/deployment.md` - Deployment status and procedures
+- `docs/release_notes.md` - Comprehensive changelog
 
 ## 🎯 **Current Status**
 - **Version**: 5.3.4 (Version Synchronization System)
@@ -179,24 +179,24 @@ alona-time-tracking/
 ## 📚 **Quick Documentation Access**
 
 Core project documentation for development context:
-- `docs/project-management/BACKLOG.md` - Feature roadmap and phase tracking
-- `docs/development/LESSONS_LEARNED.md` - Technical patterns and best practices
-- `docs/development/CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
-- `docs/deployment/DEPLOYMENT.md` - Deployment status and procedures (no deployment history)
-- `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog and deployment history (single source of truth)
+- `docs/backlog.md` - Feature roadmap and phase tracking
+- `docs/lessons_learned.md` - Technical patterns and best practices
+- `docs/consistency_analysis.md` - UI consistency and design tokens
+- `docs/deployment.md` - Deployment status and procedures (no deployment history)
+- `docs/release_notes.md` - Comprehensive changelog and deployment history (single source of truth)
 
 > **Note:**
-> - All deployment history is recorded ONLY in `RELEASE_NOTES.md`.
-> - All future enhancements and backlog items are tracked in the backlog section of `RELEASE_NOTES.md` or in `BACKLOG.md`.
+> - All deployment history is recorded ONLY in `release_notes.md`.
+> - All future enhancements and backlog items are tracked in the backlog section of `release_notes.md` or in `backlog.md`.
 > - Do NOT duplicate deployment history or backlog items in deployment docs.
 
 ## 📋 **Project Documentation**
 
 - **[Release Notes](docs/release_notes.md)**: Detailed changelog
-- **[Development Backlog](docs/project-management/BACKLOG.md)**: Future plans and features
+- **[Development Backlog](docs/backlog.md)**: Future plans and features
 - **[Deployment Guide](docs/deployment.md)**: Production deployment instructions
 - **[Lessons Learned](docs/lessons_learned.md)**: Development insights
-- **[Consistency Analysis](docs/CONSISTENCY_ANALYSIS.md)**: Code quality notes
+- **[Consistency Analysis](docs/consistency_analysis.md)**: Code quality notes
 
 ## 🤝 **Contributing**
 
@@ -215,22 +215,22 @@ MIT License - Feel free to use and modify for your own projects.
 > **🤖 For AI Assistants**: Always check and update documentation files after ANY changes. See `docs/development/AI_INSTRUCTIONS.md` for complete guidelines.
 
 **Critical Documentation Files** (in order of priority):
-- `docs/project-management/BACKLOG.md` - Feature roadmap and phase tracking
-- `docs/development/LESSONS_LEARNED.md` - Technical patterns and best practices
-- `docs/development/CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
-- `docs/deployment/DEPLOYMENT.md` - Deployment status and procedures
-- `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog
+- `docs/backlog.md` - Feature roadmap and phase tracking
+- `docs/lessons_learned.md` - Technical patterns and best practices
+- `docs/consistency_analysis.md` - UI consistency and design tokens
+- `docs/deployment.md` - Deployment status and procedures
+- `docs/release_notes.md` - Comprehensive changelog
 
 A beautiful, responsive Progressive Web App for time tracking with goals, categories, and comprehensive analytics.
 
 ## 🚨 **Documentation Maintenance Required**
 
 **Critical files to maintain after ANY code changes:**
-- `docs/project-management/BACKLOG.md` - Feature roadmap and phase tracking
-- `docs/development/LESSONS_LEARNED.md` - Technical patterns and best practices
-- `docs/development/CONSISTENCY_ANALYSIS.md` - UI consistency and design tokens
-- `docs/deployment/DEPLOYMENT.md` - Deployment status and procedures
-- `docs/project-management/RELEASE_NOTES.md` - Comprehensive changelog
+- `docs/backlog.md` - Feature roadmap and phase tracking
+- `docs/lessons_learned.md` - Technical patterns and best practices
+- `docs/consistency_analysis.md` - UI consistency and design tokens
+- `docs/deployment.md` - Deployment status and procedures
+- `docs/release_notes.md` - Comprehensive changelog
 
 ## 🎯 **Current Status**
 - **Version**: 5.3.4 (Version Synchronization System)
