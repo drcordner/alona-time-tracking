@@ -57,4 +57,41 @@
   2. Update all relevant timestamps and dates in documentation and version files.
   3. Run `npm run version-sync` to propagate changes.
   4. Run `npm test` to verify no future dates exist and all dates are consistent.
-  5. Commit and push all changes. 
+  5. Commit and push all changes.
+
+## 🛡️ Critical File Protection Rules
+
+### Protected Directories
+- `.vscode/`: IDE Configuration
+- `.github/workflows/`: CI/CD Configuration
+- `.cursor/rules/`: AI Assistant Rules
+
+### Protection Rules
+1. **Backup Requirements**
+   - All critical files must be backed up before any branch operations
+   - Backups must be stored in `docs/backups/` with appropriate subdirectories
+   - Backup timestamps must be included in filenames
+
+2. **Git Operations**
+   - Critical directories must be in `.gitignore`
+   - Git operations must not delete these directories
+   - Force pushes are prohibited
+   - Branch protection rules must be enabled
+
+3. **Change Management**
+   - Changes to critical files require explicit approval
+   - All changes must be documented in `development_changelog.md`
+   - Regular backups must be maintained
+   - Version control must be used for critical file changes
+
+4. **Recovery Process**
+   - Maintain a recovery procedure document
+   - Regular testing of recovery procedures
+   - Document all recovery attempts
+   - Update lessons learned after recovery
+
+5. **Verification**
+   - Regular checks for critical file integrity
+   - Automated backup verification
+   - Manual verification before deployments
+   - Documentation of all verification steps 

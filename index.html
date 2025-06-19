@@ -130,17 +130,17 @@
                         <div id="current-activity-name" class="current-activity"></div>
                         <div class="timer-display-row" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
                             <div class="timer-display" id="timer-display" tabindex="0" title="Click to edit elapsed time" style="flex:1; text-align:center;">00:00:00</div>
+                            <input type="time" id="inline-time-picker" style="display:none; margin: 0 auto; font-size: 1.5rem; text-align: center;" step="1" value="00:00:00" />
                             <button id="pause-button" class="timer-btn timer-btn-primary pause-icon-btn" style="width: 36px; height: 36px; min-width:36px; min-height:36px; border-radius:50%; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; padding: 0; margin-left: 0.5rem;">
                                 <span id="pause-icon">⏸️</span>
                             </button>
                         </div>
-                        <input type="time" id="inline-time-picker" style="display:none; margin: 0 auto; font-size: 1.5rem; text-align: center;" step="1" value="00:00:00" />
                         <div class="timer-details">
                             <label for="start-time">Start Time:</label>
-                            <input type="datetime-local" id="start-time" />
+                            <input type="datetime-local" id="start-time" class="input-base input-large" />
                             <div class="elapsed-time">
                                 <span>Elapsed: </span>
-                                <span id="elapsed-time">00:00:00</span>
+                                <input type="time" id="elapsed-time" class="input-base input-large" step="1" value="00:00:00" style="width: 120px; background: transparent; border: none; font-size: 1.1rem; padding: 0; cursor: pointer;" readonly />
                             </div>
                             <div class="today-total-time" style="margin-top: 0.5rem;">
                                 Today Total: <span id="today-total-time">00:00:00</span>
@@ -158,12 +158,12 @@
                             <h3 style="margin-bottom: 1.2rem;">Adjust Timer</h3>
                             <div class="adjust-fields">
                                 <label for="adjust-start-time">Start Time:</label>
-                                <input type="datetime-local" id="adjust-start-time" />
+                                <input type="datetime-local" id="adjust-start-time" class="input-base input-large" />
                                 <label for="adjust-elapsed-time">Elapsed Time:</label>
-                                <input type="time" id="adjust-elapsed-time" step="1" value="00:00:00" placeholder="HH:MM:SS" />
+                                <input type="time" id="adjust-elapsed-time" class="input-base input-large" step="1" value="00:00:00" placeholder="HH:MM:SS" />
                                 <div id="end-time-row" style="display:none;">
                                     <label for="adjust-end-time">End Time:</label>
-                                    <input type="datetime-local" id="adjust-end-time" />
+                                    <input type="datetime-local" id="adjust-end-time" class="input-base input-large" />
                                 </div>
                             </div>
                             <div class="preview" style="margin: 1rem 0;">
@@ -279,7 +279,7 @@
         .timer-btn { margin: 0.5rem; padding: 0.5rem 1.2rem; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; }
         .timer-btn-primary { background: #3498db; color: #fff; }
         .timer-btn-danger { background: #e74c3c; color: #fff; }
-        .timer-display { font-size: 2.5rem; text-align: center; margin: 1rem 0; background: #f8f8f8; border-radius: 8px; padding: 0.5rem; cursor: pointer; }
+        .timer-display { font-size: 2.5rem; text-align: center; margin: 1rem 0; border-radius: 8px; padding: 0.5rem; cursor: pointer; }
         .timer-details { margin-bottom: 1rem; }
         .elapsed-time { margin-top: 0.5rem; font-size: 1.1rem; }
         .timer-controls-bottom { text-align: center; margin-top: 1rem; }

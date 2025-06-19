@@ -76,15 +76,36 @@ export class Timer {
         // Start time input
         const startTimeInput = document.getElementById('start-time');
         if (startTimeInput) startTimeInput.addEventListener('change', (e) => this.handleStartTimeEdit(e));
+        // Elapsed time input (details section)
+        const elapsedTimeInput = document.getElementById('elapsed-time');
+        if (elapsedTimeInput) {
+            elapsedTimeInput.addEventListener('focus', () => {
+                elapsedTimeInput.select();
+            });
+            elapsedTimeInput.addEventListener('change', () => {
+                const val = elapsedTimeInput.value;
+                if (val) {
+                    const parts = val.split(':');
+                    let seconds = 0;
+                    if (parts.length === 2) {
+                        seconds = (+parts[0]) * 3600 + (+parts[1]) * 60;
+                    } else if (parts.length === 3) {
+                        seconds = (+parts[0]) * 3600 + (+parts[1]) * 60 + (+parts[2]);
+                    }
+                    this.startTime = Date.now() - (seconds + this.pausedTime) * 1000;
+                    this.updateTimerDisplay();
+                    this.saveTimerState();
+                    this._showInlineToast('Timer updated!');
+                    this._refreshStartTimeInput();
+                }
+            });
+        }
         // Stop
         const stopBtn = document.getElementById('stop-button');
         if (stopBtn) stopBtn.addEventListener('click', () => this.stopTimer());
         // Stop & Adjust
         const stopAdjustBtn = document.getElementById('stop-adjust-button');
         if (stopAdjustBtn) stopAdjustBtn.addEventListener('click', () => this.showAdjustModal(true));
-        // Modal: open elapsed time editor
-        const elapsedTime = document.getElementById('elapsed-time');
-        if (elapsedTime) elapsedTime.addEventListener('click', () => this.showElapsedTimeEditor());
         // Modal: close
         const adjustCancel = document.getElementById('adjust-cancel');
         if (adjustCancel) adjustCancel.addEventListener('click', () => this.closeAdjustModal());

@@ -1,0 +1,22 @@
+# Critical directories that should be protected
+.vscode/
+.cursor/
+.github/workflows/
+
+# But allow specific files to be tracked
+!.vscode/settings.json
+!.vscode/extensions.json
+!.cursor/rules/*.mdc
+!.github/workflows/*.yml
+
+# Backup directories
+docs/backups/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db 

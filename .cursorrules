@@ -1,1 +1,76 @@
- 
+# Version Management
+- All version numbers must be consistent across version.json, package.json, and manifest.json
+- Service worker cache version must include the current version number
+- No hardcoded versions in JS files (except fallbacks in management.js)
+- Version numbers must be updated in all relevant files before deployment
+- Version increment rules must be followed (major.minor.patch)
+- Version changes must be documented in release notes
+
+# Documentation Process
+- All documentation must be in the docs/ directory
+- Release notes must be updated with each version change
+- Documentation must be reviewed before merging to production
+- All critical files must be present and up to date
+- Date and time stamps must be current (no future dates)
+- Documentation must be reviewed for accuracy after each deployment
+
+# Service Worker Cache Management
+- Cache version must be synchronized with app version
+- Cache busting must be implemented for all critical resources
+- Service worker must be updated with each version change
+- Cache cleanup must be implemented for old versions
+- Cache headers must be properly configured in netlify.toml
+- Cache testing must be performed on both staging and production
+
+# Deployment Rules
+- All code, documentation, and process compliance rules must be up to date
+- Version numbers must be consistent across all files
+- Service worker cache version must be updated
+- Documentation must be reviewed and updated
+- Staging must be tested before production deployment
+- Cache headers must be verified after deployment
+
+# Testing Requirements
+- All changes must be tested in staging environment first
+- Cache behavior must be verified on both desktop and mobile
+- PWA installation and updates must be tested
+- Service worker updates must be verified
+- Cross-browser testing must be performed
+- Mobile responsiveness must be verified
+
+# Security and Performance
+- Content Security Policy must be properly configured
+- HTTPS must be enforced
+- Performance metrics must be monitored
+- Security headers must be properly set
+- Resource loading must be optimized
+- Error handling must be implemented
+
+# Code Quality
+- No console.log statements in production code
+- Error handling must be implemented
+- Code must be properly commented
+- Functions must have clear purposes
+- Variables must be properly named
+- Code must follow consistent style
+
+# AI-Human Collaboration Model
+- AI Agent (Cursor) is the primary architect, coder, tester, and DevOps deployer
+- Human (Product Owner) is the decision maker, user tester, and occasional debugger
+- AI must proactively identify and solve problems
+- AI must explain technical decisions and trade-offs
+- AI must ask for human input when:
+  * Making significant architectural decisions
+  * Encountering ambiguous requirements
+  * Facing technical blockers
+  * Needing domain-specific knowledge
+- Human must provide:
+  * Clear requirements and priorities
+  * User feedback and testing results
+  * Domain knowledge and business context
+  * Decisions on trade-offs when needed
+- Communication should be:
+  * Clear and technical when needed
+  * Focused on business value
+  * Proactive about potential issues
+  * Collaborative in problem-solving 

@@ -1,29 +1,11 @@
 {
-  "name": "alona-time-tracker",
-  "version": "5.3.5",
-  "description": "A beautiful time tracking app with goals and analytics",
-  "type": "module",
+  "name": "alona-time-tracking",
+  "version": "5.3.6",
+  "description": "Timer UI/UX improvements, mobile consistency, background fix",
+  "main": "index.html",
   "scripts": {
-    "test": "node test-runner.js",
-    "test:verbose": "node test-runner.js --verbose",
-    "validate": "npm run test",
-    "version-check": "node -e \"const v=require('./version.json'); console.log('Current version:', v.versionNumber)\"",
-    "version-sync": "node scripts/version-sync.js",
-    "version-scan": "node scripts/version-scan.js",
-    "workbox:inject": "workbox injectManifest workbox-config.js",
-    "prebuild": "npm run version-sync && npm run workbox:inject",
-    "prepublish": "npm run version-sync"
+    "start": "node server.js"
   },
-  "keywords": ["time-tracking", "productivity", "goals"],
-  "author": "Time Tracker Development Team",
-  "license": "MIT",
-  "devDependencies": {
-    "workbox-core": "^6.4.1",
-    "workbox-routing": "^6.4.1",
-    "workbox-strategies": "^6.4.1",
-    "workbox-precaching": "^6.4.1"
-  },
-  "engines": {
-    "node": ">=14.0.0"
-  }
+  "author": "Alona",
+  "license": "MIT"
 } 
