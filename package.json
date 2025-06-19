@@ -3,8 +3,11 @@
   "version": "5.3.6",
   "description": "Timer UI/UX improvements, mobile consistency, background fix",
   "main": "index.html",
+  "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "version-sync": "node scripts/version-sync.js",
+    "test": "node test-runner.js"
   },
   "author": "Alona",
   "license": "MIT"

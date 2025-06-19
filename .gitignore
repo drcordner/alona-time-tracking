@@ -9,7 +9,7 @@
 !.cursor/rules/*.mdc
 !.github/workflows/*.yml
 
-# Backup directories
+# Documents Backup directories only
 docs/backups/
 
 # OS generated files

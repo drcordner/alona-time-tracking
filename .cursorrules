@@ -1,3 +1,11 @@
+# File Location Rules
+- All files must be created within the alona-time-tracking/ directory
+- No files should be created at the repository root level
+- All scripts must be run from the alona-time-tracking/ directory
+- All documentation must reference paths relative to alona-time-tracking/
+- All npm scripts must be run from alona-time-tracking/ directory
+- All deployment operations must be performed from alona-time-tracking/ directory
+
 # Version Management
 - All version numbers must be consistent across version.json, package.json, and manifest.json
 - Service worker cache version must include the current version number
