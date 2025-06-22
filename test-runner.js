@@ -266,6 +266,15 @@ runner.test('Rule system consistency between .cursorrules and .mdc files', async
     runner.assertTrue(fs.existsSync('.cursor/rules/rule-maintenance.mdc'), 'Rule maintenance documentation exists');
 });
 
+runner.test('Server integration rules exist', async () => {
+    const cursorrules = runner.readFile('.cursorrules');
+    runner.assertTrue(cursorrules.includes('Server Configuration'), 'Cursor rules contain server configuration section');
+    runner.assertTrue(
+        fs.existsSync('.cursor/rules/server-integration.mdc'),
+        'Server integration documentation exists'
+    );
+});
+
 runner.test('service worker version matches app version', async () => {
     const versionData = runner.readJSON('version.json');
     const swContent = runner.readFile('sw.js');

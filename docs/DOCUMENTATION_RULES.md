@@ -43,6 +43,7 @@ This project uses two complementary rule systems that must be kept in sync:
 - `.cursor/rules/version-consistency.mdc` - Detailed version management procedures
 - `.cursor/rules/documentation-context.mdc` - Documentation maintenance guidelines
 - `.cursor/rules/rule-maintenance.mdc` - Rule system maintenance procedures
+- `.cursor/rules/server-integration.mdc` - Server configuration guidelines
 
 ## 🛠️ Documentation Update Process
 1. Make changes to documentation files as needed.

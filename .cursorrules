@@ -62,6 +62,10 @@
 - Variables must be properly named
 - Code must follow consistent style
 
+# Server Configuration
+- `netlify.toml` must be updated when adding external CDNs or changing routing.
+- Content Security Policy must be kept up-to-date with any new external resources.
+
 # AI-Human Collaboration Model
 - AI Agent (Cursor) is the primary architect, coder, tester, and DevOps deployer
 - Human (Product Owner) is the decision maker, user tester, and occasional debugger
