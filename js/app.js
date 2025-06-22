@@ -1,4 +1,3 @@
-// Main app coordinator
 import { getFullVersion } from './version-loader.js';
 console.log('🚀 NEW APP.JS LOADED - TIMESTAMP:', Date.now(), `Version: ${getFullVersion()}`);
 console.log('🔧 Global assignments should happen AFTER initialization');
@@ -55,7 +54,7 @@ class TimeTrackerApp {
         // Initialize goals system (depends on settings)
         this.goals.init();
         console.log('TimeTrackerApp: Goals initialized');
-        
+
         this.renderCategories();
         this.reports.updateReportDate();
 
@@ -462,31 +461,18 @@ class TimeTrackerApp {
         // DO NOT call this.timer.onTimerStop(category)
     }
 
-    // Service Worker registration
+    // Register service worker
     registerServiceWorker() {
-        if (!this.sandbox && 'serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => {
-                    console.log('✅ Service Worker registered successfully:', registration);
-                    
-                    // Listen for updates
-                    registration.addEventListener('updatefound', () => {
-                        console.log('🔄 Service Worker update found');
-                        const newWorker = registration.installing;
-                        if (newWorker) {
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('🆕 New Service Worker installed, ready to activate');
-                                }
-                            });
-                        }
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('❌ Service Worker registration failed:', error);
                     });
-                })
-                .catch(err => {
-                    console.error('❌ Service Worker registration failed:', err);
-                });
-        } else {
-            console.log('Service Worker not available or in sandbox mode');
+            });
         }
     }
 
