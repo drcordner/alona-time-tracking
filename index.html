@@ -81,8 +81,23 @@
     <!-- Only load the cache buster - it handles everything else -->
     <script src="js/cache-buster.js"></script>
     
-    <!-- Emoji Picker Element -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+    <!-- Emoji Picker Element with fallback -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js" 
+            onerror="console.warn('Emoji picker CDN failed to load, will use fallback')"></script>
+    
+    <!-- Fallback emoji picker script -->
+    <script>
+        // Check if emoji picker loaded successfully
+        setTimeout(() => {
+            if (!customElements.get('emoji-picker')) {
+                console.warn('⚠️ Emoji picker element not available - will use fallback picker');
+                window.EMOJI_PICKER_AVAILABLE = false;
+            } else {
+                console.log('✅ Emoji picker element loaded successfully');
+                window.EMOJI_PICKER_AVAILABLE = true;
+            }
+        }, 2000);
+    </script>
 </head>
 <body>
     <!-- Loading Screen -->

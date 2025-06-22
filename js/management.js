@@ -916,22 +916,47 @@ export class Management {
             // Show loading state
             container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;"><div class="loading-spinner"></div><p style="margin-top: 1rem;">Loading emoji picker...</p></div>';
             
-            // Wait for emoji-picker-element to be available
-            if (!customElements.get('emoji-picker')) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                if (!customElements.get('emoji-picker')) {
-                    throw new Error('emoji-picker-element not loaded');
-                }
+            // Check global availability flag first
+            if (window.EMOJI_PICKER_AVAILABLE === false) {
+                console.log('🔄 Emoji picker marked as unavailable, using fallback immediately');
+                throw new Error('Emoji picker marked as unavailable');
             }
+            
+            // Wait for emoji-picker-element to be available with multiple retries
+            let attempts = 0;
+            const maxAttempts = 3;
+            
+            while (!customElements.get('emoji-picker') && attempts < maxAttempts) {
+                console.log(`Emoji picker attempt ${attempts + 1}/${maxAttempts} - waiting for custom element...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                attempts++;
+            }
+            
+            if (!customElements.get('emoji-picker')) {
+                console.warn('Emoji picker element not available after retries, using fallback');
+                window.EMOJI_PICKER_AVAILABLE = false;
+                throw new Error('emoji-picker-element not loaded after multiple attempts');
+            }
+            
+            console.log('✅ Emoji picker element loaded successfully');
+            window.EMOJI_PICKER_AVAILABLE = true;
             
             // Create and configure emoji picker
             const picker = document.createElement('emoji-picker');
+            
+            // Add error handling for picker creation
+            if (!picker) {
+                throw new Error('Failed to create emoji-picker element');
+            }
+            
             picker.addEventListener('emoji-click', (event) => {
+                console.log('Emoji selected:', event.detail.emoji);
                 const emoji = event.detail.emoji.unicode;
                 const emojiInput = document.getElementById(inputId);
                 if (emojiInput) {
                     emojiInput.value = emoji;
                     container.classList.remove('show');
+                    this.unlockBodyScroll();
                 }
             });
             
@@ -943,6 +968,7 @@ export class Management {
             const handleClickOutside = (event) => {
                 if (!container.contains(event.target) && !event.target.closest('.emoji-picker-button')) {
                     container.classList.remove('show');
+                    this.unlockBodyScroll();
                     document.removeEventListener('click', handleClickOutside);
                 }
             };
@@ -950,9 +976,11 @@ export class Management {
             
         } catch (error) {
             console.error('Error loading emoji picker:', error);
-            // Fallback to simple picker
+            console.log('🔄 Falling back to simple emoji picker');
+            
+            // Fallback to simple picker with better styling
             container.innerHTML = `
-                <div style="padding: 1rem;">
+                <div style="padding: 1rem; background: white; border-radius: 8px;">
                     <p style="margin-bottom: 1rem; text-align: center; color: #666; font-size: 0.9em;">
                         Enhanced picker unavailable. Using simple selection:
                     </p>
@@ -1537,11 +1565,17 @@ export class Management {
 
     // Render emoji presets
     renderEmojiPresets(inputId) {
-        const commonEmojis = ['📚', '💼', '🏃', '🍳', '🧹', '🎮', '📺', '🛌', '🚗', '🛒', '👨‍👩‍👧‍👦', '📞', '💻', '📖', '🎨', '🎵'];
+        const commonEmojis = [
+            '📚', '💼', '🏃', '🍳', '🧹', '🎮', '📺', '🛌', '🚗', '🛒', '👨‍👩‍👧‍👦', '📞', 
+            '💻', '📖', '🎨', '🎵', '🏠', '🏢', '🏥', '🏫', '🏪', '🏖️', '🎭', '🎪',
+            '⚽', '🏀', '🎾', '🏓', '🏸', '🏊', '🚴', '🧘', '🏋️', '🎯', '🎲', '🎮'
+        ];
         return commonEmojis.map(emoji => 
-            `<span class="emoji-preset" onclick="management.selectEmoji('${emoji}', '${inputId}')">${emoji}</span>`
+            `<span class="emoji-preset" onclick="management.selectEmoji('${emoji}', '${inputId}')" 
+                  style="display: flex; justify-content: center; align-items: center; width: 40px; height: 40px; 
+                         font-size: 1.5em; cursor: pointer; border-radius: 8px; transition: all 0.2s ease;
+                         background: #f8f9fa; border: 1px solid #e9ecef;">${emoji}</span>`
         ).join('');
-        // TODO: Replace with enhanced emoji-picker-element for better UX
     }
 
     // Select emoji preset
