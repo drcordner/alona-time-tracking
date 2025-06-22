@@ -116,9 +116,13 @@ export class Goals {
         let totalTime = 0;
         
         if (period === 'daily') {
-            totalTime = this.storage.getTodayTime(categoryName);
+            // For daily goals, get time for the specific date
+            const dayData = this.storage.getDateData(date);
+            if (dayData[categoryName]) {
+                totalTime = Object.values(dayData[categoryName]).reduce((sum, time) => sum + time, 0);
+            }
         } else if (period === 'weekly') {
-            // Get week data (Sunday to Saturday)
+            // Get week data for the specific date (Sunday to Saturday)
             const startOfWeek = new Date(date);
             startOfWeek.setDate(date.getDate() - date.getDay());
             
@@ -132,7 +136,7 @@ export class Goals {
                 }
             }
         } else if (period === 'monthly') {
-            // Get month data
+            // Get month data for the specific date
             const year = date.getFullYear();
             const month = date.getMonth();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -645,5 +649,32 @@ export class Goals {
             console.log(`Goals: Recalculated ${streaksUpdated} streaks`);
             this.saveGoals();
         }
+    }
+
+    // Debug function to test streak calculation for a specific date
+    debugStreakCalculation(categoryName, period, testDate) {
+        if (!this.areGoalsEnabled()) return null;
+        
+        console.log(`🔍 Debugging streak for ${categoryName} ${period} on ${testDate.toDateString()}`);
+        
+        const goal = this.getGoal(categoryName, period);
+        if (!goal) {
+            console.log('❌ No goal found for this category/period');
+            return null;
+        }
+        
+        console.log(`🎯 Goal target: ${formatTime(goal.target)}`);
+        
+        // Test the actual time calculation for the test date
+        const actualTime = this.getActualTimeForPeriod(categoryName, period, testDate);
+        console.log(`⏱️ Actual time on ${testDate.toDateString()}: ${formatTime(actualTime)}`);
+        
+        // Test progress calculation
+        const progress = this.calculateProgress(categoryName, period, testDate);
+        if (progress) {
+            console.log(`📊 Progress: ${Math.round(progress.percentage)}% (${progress.achieved ? 'ACHIEVED' : 'NOT ACHIEVED'})`);
+        }
+        
+        return progress;
     }
 } 

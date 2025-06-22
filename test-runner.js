@@ -233,7 +233,37 @@ runner.test('Cursor rules file exists and has version management section', async
     const cursorrules = runner.readFile('.cursorrules');
     
     runner.assertTrue(cursorrules.includes('Version Management'), 'Cursor rules contain version management section');
-    runner.assertTrue(cursorrules.includes('version numbers consistent'), 'Cursor rules emphasize version consistency');
+    runner.assertTrue(cursorrules.includes('version numbers must be consistent'), 'Cursor rules emphasize version consistency');
+});
+
+runner.test('Rule system consistency between .cursorrules and .mdc files', async () => {
+    const cursorrules = runner.readFile('.cursorrules');
+    const versionConsistency = runner.readFile('.cursor/rules/version-consistency.mdc');
+    const coreContext = runner.readFile('.cursor/rules/core-context.mdc');
+    
+    // Check that version management concepts are consistent
+    runner.assertTrue(
+        cursorrules.includes('version numbers must be consistent') && 
+        versionConsistency.includes('Critical Version Management'),
+        'Version management concepts are consistent between rule systems'
+    );
+    
+    // Check that documentation process concepts are consistent
+    runner.assertTrue(
+        cursorrules.includes('Documentation Process') && 
+        coreContext.includes('Documentation Maintenance Priority'),
+        'Documentation process concepts are consistent between rule systems'
+    );
+    
+    // Check that deployment concepts are consistent
+    runner.assertTrue(
+        cursorrules.includes('Deployment Rules') && 
+        coreContext.includes('Deployment'),
+        'Deployment concepts are consistent between rule systems'
+    );
+    
+    // Check that rule maintenance file exists
+    runner.assertTrue(fs.existsSync('.cursor/rules/rule-maintenance.mdc'), 'Rule maintenance documentation exists');
 });
 
 runner.test('service worker version matches app version', async () => {

@@ -28,7 +28,7 @@ class TimeTrackerApp {
             (key) => this.management.getSetting(key)
         );
         this.reports = new Reports(this.storage, () => this.getCategories(), () => this.renderGoalsSummary());
-        this.timer = new Timer(this.storage, this.showScreen.bind(this), this.updateTimerStatus.bind(this), this.onTimerStop.bind(this));
+        this.timer = new Timer(this.storage, this.showScreen.bind(this), this.updateStatus.bind(this), this.onTimerStop.bind(this));
         
         // Initialize UX enhancements last (after all other modules)
         this.ux = null; // Will be initialized in init()
@@ -448,7 +448,7 @@ class TimeTrackerApp {
     }
 
     // Timer status update
-    updateTimerStatus() {
+    updateStatus() {
         this.timer.updateTimerStatus();
     }
 

@@ -104,22 +104,26 @@ export class Management {
         console.log('Management: updateSetting called with', key, '=', value);
         
         if (!this.settings) this.settings = {};
-        this.settings[key] = value;
+        if (key === 'goalsEnabled') {
+            this.settings.goalsEnabled = value;
+            this.handleGoalsToggle(value);
+        } else {
+            // Handle nested settings
+            const keys = key.split('.');
+            let current = this.settings;
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (!current[keys[i]]) {
+                    current[keys[i]] = {};
+                }
+                current = current[keys[i]];
+            }
+            current[keys[keys.length - 1]] = value;
+        }
         this.saveSettings();
         
         // Apply changes immediately
         if (key === 'appTitle') {
             this.updateAppTitle();
-        } else if (key === 'goalsEnabled') {
-            this.handleGoalsToggle(value);
-        } else if (key === 'featureFlags.enhanced_timer') {
-            if (!this.settings.featureFlags) this.settings.featureFlags = {};
-            this.settings.featureFlags.enhanced_timer = value;
-            this.saveSettings();
-            // Optionally, show feedback
-            this.showToast(value ? 'Enhanced Timer enabled!' : 'Enhanced Timer disabled', value ? 'success' : 'info');
-            // Re-render management/settings to reflect change
-            this.renderManagementScreen();
         }
         
         console.log('Management: updateSetting completed');
@@ -368,33 +372,18 @@ export class Management {
                     <div class="settings-grid">
                         <div class="setting-item">
                             <div class="setting-toggle">
-                                <label for="goals-enabled">Goals & Progress Tracking</label>
+                                <label for="goals-toggle">Goals & Streaks</label>
                                 <div class="toggle-switch">
-                                    <input type="checkbox" 
-                                           id="goals-enabled" 
+                                    <input type="checkbox"
+                                           id="goals-toggle"
                                            ${this.settings.goalsEnabled ? 'checked' : ''}
-                                           onchange="management.updateSetting('goalsEnabled', this.checked)">
-                                    <span class="toggle-slider" onclick="document.getElementById('goals-enabled').click()"></span>
+                                           onchange="management.handleGoalsToggle(this.checked)">
+                                    <span class="toggle-slider" onclick="document.getElementById('goals-toggle').click()"></span>
                                 </div>
                             </div>
                             <p class="setting-description">
                                 Enable goal setting and progress tracking features. 
                                 ${this.settings.goalsEnabled ? 'Goals will appear on the home screen and in reports.' : 'Goal features will be hidden throughout the app.'}
-                            </p>
-                        </div>
-                        <div class="setting-item">
-                            <div class="setting-toggle">
-                                <label for="enhanced-timer-toggle">Enhanced Timer (Shoelace UI)</label>
-                                <div class="toggle-switch">
-                                    <input type="checkbox"
-                                           id="enhanced-timer-toggle"
-                                           ${this.settings.featureFlags && this.settings.featureFlags.enhanced_timer ? 'checked' : ''}
-                                           onchange="management.updateSetting('featureFlags.enhanced_timer', this.checked)">
-                                    <span class="toggle-slider" onclick="document.getElementById('enhanced-timer-toggle').click()"></span>
-                                </div>
-                            </div>
-                            <p class="setting-description">
-                                Enable the new Shoelace-based enhanced timer with advanced editing and adjustment features. (Vibe Coding Philosophy)
                             </p>
                         </div>
                     </div>
@@ -968,11 +957,11 @@ export class Management {
                         Enhanced picker unavailable. Using simple selection:
                     </p>
                     <div class="emoji-presets" style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;">
-                        ${this.renderEmojiPresets()}
+                        ${this.renderEmojiPresets(inputId)}
+                    </div>
                 </div>
-            </div>
-        `;
-    }
+            `;
+        }
     }
 
     // Close all emoji pickers
@@ -1343,12 +1332,10 @@ export class Management {
     // Get default settings
     getDefaultSettings() {
         return {
-            appTitle: "Alona's Activity Tracker",
-            goalsEnabled: true,
-            quickStartCount: 6,
-            sessionRetentionDays: 60,
-            version: this.versionInfo?.version || getFullVersion(),
-            featureFlags: { enhanced_timer: false } // Add enhanced_timer flag
+            appTitle: 'Time Tracker',
+            goalsEnabled: false,
+            sessionRetentionDays: 90,
+            version: '5.3.7'
         };
     }
 
@@ -1549,20 +1536,24 @@ export class Management {
     }
 
     // Render emoji presets
-    renderEmojiPresets() {
+    renderEmojiPresets(inputId) {
         const commonEmojis = ['📚', '💼', '🏃', '🍳', '🧹', '🎮', '📺', '🛌', '🚗', '🛒', '👨‍👩‍👧‍👦', '📞', '💻', '📖', '🎨', '🎵'];
         return commonEmojis.map(emoji => 
-            `<span class="emoji-preset" onclick="management.selectEmoji('${emoji}', 'category')">${emoji}</span>`
+            `<span class="emoji-preset" onclick="management.selectEmoji('${emoji}', '${inputId}')">${emoji}</span>`
         ).join('');
         // TODO: Replace with enhanced emoji-picker-element for better UX
     }
 
     // Select emoji preset
-    selectEmoji(emoji, type = 'category') {
-        const inputId = type === 'category' ? 'category-emoji' : 'activity-emoji';
+    selectEmoji(emoji, inputId) {
         const emojiInput = document.getElementById(inputId);
         if (emojiInput) {
             emojiInput.value = emoji;
+            // Close the picker after selection
+            const pickerContainer = emojiInput.closest('.emoji-picker-enhanced').querySelector('.emoji-picker-container');
+            if (pickerContainer) {
+                pickerContainer.classList.remove('show');
+            }
         }
     }
 

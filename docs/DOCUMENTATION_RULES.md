@@ -14,6 +14,36 @@
   - `DOCUMENTATION_RULES.md`
   - `lessons_learned.md`
 
+## 🔄 Rule System Maintenance
+
+### **Dual Rule System**
+This project uses two complementary rule systems that must be kept in sync:
+
+1. **`.cursorrules`** - High-level project constraints for Cursor IDE
+2. **`.cursor/rules/*.mdc`** - Detailed technical guidance for AI assistants
+
+### **Rule Maintenance Process**
+- **ALWAYS update both rule systems** when changes affect both
+- **Version changes** require updates to both `.cursorrules` and `version-consistency.mdc`
+- **Documentation process changes** require updates to both `.cursorrules` and `documentation-context.mdc`
+- **Architecture changes** require updates to both `.cursorrules` and relevant `.mdc` files
+- **Run `npm test`** after rule updates to verify consistency
+
+### **Rule Update Checklist**
+- [ ] Identify which rule system(s) need updates
+- [ ] Make changes to primary rule system
+- [ ] Update cross-references in other rule system
+- [ ] Ensure no contradictions between systems
+- [ ] Run `npm test` to verify rule compliance
+- [ ] Check that all referenced files exist
+
+### **Critical Rule Files**
+- `.cursorrules` - Project constraints and processes
+- `.cursor/rules/core-context.mdc` - Current project status and technical standards
+- `.cursor/rules/version-consistency.mdc` - Detailed version management procedures
+- `.cursor/rules/documentation-context.mdc` - Documentation maintenance guidelines
+- `.cursor/rules/rule-maintenance.mdc` - Rule system maintenance procedures
+
 ## 🛠️ Documentation Update Process
 1. Make changes to documentation files as needed.
 2. Update the changelog and release notes to reflect all changes.
@@ -76,22 +106,4 @@
    - Critical directories must be in `.gitignore`
    - Git operations must not delete these directories
    - Force pushes are prohibited
-   - Branch protection rules must be enabled
-
-3. **Change Management**
-   - Changes to critical files require explicit approval
-   - All changes must be documented in `development_changelog.md`
-   - Regular backups must be maintained
-   - Version control must be used for critical file changes
-
-4. **Recovery Process**
-   - Maintain a recovery procedure document
-   - Regular testing of recovery procedures
-   - Document all recovery attempts
-   - Update lessons learned after recovery
-
-5. **Verification**
-   - Regular checks for critical file integrity
-   - Automated backup verification
-   - Manual verification before deployments
-   - Documentation of all verification steps 
+   - Branch protection rules must be enabled 
