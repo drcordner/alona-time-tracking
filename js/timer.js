@@ -574,7 +574,7 @@ export class Timer {
         toast.innerHTML = `
             <span>Stopped by mistake?</span>
             <button onclick="window.quickRestart()" class="quick-restart-btn">
-                Resume where you left off
+                Resume
             </button>
         `;
         
