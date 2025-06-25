@@ -1,7 +1,7 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
 
 // Version management - will be replaced during build
-const CACHE_VERSION = 'v5.3.7-sw-fix';
+const CACHE_VERSION = 'v5.3.8-sw-fix';
 const STATIC_CACHE = `time-tracker-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `time-tracker-dynamic-${CACHE_VERSION}`;
 

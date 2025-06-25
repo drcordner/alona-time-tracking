@@ -1,5 +1,14 @@
 # 🚀 Deployment Guide - Time Tracker PWA
 
+## ⚠️ Service Worker & Asset Path Requirements
+
+**IMPORTANT:**
+- The app may run in a subfolder (e.g., /alona-time-tracking) during local development, but is deployed at the root (/) in production.
+- All service worker and static asset paths (e.g., sw.js, manifest.json, images, etc.) **must be relative or dynamically resolved**.
+- **Never hardcode** root-relative paths like `/sw.js` or `/assets/...` unless you are certain the app will always be at root.
+- The service worker registration logic must detect the correct path for both environments. See `registerServiceWorker()` in `js/app.js` for an example.
+- This ensures the PWA works correctly both locally and in production, and avoids 404 errors for service worker registration.
+
 ## 📋 **Current Status**
 - **Production**: ✅ Live at `https://alona-time-tracking.netlify.app`
 - **Staging**: 🔄 To be configured at `https://staging-alona-time-tracking.netlify.app`

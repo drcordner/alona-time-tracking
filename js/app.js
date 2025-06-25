@@ -92,6 +92,7 @@ class TimeTrackerApp {
         window.showScreen = (screen) => this.showScreen(screen);
         window.stopTimer = () => this.getActiveTimer().stopTimer();
         window.togglePause = () => this.getActiveTimer().togglePause();
+        window.quickRestart = () => this.timer.quickRestart();
         window.setReportView = (view) => this.reports.setReportView(view);
         window.navigateDate = (direction) => this.reports.navigateDate(direction);
         
@@ -114,6 +115,11 @@ class TimeTrackerApp {
         
         // Check for auto-updates after everything loads
         setTimeout(() => this.checkForAutoUpdate(), 2000);
+
+        // Restore quick restart toast if needed (after everything is ready)
+        if (this.timer && this.timer.restoreQuickRestartFromStorage) {
+            this.timer.restoreQuickRestartFromStorage();
+        }
     }
 
     // Auto-update check functionality
@@ -159,6 +165,11 @@ class TimeTrackerApp {
 
     // Screen management
     showScreen(screenName) {
+        // Only clear quick restart toast when leaving home, not when entering
+        if (this.timer && this.timer.clearQuickRestart && this.currentScreen === 'home' && screenName !== 'home') {
+            this.timer.clearQuickRestart();
+        }
+        
         document.querySelectorAll('.screen').forEach(screen => {
             screen.classList.remove('active');
         });
@@ -465,7 +476,14 @@ class TimeTrackerApp {
     registerServiceWorker() {
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                // Dynamically determine the correct path for sw.js
+                // This works for both subfolder (local dev) and root (production)
+                let swPath = 'sw.js';
+                if (window.location.pathname && !window.location.pathname.endsWith('/')) {
+                    // If running in a subfolder, ensure sw.js is relative
+                    swPath = './sw.js';
+                }
+                navigator.serviceWorker.register(swPath)
                     .then(registration => {
                         console.log('✅ Service Worker registered with scope:', registration.scope);
                     })

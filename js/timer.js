@@ -16,6 +16,9 @@ export class Timer {
         this.isPaused = false;
         // Modal state
         this.adjustmentHistory = [];
+        // Quick restart state
+        this.recentlyStopped = null;
+        this.quickRestartTimeout = null;
         this.init();
     }
 
@@ -24,14 +27,27 @@ export class Timer {
     }
 
     setupEventListeners() {
+        console.log('[DEBUG] setupEventListeners() called');
+        
         // Pause/Resume
         const pauseBtn = document.getElementById('pause-button');
-        if (pauseBtn) pauseBtn.addEventListener('click', () => this.togglePause());
+        if (pauseBtn) {
+            console.log('[DEBUG] Found pause button, adding event listener');
+            pauseBtn.addEventListener('click', () => {
+                console.log('[DEBUG] Pause button clicked');
+                this.togglePause();
+            });
+        } else {
+            console.log('[DEBUG] WARNING: pause-button not found');
+        }
+        
         // Timer display (edit elapsed)
         const timerDisplay = document.getElementById('timer-display');
         const inlineTimePicker = document.getElementById('inline-time-picker');
         if (timerDisplay && inlineTimePicker) {
+            console.log('[DEBUG] Found timer display elements, adding event listeners');
             timerDisplay.addEventListener('click', () => {
+                console.log('[DEBUG] Timer display clicked');
                 // Prefill with current elapsed time (HH:MM:SS)
                 let elapsed = Math.floor((Date.now() - this.startTime) / 1000) - this.pausedTime;
                 if (this.isPaused && this.pauseStartTime) {
@@ -56,6 +72,7 @@ export class Timer {
             });
             // Only save on blur or Enter key
             function applyInlineTimeEdit() {
+                console.log('[DEBUG] Applying inline time edit');
                 const val = inlineTimePicker.value;
                 if (val) {
                     const parts = val.split(':');
@@ -81,17 +98,28 @@ export class Timer {
                     applyInlineTimeEdit.call(this);
                 }
             });
+        } else {
+            console.log('[DEBUG] WARNING: timer display elements not found');
         }
+        
         // Start time input
         const startTimeInput = document.getElementById('start-time');
-        if (startTimeInput) startTimeInput.addEventListener('change', (e) => this.handleStartTimeEdit(e));
+        if (startTimeInput) {
+            console.log('[DEBUG] Found start time input, adding event listener');
+            startTimeInput.addEventListener('change', (e) => this.handleStartTimeEdit(e));
+        } else {
+            console.log('[DEBUG] WARNING: start-time input not found');
+        }
+        
         // Elapsed time input (details section)
         const elapsedTimeInput = document.getElementById('elapsed-time');
         if (elapsedTimeInput) {
+            console.log('[DEBUG] Found elapsed time input, adding event listeners');
             elapsedTimeInput.addEventListener('focus', () => {
                 elapsedTimeInput.select();
             });
             elapsedTimeInput.addEventListener('change', () => {
+                console.log('[DEBUG] Elapsed time input changed');
                 const val = elapsedTimeInput.value;
                 if (val) {
                     const parts = val.split(':');
@@ -108,13 +136,31 @@ export class Timer {
                     this._refreshStartTimeInput();
                 }
             });
+        } else {
+            console.log('[DEBUG] WARNING: elapsed-time input not found');
         }
+        
         // Stop
         const stopBtn = document.getElementById('stop-button');
-        if (stopBtn) stopBtn.addEventListener('click', () => this.stopTimer());
+        if (stopBtn) {
+            console.log('[DEBUG] Found stop button, adding event listener');
+            stopBtn.addEventListener('click', () => {
+                console.log('[DEBUG] Stop button clicked');
+                this.stopTimer();
+            });
+        } else {
+            console.log('[DEBUG] WARNING: stop-button not found');
+        }
+        
         // Stop & Adjust
         const stopAdjustBtn = document.getElementById('stop-adjust-button');
-        if (stopAdjustBtn) stopAdjustBtn.addEventListener('click', () => this.showAdjustModal(true));
+        if (stopAdjustBtn) {
+            console.log('[DEBUG] Found stop-adjust button, adding event listener');
+            stopAdjustBtn.addEventListener('click', () => this.showAdjustModal(true));
+        } else {
+            console.log('[DEBUG] WARNING: stop-adjust-button not found');
+        }
+        
         // Modal: close
         const adjustCancel = document.getElementById('adjust-cancel');
         if (adjustCancel) adjustCancel.addEventListener('click', () => this.closeAdjustModal());
@@ -128,7 +174,9 @@ export class Timer {
         const adjStartTimeInput = document.getElementById('adjust-start-time');
         if (adjStartTimeInput) adjStartTimeInput.addEventListener('change', (e) => this.handleAdjustStartTimeChange(e));
         const adjElapsedInput = document.getElementById('adjust-elapsed-time');
-        if (adjElapsedInput) adjElapsedInput.addEventListener('change', (e) => this.handleAdjustElapsedTimeChange(e));
+        if (adjElapsedInput) {
+            adjElapsedInput.addEventListener('change', (e) => this.handleAdjustElapsedTimeChange(e));
+        }
         // Adjust dialog: sync Start, End, Elapsed
         const adjEndTimeInput = document.getElementById('adjust-end-time');
         if (adjStartTimeInput && adjElapsedInput) {
@@ -140,6 +188,8 @@ export class Timer {
         }
         // Ensure elapsed time input uses step=60 (minutes only)
         if (adjElapsedInput) adjElapsedInput.setAttribute('step', '60');
+        
+        console.log('[DEBUG] setupEventListeners() completed');
     }
 
     showAdjustModal(stopAfter = false) {
@@ -290,28 +340,41 @@ export class Timer {
     }
 
     startActivity(category, activity, recovery = false) {
+        // Always clear any previous timer interval
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
         this.currentCategory = category;
         this.currentActivity = activity;
         if (!recovery) {
             this.startTime = Date.now();
             this.pausedTime = 0;
             this.isPaused = false;
+            this.pauseStartTime = null;
         }
-        document.getElementById('current-activity-name').textContent = `${category} - ${activity}`;
+        const activityNameEl = document.getElementById('current-activity-name');
+        if (activityNameEl) activityNameEl.textContent = `${category} - ${activity}`;
         // Set initial today total time
         const todayTime = this.storage.getTodayTime(category, activity);
-        document.getElementById('today-total-time').textContent = formatTime(todayTime);
-        document.getElementById('timer-section').style.display = 'block';
-        document.getElementById('activity-list').style.display = 'none';
-        document.querySelector('.navigation').classList.add('navigation-disabled');
+        const todayTotalTimeEl = document.getElementById('today-total-time');
+        if (todayTotalTimeEl) todayTotalTimeEl.textContent = formatTime(todayTime);
+        const timerSection = document.getElementById('timer-section');
+        if (timerSection) timerSection.style.display = 'block';
+        const activityList = document.getElementById('activity-list');
+        if (activityList) activityList.style.display = 'none';
+        const nav = document.querySelector('.navigation');
+        if (nav) nav.classList.add('navigation-disabled');
         document.querySelectorAll('.activity-button').forEach(btn => { btn.disabled = true; });
-        this.showScreen('activity');
+        if (typeof this.showScreen === 'function') this.showScreen('activity');
         // Only update icon, not text
         const pauseIcon = document.getElementById('pause-icon');
         if (pauseIcon) pauseIcon.textContent = '⏸️';
         const pauseButton = document.getElementById('pause-button');
-        if (pauseButton) pauseButton.setAttribute('aria-label', 'Pause');
-        pauseButton.classList.remove('paused');
+        if (pauseButton) {
+            pauseButton.setAttribute('aria-label', 'Pause');
+            pauseButton.classList.remove('paused');
+        }
         this._updateTimerStatusUI();
         this.timerInterval = setInterval(() => this.updateTimerDisplay(), 1000);
         this.updateTimerDisplay();
@@ -374,13 +437,16 @@ export class Timer {
     }
 
     stopTimer() {
-        if (!this.timerInterval || !this.startTime) return;
+        // Allow stopping if we have a start time, even if interval is not set (Quick Restart scenario)
+        if (!this.startTime) return;
+        
         let elapsed = Math.floor((Date.now() - this.startTime) / 1000) - this.pausedTime;
         const endTime = Date.now();
         if (this.isPaused && this.pauseStartTime) {
             elapsed = Math.floor((this.pauseStartTime - this.startTime) / 1000) - this.pausedTime;
         }
         const categoryName = this.currentCategory;
+        const activityName = this.currentActivity;
         const sessionData = {
             id: `session_${this.startTime}_${Math.random().toString(36).substr(2, 9)}`,
             startTime: this.startTime,
@@ -388,7 +454,14 @@ export class Timer {
             pausedTime: this.pausedTime
         };
         this.storage.addTimeRecord(this.currentCategory, this.currentActivity, elapsed, new Date(), sessionData);
-        clearInterval(this.timerInterval);
+        
+        // Store recently stopped session BEFORE clearing state
+        this.storeRecentlyStopped(categoryName, activityName);
+        
+        // Now clear timer state
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
         this.timerInterval = null;
         this.startTime = null;
         this.pausedTime = 0;
@@ -399,6 +472,7 @@ export class Timer {
         document.getElementById('activity-list').style.display = 'block';
         document.querySelectorAll('.activity-button').forEach(btn => { btn.disabled = false; });
         this.storage.clearTimerState();
+        
         if (this.onTimerStop) {
             this.onTimerStop(categoryName);
         }
@@ -486,4 +560,238 @@ export class Timer {
         }
         return 0;
     }
+
+    // Quick Restart functionality
+    showQuickRestartToast() {
+        if (!this.recentlyStopped) return;
+        
+        // Clear any existing toast
+        this.clearQuickRestartToast();
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'quick-restart-toast';
+        toast.innerHTML = `
+            <span>Stopped by mistake?</span>
+            <button onclick="window.quickRestart()" class="quick-restart-btn">
+                Resume where you left off
+            </button>
+        `;
+        
+        // Add to DOM
+        document.body.appendChild(toast);
+        
+        // Debug log
+        console.log('[QuickRestart] Showing quick restart toast!', this.recentlyStopped);
+        
+        // Auto-remove after 60 seconds
+        this.quickRestartTimeout = setTimeout(() => {
+            this.clearQuickRestartToast();
+        }, 60000);
+        
+        // Add fade-in animation
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+    }
+
+    clearQuickRestartToast() {
+        const existingToast = document.querySelector('.quick-restart-toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        if (this.quickRestartTimeout) {
+            clearTimeout(this.quickRestartTimeout);
+            this.quickRestartTimeout = null;
+        }
+    }
+
+    // Re-establish all timer touchpoints after Quick Restart
+    reestablishTimerTouchpoints() {
+        console.log('[DEBUG] reestablishTimerTouchpoints() called');
+        console.log('[DEBUG] Current state:', {
+            category: this.currentCategory,
+            activity: this.currentActivity,
+            startTime: this.startTime,
+            pausedTime: this.pausedTime,
+            isPaused: this.isPaused,
+            timerInterval: !!this.timerInterval
+        });
+        
+        // 1. Render the activity screen UI
+        console.log('[DEBUG] Step 1: Rendering activity screen UI');
+        this.renderActivityScreen();
+        
+        // 2. Re-attach all event listeners (they may have been lost after DOM updates)
+        console.log('[DEBUG] Step 2: Re-attaching event listeners');
+        this.setupEventListeners();
+        
+        // 3. Ensure timer interval is properly managed
+        console.log('[DEBUG] Step 3: Managing timer interval');
+        if (this.timerInterval) {
+            console.log('[DEBUG] Clearing existing timer interval');
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+        
+        // 4. Start timer interval if timer should be running
+        if (!this.isPaused && this.startTime) {
+            console.log('[DEBUG] Timer is running - starting interval');
+            this.timerInterval = setInterval(() => {
+                console.log('[DEBUG] Timer interval fired - updating display');
+                this.updateTimerDisplay();
+            }, 1000);
+            this.updateTimerDisplay();
+        } else if (this.isPaused) {
+            console.log('[DEBUG] Timer is paused - not starting interval');
+            this.updateTimerDisplay();
+        }
+        
+        // 5. Save the restored state AFTER timer interval is established
+        console.log('[DEBUG] Step 4: Saving timer state');
+        this.saveTimerState();
+        
+        console.log('[DEBUG] Final state after re-establishment:', {
+            category: this.currentCategory,
+            activity: this.currentActivity,
+            startTime: this.startTime,
+            pausedTime: this.pausedTime,
+            isPaused: this.isPaused,
+            timerInterval: !!this.timerInterval
+        });
+        
+        console.log('[QuickRestart] Timer touchpoints re-established successfully');
+    }
+
+    quickRestart() {
+        console.log('[DEBUG] quickRestart() called');
+        console.log('[DEBUG] recentlyStopped data:', this.recentlyStopped);
+        
+        if (!this.recentlyStopped) {
+            console.log('[DEBUG] No recentlyStopped data - aborting');
+            return;
+        }
+        
+        this.clearQuickRestartToast();
+        
+        // Restore all state
+        const { category, activity, startTime, pausedTime, isPaused, pauseStartTime } = this.recentlyStopped;
+        console.log('[DEBUG] Restoring state:', { category, activity, startTime, pausedTime, isPaused, pauseStartTime });
+        
+        // Validate restored data
+        if (!category || !activity || !startTime) {
+            console.error('[DEBUG] Invalid restored data - aborting');
+            return;
+        }
+        
+        this.currentCategory = category;
+        this.currentActivity = activity;
+        this.startTime = startTime;
+        this.pausedTime = pausedTime || 0;
+        this.isPaused = isPaused || false;
+        this.pauseStartTime = pauseStartTime || null;
+        
+        console.log('[DEBUG] State restored, calling reestablishTimerTouchpoints()');
+        
+        // Re-establish all touchpoints in one clean call
+        this.reestablishTimerTouchpoints();
+        
+        // Clear the recently stopped data
+        this.recentlyStopped = null;
+        try { localStorage.removeItem('recentlyStopped'); } catch (e) {}
+        
+        console.log('[DEBUG] Quick restart completed');
+        this._showInlineToast('Timer restarted!');
+    }
+
+    // Render only the activity screen UI, do not touch timer state
+    renderActivityScreen() {
+        const activityNameEl = document.getElementById('current-activity-name');
+        if (activityNameEl) activityNameEl.textContent = `${this.currentCategory} - ${this.currentActivity}`;
+        const todayTime = this.storage.getTodayTime(this.currentCategory, this.currentActivity);
+        const todayTotalTimeEl = document.getElementById('today-total-time');
+        if (todayTotalTimeEl) todayTotalTimeEl.textContent = formatTime(todayTime);
+        const timerSection = document.getElementById('timer-section');
+        if (timerSection) timerSection.style.display = 'block';
+        const activityList = document.getElementById('activity-list');
+        if (activityList) activityList.style.display = 'none';
+        const nav = document.querySelector('.navigation');
+        if (nav) nav.classList.add('navigation-disabled');
+        document.querySelectorAll('.activity-button').forEach(btn => { btn.disabled = true; });
+        if (typeof this.showScreen === 'function') this.showScreen('activity');
+        
+        // Update pause button state based on current timer state
+        const pauseIcon = document.getElementById('pause-icon');
+        if (pauseIcon) pauseIcon.textContent = this.isPaused ? '▶️' : '⏸️';
+        const pauseButton = document.getElementById('pause-button');
+        if (pauseButton) {
+            pauseButton.setAttribute('aria-label', this.isPaused ? 'Resume' : 'Pause');
+            if (this.isPaused) {
+                pauseButton.classList.add('paused');
+            } else {
+                pauseButton.classList.remove('paused');
+            }
+        }
+        
+        // Update timer display once to show current state
+        this.updateTimerDisplay();
+        this._updateTimerStatusUI();
+    }
+
+    storeRecentlyStopped(category, activity) {
+        // Store all relevant session state for true recovery
+        const data = {
+            category: this.currentCategory,
+            activity: this.currentActivity,
+            startTime: this.startTime,
+            pausedTime: this.pausedTime,
+            isPaused: this.isPaused,
+            pauseStartTime: this.pauseStartTime,
+            timestamp: Date.now()
+        };
+        this.recentlyStopped = data;
+        // Persist to localStorage
+        try {
+            localStorage.setItem('recentlyStopped', JSON.stringify(data));
+        } catch (e) { console.warn('Could not persist recentlyStopped', e); }
+        this.showQuickRestartToast();
+    }
+
+    // Clear quick restart when starting a new timer or navigating away
+    clearQuickRestart() {
+        this.clearQuickRestartToast();
+        this.recentlyStopped = null;
+        // Remove from localStorage
+        try {
+            localStorage.removeItem('recentlyStopped');
+        } catch (e) { console.warn('Could not clear recentlyStopped', e); }
+    }
+
+    // Restore quick restart toast if within 60 seconds
+    restoreQuickRestartFromStorage() {
+        try {
+            const raw = localStorage.getItem('recentlyStopped');
+            if (raw) {
+                const data = JSON.parse(raw);
+                if (data && data.timestamp && (Date.now() - data.timestamp < 60000)) {
+                    this.recentlyStopped = data;
+                    this.showQuickRestartToast();
+                } else {
+                    localStorage.removeItem('recentlyStopped');
+                }
+            }
+        } catch (e) { console.warn('Could not restore recentlyStopped', e); }
+    }
+}
+
+// At the end of the file, add a global debug function
+if (typeof window !== 'undefined') {
+    window.debugShowQuickRestartToast = function() {
+        if (window.app && window.app.timer) {
+            window.app.timer.recentlyStopped = { category: 'Debug', activity: 'Test', timestamp: Date.now() };
+            window.app.timer.showQuickRestartToast();
+        } else {
+            console.warn('App or timer not available for debugShowQuickRestartToast');
+        }
+    };
 } 

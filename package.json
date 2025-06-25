@@ -1,6 +1,6 @@
 {
   "name": "alona-time-tracking",
-  "version": "5.3.7",
+  "version": "5.3.8",
   "description": "Streak calculation fix and elegant help page redesign",
   "main": "index.html",
   "type": "module",
